@@ -1,4 +1,4 @@
-import rigctllib
+import libs.rigctllib
 import socket
 import time
 import subprocess
@@ -30,7 +30,7 @@ def wait_for_port(port, host="localhost", timeout=5.0):
 def init_rigs(config, lcd, button):
     for side in ["down", "up"]:
         rig_init = False
-        rig = rigctllib.RigCtl(config[f"rig_{side}_config"])
+        rig = libs.rigctllib.RigCtl(config[f"rig_{side}_config"])
         while rig_init == False:
 
             try:
