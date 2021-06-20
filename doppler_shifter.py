@@ -40,7 +40,7 @@ def select_sat(r):
     global selected_sat_idx
     selected_sat_idx = r.steps
     lcd.clear()
-    lcd.write_string("SELECT SATELLITE")
+    lcd.write_string("SATELLITE LIST")
     lcd.crlf()
     lcd.crlf()
     lcd.write_string(
@@ -75,7 +75,7 @@ if config["enable_radios"]:
     rig_down = rigctllib.RigCtl(config["rig_down_config"])
 selected_sat_idx = 0
 lcd.clear()
-lcd.write_string("rotate to select sat")
+lcd.write_string("rotate knob to select a satellite")
 from_zone = tz.gettz("UTC")
 to_zone = tz.gettz(config["timezone"])
 
