@@ -1,7 +1,6 @@
 #%%
 import datetime
 import ephem
-import time
 from dateutil import tz
 import libs.rigctllib as rigctllib
 from sys import platform
@@ -13,10 +12,10 @@ from libs.lcdlib import *
 import RPi.GPIO as GPIO
 from threading import Event
 import libs.rigstarterlib
+from gpiozero import RotaryEncoder, Button
 
 gpio_pins = ["CLK", "DT", "SW"]
 selected_sat_idx = 0
-from gpiozero import RotaryEncoder, Button
 
 
 def get_range(up, down):
@@ -138,10 +137,7 @@ def tuneup(r):
 
 rotor.close()
 rotor = RotaryEncoder(
-    config["gpio_pins"]["CLK"],
-    config["gpio_pins"]["DT"],
-    max_steps=1,
-    wrap=False,
+    config["gpio_pins"]["CLK"], config["gpio_pins"]["DT"], max_steps=1, wrap=False
 )
 rotor.when_rotated = tuneup
 

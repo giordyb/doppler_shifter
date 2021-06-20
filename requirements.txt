@@ -1,5 +1,5 @@
-pygame
 RPLCD
 ephem
 pytz
 python-dateutil
+gpiozero

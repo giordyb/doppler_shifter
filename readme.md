@@ -6,11 +6,13 @@ it is designed to run on a raspberry pi with a 4x20 lcd screen connected via SPI
 
 The LCD and rotary tool
 
-![Alt text](./lcd.jpg?raw=true "Title")
+![lcd and rotary tool](./lcd.jpg?raw=true "lcd and rotary tool")
 
 doppler shifter controlling a Kenwood TH-D74 and a Icom IC-705
 
-![Alt text](./image1.png?raw=true "Title")
+![running](./image1.png?raw=true "running")
 
 
-it supports any rig 
+it supports any rig compatible with Hamlib
+
+here is a video of it running: https://youtu.be/zTdj3pQJ4dA

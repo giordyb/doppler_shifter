@@ -7,5 +7,4 @@ sudo systemctl stop rigdown
 
 export PYTHONPATH=/home/pi/doppler_shifter:$PYTHONPATH
 
-/usr/bin/python3 /home/pi/doppler_shifter/print-lcd.py "start doppler_shifter?"
 /usr/bin/python3 /home/pi/doppler_shifter/doppler_shifter.py
