@@ -13,6 +13,7 @@ import RPi.GPIO as GPIO
 from threading import Event
 import libs.rigstarterlib
 from gpiozero import RotaryEncoder, Button
+import subprocess
 
 gpio_pins = ["CLK", "DT", "SW"]
 selected_sat_idx = 0
@@ -33,7 +34,10 @@ def selected_sat():
     done.set()
 
 
-7
+def shutdown_raspi():
+    lcd.clear()
+    lcd.write_string(f"shutting down")
+    subprocess.run(["sudo", "poweroff"])
 
 
 def select_sat(r):
@@ -57,7 +61,7 @@ def select_sat(r):
 
 with open("config/config.json", "r") as f:
     config = json.load(f)
-button = Button(config["gpio_pins"]["SW"])
+button = Button(config["gpio_pins"]["SW"], hold_time=5)
 libs.rigstarterlib.init_rigs(config, lcd, button)
 rotor = RotaryEncoder(
     config["gpio_pins"]["CLK"],
@@ -68,6 +72,7 @@ rotor = RotaryEncoder(
 
 rotor.when_rotated = select_sat
 button.when_pressed = selected_sat
+button.when_held = shutdown_raspi
 
 
 if config["enable_radios"]:
@@ -140,6 +145,7 @@ rotor = RotaryEncoder(
     config["gpio_pins"]["CLK"], config["gpio_pins"]["DT"], max_steps=1, wrap=False
 )
 rotor.when_rotated = tuneup
+
 
 while True:
     obs.date = datetime.datetime.utcnow()
