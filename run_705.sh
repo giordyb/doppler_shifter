@@ -1,0 +1,1 @@
+/usr/local/bin/rigctld -m 3085 -c 0xA4h -r /dev/ttyUSB-ic70500

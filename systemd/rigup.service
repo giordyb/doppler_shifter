@@ -1,0 +1,13 @@
+[Unit]
+Description=rigctld ic705 
+After=syslog.target network.target
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/rigctld -m 3085 -c 0xA4h -r /dev/ttyUSB-ic705-00 -vvv
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=60
+Restart=always
+User=root
+Group=root
+[Install]
+WantedBy=multi-user.target
