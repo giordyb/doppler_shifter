@@ -34,10 +34,13 @@ def selected_sat():
     done.set()
 
 
+7
+
+
 def select_sat(r):
     global selected_sat_idx
     selected_sat_idx = r.steps
-    lcd.home()
+    lcd.clear()
     lcd.write_string("SELECT SATELLITE")
     lcd.crlf()
     lcd.crlf()
