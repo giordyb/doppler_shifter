@@ -62,7 +62,8 @@ def select_sat(r):
 
 with open("config/config.json", "r") as f:
     config = json.load(f)
-button = Button(config["gpio_pins"]["SW"], hold_time=5)
+button = Button(config["gpio_pins"]["SW"], hold_time=3)
+button.when_held = shutdown_raspi
 libs.rigstarterlib.init_rigs(config, lcd, button)
 rotor = RotaryEncoder(
     config["gpio_pins"]["CLK"],
@@ -73,7 +74,6 @@ rotor = RotaryEncoder(
 
 rotor.when_rotated = select_sat
 button.when_pressed = selected_sat
-button.when_held = shutdown_raspi
 
 
 if config["enable_radios"]:
