@@ -36,7 +36,7 @@ def init_rigs(config, lcd, button):
             try:
                 lcd.clear()
                 lcd.write_string(
-                    f"turn on {side}link rig and press the rotary encoder button"
+                    f"turn on {side}link rig\n\rand press the rotary\n\rencoder button"
                 )
                 button.wait_for_press()
                 subprocess.run(["sudo", "systemctl", "restart", f"rig{side}"])
@@ -51,16 +51,16 @@ def init_rigs(config, lcd, button):
                 if change_mode_result == "RPRT 0":
 
                     lcd.clear()
-                    lcd.write_string(f"{side}link rig started")
+                    lcd.write_string(f"{side}link rig\n\rstarted")
                     button.wait_for_press()
                     rig_init = True
                 else:
                     lcd.clear()
-                    lcd.write_string(f"{side}link rig error")
+                    lcd.write_string(f"{side}link rig\n\rerror")
                     button.wait_for_press()
                     rig_init = False
 
             except (ConnectionRefusedError, TimeoutError):
                 lcd.clear()
-                lcd.write_string(f"error starting {side}link rig rigctld service")
+                lcd.write_string(f"error starting\n\r{side}link rig\n\rrigctld service")
                 button.wait_for_press()
