@@ -1,1 +1,0 @@
-/usr/local/bin/rigctld -t 4533 -m 2042 -r /dev/ttyUSB-d74
