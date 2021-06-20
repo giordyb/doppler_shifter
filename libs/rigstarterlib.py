@@ -28,6 +28,9 @@ def wait_for_port(port, host="localhost", timeout=5.0):
 
 
 def init_rigs(config, lcd, button):
+    lcd.clear()
+    lcd.write_string(f"press rotary encoder\n\rto start")
+    button.wait_for_press()
     for side in ["down", "up"]:
         rig_init = False
         rig = libs.rigctllib.RigCtl(config[f"rig_{side}_config"])
