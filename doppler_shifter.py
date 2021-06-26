@@ -26,23 +26,19 @@ def get_range(up, down):
         return range(up, down)
 
 
-done = Event()
-lcd = init_lcd()
-
-
-def selected_sat():
+def selected_sat(button, done):
     done.set()
 
 
-def shutdown_raspi(button):
+def shutdown_raspi(button, lcd):
     lcd.clear()
     lcd.write_string(f"shutting down")
     subprocess.run(["sudo", "poweroff"])
 
 
-def select_sat(r):
+def select_sat(rotary, lcd):
     global selected_sat_idx
-    selected_sat_idx = r.steps
+    selected_sat_idx = rotary.steps
     lcd.clear()
     lcd.write_string("SATELLITE LIST")
     lcd.crlf()
@@ -59,20 +55,48 @@ def select_sat(r):
         lcd.write_string("No Tone".ljust(20, " "))
 
 
+def tuneup(rotary, config, sat_down_range, sat_up_range):
+    global rit
+    global button
+    global current_down
+    global current_up
+    nextfrequp = current_up
+    nextfreqdown = current_down
+    if button.is_pressed:
+        nextfrequp -= rotary.steps * config["rotary_step"]
+    else:
+        nextfrequp -= rotary.steps * config["rotary_step"]
+        nextfreqdown += rotary.steps * config["rotary_step"]
+    print(f"uprange{sat_up_range}")
+    print(f"uplink: {nextfrequp}")
+
+    print(f"down range{sat_down_range}")
+    print(f"downlink: {nextfreqdown}")
+    print(f"step: {rotary.steps}")
+    print(nextfreqdown in sat_down_range)
+    print(nextfrequp in sat_up_range)
+    if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
+        current_down = nextfreqdown
+        current_up = nextfrequp
+
+
+done = Event()
+lcd = init_lcd()
+
 with open("config/config.json", "r") as f:
     config = json.load(f)
 button = Button(config["gpio_pins"]["SW"], hold_time=3)
-button.when_held = shutdown_raspi
+# button.when_held = lambda: shutdown_raspi(button, lcd)
 libs.rigstarterlib.init_rigs(config, lcd, button)
-rotor = RotaryEncoder(
+rotary = RotaryEncoder(
     config["gpio_pins"]["CLK"],
     config["gpio_pins"]["DT"],
     max_steps=len(SAT_LIST),
     wrap=True,
 )
 
-rotor.when_rotated = select_sat
-button.when_pressed = selected_sat
+rotary.when_rotated = lambda: select_sat(rotary, lcd)
+button.when_pressed = lambda: selected_sat(button, done)
 
 
 if config["enable_radios"]:
@@ -119,34 +143,13 @@ current_down = SELECTED_SAT["down_center"]
 current_up = SELECTED_SAT["up_center"]
 
 
-def tuneup(r):
-    global current_down
-    global current_up
-    global config
-    global sat_down_range
-    global sat_up_range
-    nextfreqdown = current_down + (r.steps * config["rotary_step"])
-    nextfrequp = current_up - (r.steps * config["rotary_step"])
-    print(f"uprange{sat_up_range}")
-    print(f"uplink: {nextfrequp}")
-
-    print(f"down range{sat_down_range}")
-    print(f"downlink: {nextfreqdown}")
-    print(f"step: {r.steps}")
-    print(nextfreqdown in sat_down_range)
-    print(nextfrequp in sat_up_range)
-    if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
-        current_down = nextfreqdown
-        current_up = nextfrequp
-
-
-rotor.close()
-rotor = RotaryEncoder(
+rotary.close()
+rotary = RotaryEncoder(
     config["gpio_pins"]["CLK"], config["gpio_pins"]["DT"], max_steps=1, wrap=False
 )
-rotor.when_rotated = tuneup
+rotary.when_rotated = lambda: tuneup(rotary, config, sat_down_range, sat_up_range)
 
-
+rit = 0
 while True:
     obs.date = datetime.datetime.utcnow()
     satellite.compute(obs)
@@ -168,4 +171,5 @@ while True:
         shift_up,
         shift_down,
         SELECTED_SAT,
+        rit,
     )
