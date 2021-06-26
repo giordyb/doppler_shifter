@@ -35,7 +35,6 @@ def selected_sat():
 
 
 def shutdown_raspi(button):
-    button.close()
     lcd.clear()
     lcd.write_string(f"shutting down")
     subprocess.run(["sudo", "poweroff"])
