@@ -10,7 +10,6 @@ def write_lcd_loop(
     shift_up,
     shift_down,
     SELECTED_SAT,
-    rit,
 ):
     lcd.home()
     lcd.write_string("\x00 ")
