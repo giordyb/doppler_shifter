@@ -48,7 +48,7 @@ SAT_LIST = [
         "inverting": True,
     },
     {
-        "satname": "AO-7",
+        "satname": "AO-07",
         "up_mode": "LSB",
         "up_start": 432175000,
         "up_center": 432150000,
@@ -154,10 +154,9 @@ SAT_LIST = [
         "down_center": 145990000,
         "down_end": 145990000,
         "inverting": False,
-        "tone": "67Hz"
-
+        "tone": "67Hz",
     },
-     {
+    {
         "satname": "SO-50",
         "up_mode": "FM",
         "up_start": 436795000,
@@ -168,6 +167,6 @@ SAT_LIST = [
         "down_center": 145850000,
         "down_end": 145850000,
         "inverting": False,
-        "tone": "67Hz"
+        "tone": "67Hz",
     },
 ]
