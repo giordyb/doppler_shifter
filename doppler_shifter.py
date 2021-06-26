@@ -122,12 +122,7 @@ with open("config/config.json", "r") as f:
 button = Button(config["gpio_pins"]["SW"], hold_time=10)
 button.when_held = exit_loop
 libs.rigstarterlib.init_rigs(config, lcd, button)
-rotary = RotaryEncoder(
-    config["gpio_pins"]["CLK"],
-    config["gpio_pins"]["DT"],
-    max_steps=len(SAT_LIST),
-    wrap=True,
-)
+
 
 if config["enable_radios"]:
     rig_up = rigctllib.RigCtl(config["rig_up_config"])
@@ -135,7 +130,12 @@ if config["enable_radios"]:
 
 while True:
     done = Event()
-
+    rotary = RotaryEncoder(
+        config["gpio_pins"]["CLK"],
+        config["gpio_pins"]["DT"],
+        max_steps=len(SAT_LIST),
+        wrap=True,
+    )
     selected_sat_idx = 0
 
     rotary.when_rotated = lambda: select_sat(rotary, lcd)
