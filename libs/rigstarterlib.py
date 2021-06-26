@@ -50,7 +50,7 @@ def init_rigs(config, lcd, button):
                     timeout=10,
                 )
 
-                change_mode_result = rig.set_mode(mode="FM")
+                change_mode_result = rig.set_mode(mode="AM")
                 if change_mode_result == "RPRT 0":
 
                     lcd.clear()
