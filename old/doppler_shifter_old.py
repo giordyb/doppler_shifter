@@ -73,7 +73,7 @@ def clicked_freqmenu(channel):
 def main():
     with open("config/config.json", "r") as f:
         config = json.load(f)
-    rotor = RotaryEncoder(config["gpio_pins"]["CLK"],config["gpio_pins"]["DT"])
+    rotary = RotaryEncoder(config["gpio_pins"]["CLK"], config["gpio_pins"]["DT"])
 
     if config["enable_radios"]:
         rig_up = rigctllib.RigCtl(config["rig_up_config"])
