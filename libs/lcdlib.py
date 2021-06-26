@@ -10,16 +10,17 @@ def write_lcd_loop(
     shift_up,
     shift_down,
     SELECTED_SAT,
+    rit,
 ):
     lcd.home()
     lcd.write_string("\x00 ")
-    lcd.write_string(f"{int(current_up):,.0f} +{abs(shift_up)}")
+    lcd.write_string(f"{int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}")
     lcd.crlf()
     lcd.write_string("\x00 ")
     lcd.write_string(f"{int(shifted_up):,.0f} {SELECTED_SAT['up_mode']}")
     lcd.crlf()
     lcd.write_string("\x01 ")
-    lcd.write_string(f"{int(current_down):,.0f} -{abs(shift_down)}")
+    lcd.write_string(f"{int(current_down):,.0f} -{str(abs(shift_down)).zfill(5)}")
     lcd.crlf()
 
     lcd.write_string("\x01 ")
