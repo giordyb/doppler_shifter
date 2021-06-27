@@ -10,15 +10,26 @@ def write_lcd_loop(
     shift_up,
     shift_down,
     SELECTED_SAT,
+    sat_up_range,
+    sat_down_range,
 ):
+
     lcd.home()
-    lcd.write_string("\x00 ")
+    if current_up not in sat_up_range:
+        lcd.write_string("xx")
+    else:
+        lcd.write_string("\x00 ")
     lcd.write_string(f"{int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}")
     lcd.crlf()
     lcd.write_string("\x00 ")
     lcd.write_string(f"{int(shifted_up):,.0f} {SELECTED_SAT['up_mode']}")
     lcd.crlf()
-    lcd.write_string("\x01 ")
+    if current_down == SELECTED_SAT.get("beacon", None):
+        lcd.write_string("BC")
+    elif current_down not in sat_down_range:
+        lcd.write_string("xx")
+    else:
+        lcd.write_string("\x01 ")
     lcd.write_string(f"{int(current_down):,.0f} -{str(abs(shift_down)).zfill(5)}")
     lcd.crlf()
 

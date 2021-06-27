@@ -10,6 +10,7 @@ SAT_LIST = [
         "down_end": 435670000,
         "down_mode": "USB",
         "inverting": True,
+        "beacon": 435605000,
     },
     {
         "satname": "CAS-4A",
@@ -22,6 +23,7 @@ SAT_LIST = [
         "down_center": 145870000,
         "down_end": 145880000,
         "inverting": True,
+        "beacon": 145855000,
     },
     {
         "satname": "CAS-4B",
@@ -34,6 +36,7 @@ SAT_LIST = [
         "down_center": 145925000,
         "down_end": 145935000,
         "inverting": True,
+        "beacon": 145910000,
     },
     {
         "satname": "TO-108",

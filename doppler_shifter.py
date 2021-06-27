@@ -21,9 +21,9 @@ selected_sat_idx = 0
 
 def get_range(up, down):
     if up > down:
-        return range(down, up)
+        return range(down, up + 1)
     else:
-        return range(up, down)
+        return range(up, down + 1)
 
 
 def selected_sat(button, done):
@@ -80,12 +80,12 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign):
     print(f"step: {sign}")
     print(nextfreqdown in sat_down_range)
     print(nextfrequp in sat_up_range)
-    if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
-        current_down = nextfreqdown
-        current_up = nextfrequp
+    # if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
+    current_down = nextfreqdown
+    current_up = nextfrequp
 
 
-def sat_loop(obs, satellite, config):
+def sat_loop(obs, satellite, config, sat_up_range, sat_down_range):
     global rig_up
     global rig_down
     global current_up
@@ -112,6 +112,8 @@ def sat_loop(obs, satellite, config):
             shift_up,
             shift_down,
             SELECTED_SAT,
+            sat_up_range,
+            sat_down_range,
         )
 
 
@@ -190,7 +192,9 @@ while True:
 
     run_loop = True
 
-    loop_thread = Thread(target=sat_loop, args=(obs, satellite, config))
+    loop_thread = Thread(
+        target=sat_loop, args=(obs, satellite, config, sat_up_range, sat_down_range)
+    )
     loop_thread.start()
     loop_thread.join()
     rotary.close()
