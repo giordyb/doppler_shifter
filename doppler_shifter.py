@@ -60,7 +60,7 @@ def select_sat(rotary, lcd):
         lcd.write_string("No Tone".ljust(20, " "))
 
 
-def tuneup(rotary, config, sat_down_range, sat_up_range):
+def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign):
     global rit
     global button
     global current_down
@@ -68,16 +68,16 @@ def tuneup(rotary, config, sat_down_range, sat_up_range):
     nextfrequp = current_up
     nextfreqdown = current_down
     if button.is_pressed:
-        nextfrequp -= rotary.steps * config["rotary_step"]
+        nextfrequp -= sign * config["rotary_step"]
     else:
-        nextfrequp -= rotary.steps * config["rotary_step"]
-        nextfreqdown += rotary.steps * config["rotary_step"]
+        nextfrequp -= sign * config["rotary_step"]
+        nextfreqdown += sign * config["rotary_step"]
     print(f"uprange{sat_up_range}")
     print(f"uplink: {nextfrequp}")
 
     print(f"down range{sat_down_range}")
     print(f"downlink: {nextfreqdown}")
-    print(f"step: {rotary.steps}")
+    print(f"step: {sign}")
     print(nextfreqdown in sat_down_range)
     print(nextfrequp in sat_up_range)
     if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
@@ -133,7 +133,7 @@ while True:
     rotary = RotaryEncoder(
         config["gpio_pins"]["CLK"],
         config["gpio_pins"]["DT"],
-        max_steps=len(SAT_LIST)-1,
+        max_steps=len(SAT_LIST) - 1,
         wrap=True,
     )
     selected_sat_idx = 0
@@ -181,10 +181,16 @@ while True:
     rotary = RotaryEncoder(
         config["gpio_pins"]["CLK"], config["gpio_pins"]["DT"], max_steps=1, wrap=False
     )
-    rotary.when_rotated = lambda: tuneup(rotary, config, sat_down_range, sat_up_range)
+    rotary.when_rotated_clockwise = lambda: tune_vfo(
+        rotary, config, sat_down_range, sat_up_range, -1
+    )
+    rotary.when_rotated_counter_clockwise = lambda: tune_vfo(
+        rotary, config, sat_down_range, sat_up_range, +1
+    )
 
     run_loop = True
 
     loop_thread = Thread(target=sat_loop, args=(obs, satellite, config))
     loop_thread.start()
     loop_thread.join()
+    rotary.close()
