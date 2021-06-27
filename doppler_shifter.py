@@ -133,7 +133,7 @@ while True:
     rotary = RotaryEncoder(
         config["gpio_pins"]["CLK"],
         config["gpio_pins"]["DT"],
-        max_steps=len(SAT_LIST),
+        max_steps=len(SAT_LIST)-1,
         wrap=True,
     )
     selected_sat_idx = 0
