@@ -43,4 +43,8 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
     + sudo cp *.service /etc/systemd/system/
 14. reload the systemd daemon 
     + sudo systemctl daemon-reload
-
+15. test it manually by running the script
+    + python3 doppler_shifter.py
+16. if everything works then you can add the wrapper script to crontab
+    + crontab -e
+    + @reboot /home/pi/doppler_shifter/wrapper.sh
