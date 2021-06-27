@@ -17,5 +17,8 @@ doppler shifter controlling a Kenwood TH-D74 and a Icom IC-705
 
 it supports any rig compatible with Hamlib
 
-here is a video of it running: https://youtu.be/zTdj3pQJ4dA
+[here is a video of it running](https://youtu.be/zTdj3pQJ4dA)
 
+[here are the install instructions](https://github.com/giordyb/doppler_shifter/blob/5015b8ee5b41cb8cf3b3a181e51b40ee519a29c2/install.md)
+
+* added feature: turning the rotary wheel while pressing it will change only the uplink frequency
