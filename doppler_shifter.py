@@ -119,7 +119,7 @@ lcd = init_lcd()
 
 with open("config/config.json", "r") as f:
     config = json.load(f)
-button = Button(config["gpio_pins"]["SW"], hold_time=10)
+button = Button(config["gpio_pins"]["SW"], hold_time=20)
 button.when_held = exit_loop
 libs.rigstarterlib.init_rigs(config, lcd, button)
 
