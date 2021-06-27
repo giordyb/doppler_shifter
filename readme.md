@@ -19,4 +19,3 @@ it supports any rig compatible with Hamlib
 
 here is a video of it running: https://youtu.be/zTdj3pQJ4dA
 
-

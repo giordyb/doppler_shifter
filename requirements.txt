@@ -3,3 +3,4 @@ ephem
 pytz
 python-dateutil
 gpiozero
+smbus2
