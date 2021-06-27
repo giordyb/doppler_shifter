@@ -1,5 +1,5 @@
 {
-    "rotary_step": 250,
+    "rotary_step": 100,
     "timezone": "Europe/Rome",
     "gpio_pins": {
         "CLK": 17,
