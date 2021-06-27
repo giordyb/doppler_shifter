@@ -24,27 +24,30 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
     + git clone https://github.com/Hamlib/Hamlib.git
 4. clone this repository 
     + git clone https://github.com/giordyb/doppler_shifter.git
-4. install the requirements to build hamlib 
+5. install the requirements to build hamlib 
     + sudo apt-get install automake libtool -y
-5. cd into the Hamlib directory 
+6. cd into the Hamlib directory 
     + cd Hamlib
-6. execute ./bootstrap
-7. execute ./configure
-8. execute make -j4 && sudo make install
-9. refresh the ld library cache
+7. execute ./bootstrap
+8. execute ./configure
+9. execute make -j4 && sudo make install
+10. refresh the ld library cache
     + sudo ldconfig
-10. cd into the doppler_shifter folder 
+11. cd into the doppler_shifter folder 
     + cd ../doppler_shifter
-11. install the required libraries 
+12. install the required libraries 
     + pip3 install -r requirements.txt
-12. copy the 99-serial-usb.rules file in /etc/udev/rules.d/ 
+13. copy the 99-serial-usb.rules file in /etc/udev/rules.d/ 
     + sudo cp 99-serial-usb.rules /etc/udev/rules.d/
-13. copy the .service files in the systemd folder in /etc/systemd/system/ 
+14. copy the .service files in the systemd folder in /etc/systemd/system/ 
     + sudo cp *.service /etc/systemd/system/
-14. reload the systemd daemon 
+15. reload the systemd daemon 
     + sudo systemctl daemon-reload
-15. test it manually by running the script
+16. edit the config/config.json file and adjust the settings. 
+    + If you are using the same equiment as me you only need to edit the observer_conf and the timezone which are used to calculate the doopler shift.
+    + you can also change the step size
+17. test it manually by running the script
     + python3 doppler_shifter.py
-16. if everything works then you can add the wrapper script to crontab
+18. if everything works then you can add the wrapper script to crontab
     + crontab -e
     + @reboot /home/pi/doppler_shifter/wrapper.sh
