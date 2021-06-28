@@ -85,6 +85,7 @@ SAT_LIST = [
         "down_center": 145675000,
         "down_end": 145685000,
         "inverting": True,
+        "beacon": 145660000,
     },
     {
         "satname": "XW-2B",
@@ -97,6 +98,7 @@ SAT_LIST = [
         "down_center": 145740000,
         "down_end": 145750000,
         "inverting": True,
+        "beacon": 145725000,
     },
     {
         "satname": "XW-2C",
@@ -109,6 +111,7 @@ SAT_LIST = [
         "down_center": 145805000,
         "down_end": 145815000,
         "inverting": True,
+        "beacon": 145790000,
     },
     {
         "satname": "XW-2D",
@@ -121,6 +124,7 @@ SAT_LIST = [
         "down_center": 145870000,
         "down_end": 145880000,
         "inverting": True,
+        "beacon": 145855000,
     },
     {
         "satname": "XW-2F",
@@ -133,6 +137,7 @@ SAT_LIST = [
         "down_center": 145990000,
         "down_end": 145980000,
         "inverting": True,
+        "beacon": 145795000,
     },
     {
         "satname": "AO-73",
@@ -145,6 +150,7 @@ SAT_LIST = [
         "down_center": 145960000,
         "down_end": 145950000,
         "inverting": True,
+        "beacon": 145935000,
     },
     {
         "satname": "ISS",
