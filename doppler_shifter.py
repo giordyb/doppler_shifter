@@ -123,6 +123,10 @@ with open("config/config.json", "r") as f:
     config = json.load(f)
 button = Button(config["gpio_pins"]["SW"], hold_time=20)
 button.when_held = exit_loop
+try:
+    update_tles(config["sat_url"])
+except:
+    print("error downloading tles")
 libs.rigstarterlib.init_rigs(config, lcd, button)
 
 
@@ -153,11 +157,6 @@ while True:
     print(f"selected sat {SAT_LIST[selected_sat_idx]['satname']}")
 
     SELECTED_SAT = SAT_LIST[selected_sat_idx]
-
-    try:
-        update_tles(config["sat_url"])
-    except:
-        print("error downloading tles")
 
     sat = get_tles(SELECTED_SAT["satname"])
 
