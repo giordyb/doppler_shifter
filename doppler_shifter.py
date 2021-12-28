@@ -14,7 +14,7 @@ from threading import Event, Thread
 import libs.rigstarterlib
 from gpiozero import RotaryEncoder, Button
 import subprocess
-
+import time
 
 
 gpio_pins = ["CLK", "DT", "SW"]
@@ -127,8 +127,14 @@ button = Button(config["gpio_pins"]["SW"], hold_time=20)
 button.when_held = exit_loop
 try:
     update_tles(config["sat_url"])
+    lcd.clear()
+    lcd.write_string("successfully downloaded tles")
+    time.sleep(3)
     print("successfully downloaded tles")
 except:
+    lcd.clear()
+    lcd.write_string("error downloading tles")
+    time.sleep(3)
     print("error downloading tles")
 libs.rigstarterlib.init_rigs(config, lcd, button)
 
