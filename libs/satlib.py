@@ -3,15 +3,6 @@ import urllib.request
 
 def get_tles(sat_name):
 
-    XW3_TLES = """
-    XW-3
-    1 99999U 21360.14997609  .00000032  00000-0  10363-4 0 00007
-    2 99999 098.5836 072.3686 0004232 307.2415 261.3002 14.38559758000156
-    """
-    file1 = open("config/nasabare.txt", "a")  # append mode
-    file1.write(XW3_TLES)
-    file1.close()
-
     with open("config/nasabare.txt", "r") as f:
         sat_tle = f.readlines()
         tles = [item.strip() for item in sat_tle]
@@ -31,6 +22,14 @@ def xrange(x, y, z):
 def update_tles(sat_url):
     with open("config/nasabare.txt", "w") as f:
         f.write(urllib.request.urlopen(sat_url).read().decode())
+    XW3_TLES = """
+    XW-3
+    1 99999U 21360.14997609  .00000032  00000-0  10363-4 0 00007
+    2 99999 098.5836 072.3686 0004232 307.2415 261.3002 14.38559758000156
+    """
+    file1 = open("config/nasabare.txt", "a")  # append mode
+    file1.write(XW3_TLES)
+    file1.close()
 
 
 def get_doppler_shift(frequency, velocity):
