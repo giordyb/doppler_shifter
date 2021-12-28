@@ -2,6 +2,16 @@ import urllib.request
 
 
 def get_tles(sat_name):
+
+    XW3_TLES = """
+    XW-3
+    1 99999U 21360.14997609  .00000032  00000-0  10363-4 0 00007
+    2 99999 098.5836 072.3686 0004232 307.2415 261.3002 14.38559758000156
+    """
+    file1 = open("config/nasabare.txt", "a")  # append mode
+    file1.write(XW3_TLES)
+    file1.close()
+
     with open("config/nasabare.txt", "r") as f:
         sat_tle = f.readlines()
         tles = [item.strip() for item in sat_tle]
@@ -9,6 +19,7 @@ def get_tles(sat_name):
             (tles[i], tles[i + 1], tles[i + 2]) for i in xrange(0, len(tles) - 2, 3)
         ]
         sat = [x for x in tles if x[0] == sat_name][0]
+        
         return sat
 
 

@@ -15,6 +15,8 @@ import libs.rigstarterlib
 from gpiozero import RotaryEncoder, Button
 import subprocess
 
+
+
 gpio_pins = ["CLK", "DT", "SW"]
 selected_sat_idx = 0
 
