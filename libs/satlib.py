@@ -29,7 +29,7 @@ def xrange(x, y, z):
 
 
 def update_tles(sat_url):
-    with open("nasabare.txt", "w") as f:
+    with open("config/nasabare.txt", "w") as f:
         f.write(urllib.request.urlopen(sat_url).read().decode())
 
 
