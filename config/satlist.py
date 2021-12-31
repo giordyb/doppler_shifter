@@ -43,7 +43,7 @@ SAT_LIST = [
     },
     {
         "name": "CAS-6 (TIANQIN 1)",
-        "display_name": "TO108/CAS6",
+        "display_name": "TO-108/CAS-6",
         "up_mode": "LSB",
         "up_start": 435290000,
         "up_center": 435280000,
@@ -56,7 +56,7 @@ SAT_LIST = [
     },
     {
         "name": "OSCAR 7 (AO-7)",
-        "display_name": "AO-07",
+        "display_name": "OSCAR 7 (AO-7)",
         "up_mode": "LSB",
         "up_start": 432175000,
         "up_center": 432150000,
@@ -69,7 +69,7 @@ SAT_LIST = [
     },
     {
         "name": "NAYIF-1 (EO-88)",
-        "display_name": "EO-88",
+        "display_name": "NAYIF-1 (EO-88)",
         "up_mode": "LSB",
         "up_start": 435045000,
         "up_center": 435030000,
@@ -152,7 +152,7 @@ SAT_LIST = [
     },
     {
         "name": "XW-3 (CAS-9)",
-        "display_name": "XW-3",
+        "display_name": "XW-3 (CAS-9)",
         "up_mode": "LSB",
         "up_start": 145855000,
         "up_center": 145870000,
