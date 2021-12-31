@@ -4,3 +4,4 @@ pytz
 python-dateutil
 gpiozero
 smbus2
+gps3

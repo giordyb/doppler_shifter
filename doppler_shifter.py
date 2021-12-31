@@ -15,7 +15,21 @@ import libs.rigstarterlib
 from gpiozero import RotaryEncoder, Button
 import subprocess
 import time
+import logging
+from libs.gpslib import poll_gps
 
+logFormatter = logging.Formatter(
+    "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
+)
+rootLogger = logging.getLogger()
+
+fileHandler = logging.FileHandler("/var/log/doppler_shifter.log")
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
 
 gpio_pins = ["CLK", "DT", "SW"]
 selected_sat_idx = 0
@@ -74,14 +88,14 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign):
     else:
         nextfrequp -= sign * config["rotary_step"]
         nextfreqdown += sign * config["rotary_step"]
-    print(f"uprange{sat_up_range}")
-    print(f"uplink: {nextfrequp}")
+    rootLogger.warning(f"uprange{sat_up_range}")
+    rootLogger.warning(f"uplink: {nextfrequp}")
 
-    print(f"down range{sat_down_range}")
-    print(f"downlink: {nextfreqdown}")
-    print(f"step: {sign}")
-    print(nextfreqdown in sat_down_range)
-    print(nextfrequp in sat_up_range)
+    rootLogger.warning(f"down range{sat_down_range}")
+    rootLogger.warning(f"downlink: {nextfreqdown}")
+    rootLogger.warning(f"step: {sign}")
+    rootLogger.warning(nextfreqdown in sat_down_range)
+    rootLogger.warning(nextfrequp in sat_up_range)
     # if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
     current_down = nextfreqdown
     current_up = nextfrequp
@@ -123,6 +137,15 @@ lcd = init_lcd()
 
 with open("config/config.json", "r") as f:
     config = json.load(f)
+lat, lon, ele = poll_gps(rootLogger)
+
+# override default coordinates with gps
+if lat != "n/a" and lon != "n/a" and ele != "n/a":
+    config["observer_conf"]["lon"] = lon
+    config["observer_conf"]["lat"] = lat
+    config["observer_conf"]["ele"] = ele
+
+
 button = Button(config["gpio_pins"]["SW"], hold_time=20)
 button.when_held = exit_loop
 try:
@@ -130,12 +153,13 @@ try:
     lcd.clear()
     lcd.write_string("successfully downloaded tles")
     time.sleep(3)
-    print("successfully downloaded tles")
+    rootLogger.warning("successfully downloaded tles")
 except:
     lcd.clear()
     lcd.write_string("error downloading tles")
     time.sleep(3)
-    print("error downloading tles")
+    rootLogger.warning("error downloading tles")
+
 libs.rigstarterlib.init_rigs(config, lcd, button)
 
 
@@ -144,6 +168,7 @@ if config["enable_radios"]:
     rig_down = rigctllib.RigCtl(config["rig_down_config"])
 
 while True:
+    rootLogger.warning("entering main loop")
     done = Event()
     rotary = RotaryEncoder(
         config["gpio_pins"]["CLK"],
@@ -163,7 +188,7 @@ while True:
 
     done.wait()
 
-    print(f"selected sat {SAT_LIST[selected_sat_idx]['display_name']}")
+    rootLogger.warning(f"selected sat {SAT_LIST[selected_sat_idx]['display_name']}")
 
     SELECTED_SAT = SAT_LIST[selected_sat_idx]
 
