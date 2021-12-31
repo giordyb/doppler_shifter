@@ -23,7 +23,7 @@ logFormatter = logging.Formatter(
 )
 rootLogger = logging.getLogger()
 
-fileHandler = logging.FileHandler("/var/log/doppler_shifter.log")
+fileHandler = logging.FileHandler("./doppler_shifter.log")
 fileHandler.setFormatter(logFormatter)
 rootLogger.addHandler(fileHandler)
 
