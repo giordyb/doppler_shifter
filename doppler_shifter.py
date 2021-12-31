@@ -144,6 +144,9 @@ if lat != "n/a" and lon != "n/a" and ele != "n/a":
     config["observer_conf"]["lon"] = lon
     config["observer_conf"]["lat"] = lat
     config["observer_conf"]["ele"] = ele
+    rootLogger.warning("setting gps coordinates")
+else:
+    rootLogger.warning("cannot read gps coordinates, using default")
 
 
 button = Button(config["gpio_pins"]["SW"], hold_time=20)
