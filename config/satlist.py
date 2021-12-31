@@ -206,4 +206,18 @@ SAT_LIST = [
         "inverting": False,
         "tone": "67Hz",
     },
+    {
+        "name": "JY1SAT (JO-97)",
+        "display_name": "JY1SAT (JO-97)",
+        "up_mode": "LSB",
+        "up_start": 435100000,
+        "up_center": 435110000,
+        "up_end": 435120000,
+        "down_mode": "USB",
+        "down_start": 145855000,
+        "down_center": 145865000,
+        "down_end": 145875000,
+        "inverting": True,
+        "beacon": 145840000,
+    },
 ]
