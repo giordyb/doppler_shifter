@@ -51,7 +51,7 @@ def select_sat(rotary, lcd):
     lcd.crlf()
     lcd.crlf()
     lcd.write_string(
-        f"{SAT_LIST[selected_sat_idx]['satname']} - {SAT_LIST[selected_sat_idx]['down_mode']}".ljust(
+        f"{SAT_LIST[selected_sat_idx]['display_name']} - {SAT_LIST[selected_sat_idx]['down_mode']}".ljust(
             20, " "
         )
     )
@@ -163,11 +163,11 @@ while True:
 
     done.wait()
 
-    print(f"selected sat {SAT_LIST[selected_sat_idx]['satname']}")
+    print(f"selected sat {SAT_LIST[selected_sat_idx]['display_name']}")
 
     SELECTED_SAT = SAT_LIST[selected_sat_idx]
 
-    sat = get_tles(SELECTED_SAT["satname"])
+    sat = get_tles(SELECTED_SAT["name"])
 
     satellite = ephem.readtle(
         sat[0], sat[1], sat[2]

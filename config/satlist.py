@@ -1,6 +1,7 @@
 SAT_LIST = [
     {
-        "satname": "RS-44",
+        "name": "RS-44 & BREEZE-KM R/B",
+        "display_name": "RS-44",
         "up_start": 145995000,
         "up_center": 145965000,
         "up_end": 145935000,
@@ -13,7 +14,8 @@ SAT_LIST = [
         "beacon": 435605000,
     },
     {
-        "satname": "CAS-4A",
+        "name": "ZHUHAI-1 01 (CAS-4A)",
+        "display_name": "CAS-4A",
         "up_mode": "LSB",
         "up_start": 435230000,
         "up_center": 435220000,
@@ -26,7 +28,8 @@ SAT_LIST = [
         "beacon": 145855000,
     },
     {
-        "satname": "CAS-4B",
+        "name": "ZHUHAI-1 02 (CAS-4B)",
+        "display_name": "CAS-4B",
         "up_mode": "LSB",
         "up_start": 435290000,
         "up_center": 435280000,
@@ -39,7 +42,8 @@ SAT_LIST = [
         "beacon": 145910000,
     },
     {
-        "satname": "TO-108",
+        "name": "CAS-6 (TIANQIN 1)",
+        "display_name": "TO108/CAS6",
         "up_mode": "LSB",
         "up_start": 435290000,
         "up_center": 435280000,
@@ -51,7 +55,8 @@ SAT_LIST = [
         "inverting": True,
     },
     {
-        "satname": "AO-07",
+        "name": "OSCAR 7 (AO-7)",
+        "display_name": "AO-07",
         "up_mode": "LSB",
         "up_start": 432175000,
         "up_center": 432150000,
@@ -63,7 +68,8 @@ SAT_LIST = [
         "inverting": True,
     },
     {
-        "satname": "EO-88",
+        "name": "NAYIF-1 (EO-88)",
+        "display_name": "EO-88",
         "up_mode": "LSB",
         "up_start": 435045000,
         "up_center": 435030000,
@@ -75,7 +81,8 @@ SAT_LIST = [
         "inverting": True,
     },
     {
-        "satname": "XW-2A",
+        "name": "XW-2A",
+        "display_name": "XW-2A",
         "up_mode": "LSB",
         "up_start": 435050000,
         "up_center": 435040000,
@@ -88,7 +95,8 @@ SAT_LIST = [
         "beacon": 145660000,
     },
     {
-        "satname": "XW-2B",
+        "name": "XW-2B",
+        "display_name": "XW-2B",
         "up_mode": "LSB",
         "up_start": 435110000,
         "up_center": 435100000,
@@ -101,7 +109,8 @@ SAT_LIST = [
         "beacon": 145725000,
     },
     {
-        "satname": "XW-2C",
+        "name": "XW-2C",
+        "display_name": "XW-2C",
         "up_mode": "LSB",
         "up_start": 435170000,
         "up_center": 435160000,
@@ -114,7 +123,8 @@ SAT_LIST = [
         "beacon": 145790000,
     },
     {
-        "satname": "XW-2D",
+        "name": "XW-2D",
+        "display_name": "XW-2D",
         "up_mode": "LSB",
         "up_start": 435230000,
         "up_center": 435220000,
@@ -127,7 +137,8 @@ SAT_LIST = [
         "beacon": 145855000,
     },
     {
-        "satname": "XW-2F",
+        "name": "XW-2F",
+        "display_name": "XW-2F",
         "up_mode": "LSB",
         "up_start": 435330000,
         "up_center": 435340000,
@@ -139,8 +150,9 @@ SAT_LIST = [
         "inverting": True,
         "beacon": 145795000,
     },
-     {
-        "satname": "XW-3",
+    {
+        "name": "XW-3 (CAS-9)",
+        "display_name": "XW-3",
         "up_mode": "LSB",
         "up_start": 145855000,
         "up_center": 145870000,
@@ -153,7 +165,8 @@ SAT_LIST = [
         "beacon": 435725000,
     },
     {
-        "satname": "AO-73",
+        "name": "FUNCUBE-1 (AO-73)",
+        "display_name": "AO-73",
         "up_mode": "LSB",
         "up_start": 435140000,
         "up_center": 435150000,
@@ -166,7 +179,8 @@ SAT_LIST = [
         "beacon": 145935000,
     },
     {
-        "satname": "ISS",
+        "name": "ISS (ZARYA)",
+        "display_name": "ISS",
         "up_mode": "FM",
         "up_start": 437800000,
         "up_center": 437800000,
@@ -179,7 +193,8 @@ SAT_LIST = [
         "tone": "67Hz",
     },
     {
-        "satname": "SO-50",
+        "name": "SAUDISAT 1C (SO-50)",
+        "display_name": "SO-50",
         "up_mode": "FM",
         "up_start": 436795000,
         "up_center": 436795000,

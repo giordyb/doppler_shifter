@@ -22,5 +22,5 @@
         "lon": "9.1362",
         "ele": 162
     },
-    "sat_url": "http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt"
+    "sat_url": "http://celestrak.com/NORAD/elements/active.txt"
 }
