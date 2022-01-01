@@ -9,7 +9,11 @@ from config.satlist import SAT_LIST
 import json
 from libs.satlib import *
 from libs.lcdlib import *
-import RPi.GPIO as GPIO
+
+try:
+    import RPi.GPIO as GPIO
+except:
+    import Mock.GPIO as GPIO
 from threading import Event, Thread
 import multiprocessing
 import libs.rigstarterlib
@@ -18,7 +22,10 @@ import subprocess
 import time
 import logging
 from libs.gpslib import poll_gps
+import os
 
+
+DEBUG = bool(os.getenv("DEBUG", False))
 logFormatter = logging.Formatter(
     "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
 )
@@ -35,8 +42,7 @@ rootLogger.addHandler(consoleHandler)
 gpio_pins = ["CLK", "DT", "SW"]
 selected_sat_idx = 0
 
-manager = multiprocessing.Manager()
-ns = manager.Namespace()
+run_loop = True
 
 
 def sat_loop(
@@ -44,15 +50,13 @@ def sat_loop(
 ):
     global rig_up
     global rig_down
-    # global current_up
-    # global current_down
     global run_loop
 
     while run_loop:
         obs.date = datetime.datetime.utcnow()
         satellite.compute(obs)
-        alt = str(satellite.alt).split(":")[0]
-        az = str(satellite.az).split(":")[0]
+        alt = str(satellite.alt).split(":")[0] + "°"
+        az = str(satellite.az).split(":")[0] + "°"
         shift_down = get_doppler_shift(ns.current_down, satellite.range_velocity)
         shift_up = get_doppler_shift(ns.current_up, satellite.range_velocity)
         shifted_down = get_shifted(ns.current_down, shift_down, "down")
@@ -153,117 +157,132 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
     ns.current_up = nextfrequp
 
 
-lcd = init_lcd()
+def main():
+    manager = multiprocessing.Manager()
+    ns = manager.Namespace()
+    lcd = init_lcd()
 
-with open("config/config.json", "r") as f:
-    config = json.load(f)
-lat, lon, ele = poll_gps(rootLogger)
+    with open("config/config.json", "r") as f:
+        config = json.load(f)
+    lat, lon, ele = poll_gps(rootLogger)
 
-# override default coordinates with gps
-if lat != "n/a" and lon != "n/a" and ele != "n/a":
-    config["observer_conf"]["lon"] = str(lon)
-    config["observer_conf"]["lat"] = str(lat)
-    config["observer_conf"]["ele"] = ele
-    rootLogger.warning("setting gps coordinates")
-else:
-    rootLogger.warning("cannot read gps coordinates, using default")
+    # override default coordinates with gps
+    if lat != "n/a" and lon != "n/a" and ele != "n/a":
+        config["observer_conf"]["lon"] = str(lon)
+        config["observer_conf"]["lat"] = str(lat)
+        config["observer_conf"]["ele"] = ele
+        rootLogger.warning("setting gps coordinates")
+    else:
+        rootLogger.warning("cannot read gps coordinates, using default")
 
-
-button = Button(config["gpio_pins"]["SW"], hold_time=20)
-button.when_held = exit_loop
-try:
-    update_tles(config["sat_url"])
-    lcd.clear()
-    lcd.write_string("successfully downloaded tles")
-    time.sleep(3)
-    rootLogger.warning("successfully downloaded tles")
-except:
-    lcd.clear()
-    lcd.write_string("error downloading tles")
-    time.sleep(3)
-    rootLogger.warning("error downloading tles")
-
-rig_up = None
-rig_down = None
-if config["enable_radios"]:
-    libs.rigstarterlib.init_rigs(config, lcd, button)
-    rig_up = rigctllib.RigCtl(config["rig_up_config"])
-    rig_down = rigctllib.RigCtl(config["rig_down_config"])
-
-while True:
-    rootLogger.warning("entering main loop")
-    done = Event()
-    rotary = RotaryEncoder(
-        config["gpio_pins"]["CLK"],
-        config["gpio_pins"]["DT"],
-        max_steps=len(SAT_LIST) - 1,
-        wrap=True,
-    )
-    selected_sat_idx = 0
-
-    rotary.when_rotated = lambda: select_sat(rotary, lcd)
-    button.when_pressed = lambda: selected_sat(button, done)
-
-    lcd.clear()
-    lcd.write_string("rotate knob to select a satellite")
-    rootLogger.warning("rotate knob to select a satellite")
-    from_zone = tz.gettz("UTC")
-    to_zone = tz.gettz(config["timezone"])
-
-    done.wait()
-
-    rootLogger.warning(f"selected sat {SAT_LIST[selected_sat_idx]['display_name']}")
-
-    SELECTED_SAT = SAT_LIST[selected_sat_idx]
-
-    sat = get_tles(SELECTED_SAT["name"])
-
-    satellite = ephem.readtle(
-        sat[0], sat[1], sat[2]
-    )  # create ephem object from tle information
-
-    obs = ephem.Observer()  # recreate Oberserver with current time
-    obs.lon = config["observer_conf"]["lon"]
-    obs.lat = config["observer_conf"]["lat"]
-    obs.elevation = config["observer_conf"]["ele"]
-
-    if isinstance(rig_down, rigctllib.RigCtl) and isinstance(rig_up, rigctllib.RigCtl):
-        rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
-        rig_up.set_mode(mode=SELECTED_SAT["up_mode"])
-
-    sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
-    sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
-    ns.current_down = SELECTED_SAT["down_center"]
-    ns.current_up = SELECTED_SAT["up_center"]
-
-    rotary.close()
-    rotary = RotaryEncoder(
-        config["gpio_pins"]["CLK"], config["gpio_pins"]["DT"], max_steps=1, wrap=False
-    )
-    rotary.when_rotated_clockwise = lambda: tune_vfo(
-        rotary, config, sat_down_range, sat_up_range, -1, ns
-    )
-    rotary.when_rotated_counter_clockwise = lambda: tune_vfo(
-        rotary, config, sat_down_range, sat_up_range, +1, ns
-    )
-
-    run_loop = True
+    button = Button(config["gpio_pins"]["SW"], hold_time=20)
+    button.when_held = exit_loop
     try:
-        loop_thread = Thread(
-            target=sat_loop,
-            args=(
-                obs,
-                satellite,
-                config,
-                sat_up_range,
-                sat_down_range,
-                lcd,
-                SELECTED_SAT,
-                ns,
-            ),
+        update_tles(config["sat_url"])
+        if lcd:
+            lcd.clear()
+            lcd.write_string("successfully downloaded tles")
+        time.sleep(3)
+        rootLogger.warning("successfully downloaded tles")
+    except:
+        if lcd:
+            lcd.clear()
+            lcd.write_string("error downloading tles")
+        time.sleep(3)
+        rootLogger.warning("error downloading tles")
+
+    rig_up = None
+    rig_down = None
+    if config["enable_radios"] and not DEBUG:
+        libs.rigstarterlib.init_rigs(config, lcd, button)
+        rig_up = rigctllib.RigCtl(config["rig_up_config"])
+        rig_down = rigctllib.RigCtl(config["rig_down_config"])
+
+    while True:
+        rootLogger.warning("entering main loop")
+        done = Event()
+        rotary = RotaryEncoder(
+            config["gpio_pins"]["CLK"],
+            config["gpio_pins"]["DT"],
+            max_steps=len(SAT_LIST) - 1,
+            wrap=True,
         )
-        loop_thread.start()
-        loop_thread.join()
+        selected_sat_idx = 0
+
+        rotary.when_rotated = lambda: select_sat(rotary, lcd)
+        button.when_pressed = lambda: selected_sat(button, done)
+
+        if lcd:
+            lcd.clear()
+            lcd.write_string("rotate knob to select a satellite")
+        rootLogger.warning("rotate knob to select a satellite")
+        from_zone = tz.gettz("UTC")
+        to_zone = tz.gettz(config["timezone"])
+
+        if not DEBUG:
+            done.wait()
+
+        rootLogger.warning(f"selected sat {SAT_LIST[selected_sat_idx]['display_name']}")
+
+        SELECTED_SAT = SAT_LIST[selected_sat_idx]
+
+        sat = get_tles(SELECTED_SAT["name"])
+
+        satellite = ephem.readtle(
+            sat[0], sat[1], sat[2]
+        )  # create ephem object from tle information
+
+        obs = ephem.Observer()  # recreate Oberserver with current time
+        obs.lon = config["observer_conf"]["lon"]
+        obs.lat = config["observer_conf"]["lat"]
+        obs.elevation = config["observer_conf"]["ele"]
+
+        if isinstance(rig_down, rigctllib.RigCtl) and isinstance(
+            rig_up, rigctllib.RigCtl
+        ):
+            rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
+            rig_up.set_mode(mode=SELECTED_SAT["up_mode"])
+
+        sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
+        sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
+        ns.current_down = SELECTED_SAT["down_center"]
+        ns.current_up = SELECTED_SAT["up_center"]
+
         rotary.close()
-    except Exception as e:
-        rootLogger.error(f"Exception error {e}")
+        rotary = RotaryEncoder(
+            config["gpio_pins"]["CLK"],
+            config["gpio_pins"]["DT"],
+            max_steps=1,
+            wrap=False,
+        )
+        rotary.when_rotated_clockwise = lambda: tune_vfo(
+            rotary, config, sat_down_range, sat_up_range, -1, ns
+        )
+        rotary.when_rotated_counter_clockwise = lambda: tune_vfo(
+            rotary, config, sat_down_range, sat_up_range, +1, ns
+        )
+
+        try:
+            loop_thread = Thread(
+                target=sat_loop,
+                args=(
+                    obs,
+                    satellite,
+                    config,
+                    sat_up_range,
+                    sat_down_range,
+                    lcd,
+                    SELECTED_SAT,
+                    ns,
+                ),
+            )
+            loop_thread.start()
+            loop_thread.join()
+            rotary.close()
+        except Exception as e:
+            rootLogger.error(f"Exception error {e}")
+
+
+if __name__ == "__main__":
+    main()
+

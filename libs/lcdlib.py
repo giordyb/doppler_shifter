@@ -1,4 +1,21 @@
 from RPLCD import i2c
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class Fake_LCD:
+    def write_string(self, string):
+        logger.warning(f"fakelcd: {string}")
+
+    def crlf(self):
+        logger.warning("fakelcd CLCR")
+
+    def clear(self):
+        pass
+
+    def home(self):
+        pass
 
 
 def write_lcd_loop(
@@ -51,13 +68,17 @@ def init_lcd():
     i2c_expander = "PCF8574"
     address = 0x27
     port = 1
-    lcd = i2c.CharLCD(
-        i2c_expander, address, port=port, charmap=charmap, cols=cols, rows=rows
-    )
-    lcd.create_char(
-        0, (0b00100, 0b01110, 0b11111, 0b00000, 0b00100, 0b01110, 0b11111, 0b00000)
-    )  # UP ARROW CHAR
-    lcd.create_char(
-        1, (0b11111, 0b01110, 0b00100, 0b00000, 0b11111, 0b01110, 0b00100, 0b00000)
-    )  # DOWN ARROW CHAR
+    try:
+        lcd = i2c.CharLCD(
+            i2c_expander, address, port=port, charmap=charmap, cols=cols, rows=rows
+        )
+        lcd.create_char(
+            0, (0b00100, 0b01110, 0b11111, 0b00000, 0b00100, 0b01110, 0b11111, 0b00000)
+        )  # UP ARROW CHAR
+        lcd.create_char(
+            1, (0b11111, 0b01110, 0b00100, 0b00000, 0b11111, 0b01110, 0b00100, 0b00000)
+        )  # DOWN ARROW CHAR
+    except:
+        return Fake_LCD()
+
     return lcd
