@@ -220,4 +220,18 @@ SAT_LIST = [
         "inverting": True,
         "beacon": 145840000,
     },
+    {
+        "name": "DIWATA-2B",
+        "display_name": "PO-101 DIWATA-2B",
+        "up_mode": "FM",
+        "up_start": 437500000,
+        "up_center": 437500000,
+        "up_end": 437500000,
+        "down_mode": "FM",
+        "down_start": 145900000,
+        "down_center": 145900000,
+        "down_end": 145900000,
+        "inverting": False,
+        "tone": "141.3Hz",
+    },
 ]
