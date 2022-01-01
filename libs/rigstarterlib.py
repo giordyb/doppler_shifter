@@ -42,6 +42,7 @@ def reset_rig(rig_side):
 def init_rigs(config, lcd, button):
     lcd.clear()
     lcd.write_string(f"press rotary encoder\n\rto start")
+    logger.warning("press rotary encoder to start")
     button.wait_for_press()
 
     if update_tles(config["sat_url"]):
@@ -66,6 +67,9 @@ def init_rigs(config, lcd, button):
                 lcd.write_string(
                     f"turn on {side}link rig\n\rand press the rotary\n\rencoder button"
                 )
+                logger.warning(
+                    f"turn on {side}link rig\n\rand press the rotary\n\rencoder button"
+                )
                 button.wait_for_press()
                 subprocess.run(["sudo", "systemctl", "stop", f"rig{side}"])
                 time.sleep(3)
@@ -83,15 +87,18 @@ def init_rigs(config, lcd, button):
 
                     lcd.clear()
                     lcd.write_string(f"{side}link rig\n\rstarted")
+                    logger.warning(f"{side}link rig\n\rstarted")
                     button.wait_for_press()
                     rig_init = True
                 else:
                     lcd.clear()
                     lcd.write_string(f"{side}link rig\n\rerror")
+                    logger.warning(f"{side}link rig\n\rerror")
                     button.wait_for_press()
                     rig_init = False
 
             except (ConnectionRefusedError, TimeoutError):
                 lcd.clear()
                 lcd.write_string(f"error starting\n\r{side}link rig\n\rrigctld service")
+                logger.warning(f"error starting\n\r{side}link rig\n\rrigctld service")
                 button.wait_for_press()
