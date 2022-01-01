@@ -43,7 +43,7 @@ gpio_pins = ["CLK", "DT", "SW"]
 
 with open("config/config.json", "r") as f:
     config = json.load(f)
-button = Button(config["gpio_pins"]["SW"], hold_time=20)
+button = Button(config["gpio_pins"]["SW"], hold_time=5)
 
 
 def get_range(up, down):
