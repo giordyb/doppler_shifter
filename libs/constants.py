@@ -22,7 +22,7 @@ import os
 
 
 # constant definition
-RIG_TIMEOUT = 10
+RIG_TIMEOUT = 1
 RESET_CMD_DICT = {
     "NONE": 0,
     "SOFTWARE_RESET": 1,
