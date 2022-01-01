@@ -11,6 +11,7 @@ from libs.satlib import *
 from libs.lcdlib import *
 import RPi.GPIO as GPIO
 from threading import Event, Thread
+import multiprocessing
 import libs.rigstarterlib
 from gpiozero import RotaryEncoder, Button
 import subprocess
@@ -34,14 +35,17 @@ rootLogger.addHandler(consoleHandler)
 gpio_pins = ["CLK", "DT", "SW"]
 selected_sat_idx = 0
 
+manager = multiprocessing.Manager()
+ns = manager.Namespace()
+
 
 def sat_loop(
-    obs, satellite, config, sat_up_range, sat_down_range, lcd, SELECTED_SAT,
+    obs, satellite, config, sat_up_range, sat_down_range, lcd, SELECTED_SAT, ns
 ):
     global rig_up
     global rig_down
-    global current_up
-    global current_down
+    # global current_up
+    # global current_down
     global run_loop
 
     while run_loop:
@@ -49,10 +53,10 @@ def sat_loop(
         satellite.compute(obs)
         alt = str(satellite.alt).split(":")[0]
         az = str(satellite.az).split(":")[0]
-        shift_down = get_doppler_shift(current_down, satellite.range_velocity)
-        shift_up = get_doppler_shift(current_up, satellite.range_velocity)
-        shifted_down = get_shifted(current_down, shift_down, "down")
-        shifted_up = get_shifted(current_up, shift_up, "up")
+        shift_down = get_doppler_shift(ns.current_down, satellite.range_velocity)
+        shift_up = get_doppler_shift(ns.current_up, satellite.range_velocity)
+        shifted_down = get_shifted(ns.current_down, shift_down, "down")
+        shifted_up = get_shifted(ns.current_up, shift_up, "up")
 
         if config["enable_radios"]:
             try:
@@ -68,8 +72,8 @@ def sat_loop(
 
         write_lcd_loop(
             lcd,
-            current_up,
-            current_down,
+            ns.current_up,
+            ns.current_down,
             shifted_up,
             shifted_down,
             shift_up,
@@ -124,13 +128,13 @@ def select_sat(rotary, lcd):
         lcd.write_string("Linear")
 
 
-def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign):
-    global rit
+def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
+    # global rit
     global button
-    global current_down
-    global current_up
-    nextfrequp = current_up
-    nextfreqdown = current_down
+    # global current_down
+    # global current_up
+    nextfrequp = ns.current_up
+    nextfreqdown = ns.current_down
     if button.is_pressed:
         nextfrequp -= sign * config["rotary_step"]
     else:
@@ -145,8 +149,8 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign):
     rootLogger.warning(nextfreqdown in sat_down_range)
     rootLogger.warning(nextfrequp in sat_up_range)
     # if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
-    current_down = nextfreqdown
-    current_up = nextfrequp
+    ns.current_down = nextfreqdown
+    ns.current_up = nextfrequp
 
 
 lcd = init_lcd()
@@ -229,18 +233,18 @@ while True:
 
     sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
     sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
-    current_down = SELECTED_SAT["down_center"]
-    current_up = SELECTED_SAT["up_center"]
+    ns.current_down = SELECTED_SAT["down_center"]
+    ns.current_up = SELECTED_SAT["up_center"]
 
     rotary.close()
     rotary = RotaryEncoder(
         config["gpio_pins"]["CLK"], config["gpio_pins"]["DT"], max_steps=1, wrap=False
     )
     rotary.when_rotated_clockwise = lambda: tune_vfo(
-        rotary, config, sat_down_range, sat_up_range, -1
+        rotary, config, sat_down_range, sat_up_range, -1, ns
     )
     rotary.when_rotated_counter_clockwise = lambda: tune_vfo(
-        rotary, config, sat_down_range, sat_up_range, +1
+        rotary, config, sat_down_range, sat_up_range, +1, ns
     )
 
     run_loop = True
@@ -255,6 +259,7 @@ while True:
                 sat_down_range,
                 lcd,
                 SELECTED_SAT,
+                ns,
             ),
         )
         loop_thread.start()
