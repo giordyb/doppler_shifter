@@ -118,8 +118,14 @@ def sat_loop(obs, satellite, config, sat_up_range, sat_down_range):
         shifted_up = get_shifted(current_up, shift_up, "up")
 
         if config["enable_radios"]:
-            rig_up.set_frequency(shifted_up)
-            rig_down.set_frequency(shifted_down)
+            try:
+                rig_up.set_frequency(shifted_up)
+            except:
+                rootLogger.error("cannot set frequency on uplink")
+            try:
+                rig_down.set_frequency(shifted_down)
+            except:
+                rootLogger.error("cannot set frequency on downlink")
 
         write_lcd_loop(
             lcd,
