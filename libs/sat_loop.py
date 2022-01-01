@@ -2,6 +2,7 @@ from libs.satlib import *
 import datetime
 import logging
 from libs.lcdlib import *
+from rigstarterlib import reset_rig
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +37,12 @@ def sat_loop(
                 rig_up.set_frequency(shifted_up)
             except:
                 logger.error("cannot set frequency on uplink")
+                reset_rig("up")
             try:
                 rig_down.set_frequency(shifted_down)
             except:
                 logger.error("cannot set frequency on downlink")
+                reset_rig("down")
 
         write_lcd_loop(
             lcd,

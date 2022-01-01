@@ -27,6 +27,12 @@ def wait_for_port(port, host="localhost", timeout=5.0):
                 ) from ex
 
 
+def reset_rig(rig_side):
+    subprocess.run(["sudo", "systemctl", "stop", f"rig{rig_side}"])
+    time.sleep(3)
+    subprocess.run(["sudo", "systemctl", "start", f"rig{rig_side}"])
+
+
 def init_rigs(config, lcd, button):
     lcd.clear()
     lcd.write_string(f"press rotary encoder\n\rto start")
