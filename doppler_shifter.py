@@ -98,6 +98,8 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
     nextfrequp = ns.current_up
     nextfreqdown = ns.current_down
     if ns.tune_lock:
+        ns.diff += sign * config["rotary_step"]
+        rootLogger.warning(f"uplink freq diff is {ns.diff}")
         nextfrequp -= sign * config["rotary_step"]
     else:
         nextfrequp -= sign * config["rotary_step"]
@@ -110,7 +112,6 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
     rootLogger.warning(f"step: {sign}")
     rootLogger.warning(nextfreqdown in sat_down_range)
     rootLogger.warning(nextfrequp in sat_up_range)
-    # if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
     ns.current_down = nextfreqdown
     ns.current_up = nextfrequp
 
