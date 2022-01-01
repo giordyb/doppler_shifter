@@ -46,7 +46,7 @@ def write_lcd_loop(
         f"{int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}".replace(",", ".")
     )
     lcd.crlf()
-    if tune_lock:
+    if not tune_lock:
         upchar = "\x02"
     lcd.write_string(f"{upchar}{SELECTED_SAT['up_mode'][0]}")
     lcd.write_string(f"{int(shifted_up):,.0f} A {sat_az}".replace(",", "."))
