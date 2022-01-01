@@ -70,7 +70,7 @@ def tune_lock_switch(button, ns):
         ns.tune_lock = True
 
 
-def exit_loop(ns):
+def exit_loop(button, ns):
     ns.run_loop = False
 
 
@@ -114,7 +114,6 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
 
 
 def main():
-    button.when_held = exit_loop
 
     manager = multiprocessing.Manager()
     ns = manager.Namespace()
@@ -153,6 +152,7 @@ def main():
 
         rotary.when_rotated = lambda: select_sat(rotary, lcd, ns)
         button.when_pressed = lambda: selected_sat(button, done)
+        button.when_held = lambda: exit_loop(button, ns)
 
         if lcd:
             lcd.clear()
