@@ -48,6 +48,6 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
     + you can also change the step size
 17. test it manually by running the script
     + python3 doppler_shifter.py
-18. if everything works then you can add the wrapper script to crontab
-    + crontab -e
-    + @reboot /home/pi/doppler_shifter/wrapper.sh
+18. if everything works then you can add and enable the service
+    + sudo systemctl enable doppler_shifter
+    + sudo systemctl start doppler_shifter

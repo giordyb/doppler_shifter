@@ -1,5 +1,7 @@
 import urllib.request
 import logging
+import os
+import shutil
 
 TLE_FILE = "config/tles.txt"
 
@@ -25,8 +27,17 @@ def xrange(x, y, z):
 
 
 def update_tles(sat_url):
-    with open(TLE_FILE, "w") as f:
-        f.write(urllib.request.urlopen(sat_url).read().decode())
+    try:
+        with open(TLE_FILE + ".temp", "w") as f:
+            f.write(urllib.request.urlopen(sat_url).read().decode())
+        file_size = os.path.getsize(TLE_FILE + ".temp")
+        if file_size > 0:
+            shutil.copy(TLE_FILE + ".temp", TLE_FILE)
+            return True
+        else:
+            return False
+    except:
+        return False
 
 
 def get_doppler_shift(frequency, velocity):

@@ -132,19 +132,17 @@ def main():
         rootLogger.warning("setting gps coordinates")
     else:
         rootLogger.warning("cannot read gps coordinates, using default")
-    try:
-        update_tles(config["sat_url"])
+    if update_tles(config["sat_url"]):
         if lcd:
             lcd.clear()
             lcd.write_string("successfully downloaded tles")
-        time.sleep(3)
         rootLogger.warning("successfully downloaded tles")
-    except:
+    else:
         if lcd:
             lcd.clear()
             lcd.write_string("error downloading tles")
-        time.sleep(3)
         rootLogger.warning("error downloading tles")
+    time.sleep(3)
 
     ns.rig_up = None
     ns.rig_down = None
