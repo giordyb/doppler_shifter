@@ -17,6 +17,7 @@ import subprocess
 import time
 import logging
 from libs.gpslib import poll_gps
+from libs.sat_loop import sat_loop
 
 logFormatter = logging.Formatter(
     "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
@@ -101,49 +102,6 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign):
     current_up = nextfrequp
 
 
-def sat_loop(obs, satellite, config, sat_up_range, sat_down_range):
-    global rig_up
-    global rig_down
-    global current_up
-    global current_down
-    global run_loop
-    while run_loop:
-        obs.date = datetime.datetime.utcnow()
-        satellite.compute(obs)
-        alt = str(satellite.alt).split(":")[0]
-        az = str(satellite.az).split(":")[0]
-        shift_down = get_doppler_shift(current_down, satellite.range_velocity)
-        shift_up = get_doppler_shift(current_up, satellite.range_velocity)
-        shifted_down = get_shifted(current_down, shift_down, "down")
-        shifted_up = get_shifted(current_up, shift_up, "up")
-
-        if config["enable_radios"]:
-            try:
-                rig_up.set_frequency(shifted_up)
-            except:
-                rootLogger.error("cannot set frequency on uplink")
-            try:
-                rig_down.set_frequency(shifted_down)
-            except:
-                rootLogger.error("cannot set frequency on downlink")
-
-        write_lcd_loop(
-            lcd,
-            current_up,
-            current_down,
-            shifted_up,
-            shifted_down,
-            shift_up,
-            shift_down,
-            SELECTED_SAT,
-            sat_up_range,
-            sat_down_range,
-            alt,
-            az,
-        )
-        print(f"alt: {alt}, az: {az} range: {satellite.range}")
-
-
 lcd = init_lcd()
 
 with open("config/config.json", "r") as f:
@@ -174,7 +132,8 @@ except:
     time.sleep(3)
     rootLogger.warning("error downloading tles")
 
-
+rig_up = None
+rig_down = None
 if config["enable_radios"]:
     libs.rigstarterlib.init_rigs(config, lcd, button)
     rig_up = rigctllib.RigCtl(config["rig_up_config"])
@@ -217,7 +176,7 @@ while True:
     obs.lat = config["observer_conf"]["lat"]
     obs.elevation = config["observer_conf"]["ele"]
 
-    if config["enable_radios"]:
+    if isinstance(rig_down, rigctllib.RigCtl) and isinstance(rig_up, rigctllib.RigCtl):
         rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
         rig_up.set_mode(mode=SELECTED_SAT["up_mode"])
 
@@ -240,7 +199,21 @@ while True:
     run_loop = True
     try:
         loop_thread = Thread(
-            target=sat_loop, args=(obs, satellite, config, sat_up_range, sat_down_range)
+            target=sat_loop,
+            args=(
+                obs,
+                satellite,
+                config,
+                sat_up_range,
+                sat_down_range,
+                rig_up,
+                rig_down,
+                current_up,
+                current_down,
+                run_loop,
+                lcd,
+                SELECTED_SAT,
+            ),
         )
         loop_thread.start()
         loop_thread.join()

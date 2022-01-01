@@ -42,7 +42,10 @@ def init_rigs(config, lcd, button):
                     f"turn on {side}link rig\n\rand press the rotary\n\rencoder button"
                 )
                 button.wait_for_press()
-                subprocess.run(["sudo", "systemctl", "restart", f"rig{side}"])
+                subprocess.run(["sudo", "systemctl", "stop", f"rig{side}"])
+                time.sleep(3)
+                subprocess.run(["sudo", "systemctl", "start", f"rig{side}"])
+
                 port_ready = 1
                 wait_for_port(
                     config[f"rig_{side}_config"]["port"],
