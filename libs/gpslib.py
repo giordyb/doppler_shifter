@@ -17,8 +17,9 @@ def poll_gps(rootLogger):
                 rootLogger.warning(f"Altitude = {data_stream.alt}")
                 rootLogger.warning(f"Latitude = {data_stream.lat}")
                 rootLogger.warning(f"Longitude = { data_stream.lon}")
-
                 counter += 1
+            else:
+                return "n/a", "n/a", "n/a"
     except:
         rootLogger.warning("no gps")
         return "n/a", "n/a", "n/a"

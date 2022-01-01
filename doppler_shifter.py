@@ -61,19 +61,19 @@ def select_sat(rotary, lcd):
     global selected_sat_idx
     selected_sat_idx = rotary.steps
     lcd.clear()
-    lcd.write_string("SATELLITE LIST")
-    lcd.crlf()
+    lcd.write_string(SAT_LIST[selected_sat_idx]["display_name"])
     lcd.crlf()
     lcd.write_string(
-        f"{SAT_LIST[selected_sat_idx]['display_name']} - {SAT_LIST[selected_sat_idx]['down_mode']}".ljust(
-            20, " "
-        )
+        f"BCN {int(SAT_LIST[selected_sat_idx].get('beacon','0')):,.0f}".replace(
+            ",", "."
+        ).ljust(20, " ")
     )
+
     lcd.crlf()
     if SAT_LIST[selected_sat_idx]["down_mode"] == "FM":
-        lcd.write_string(SAT_LIST[selected_sat_idx]["tone"].ljust(20, " "))
+        lcd.write_string(f"FM {SAT_LIST[selected_sat_idx]['tone'].ljust(20, ' ')}")
     else:
-        lcd.write_string("No Tone".ljust(20, " "))
+        lcd.write_string("Linear")
 
 
 def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign):
@@ -110,6 +110,8 @@ def sat_loop(obs, satellite, config, sat_up_range, sat_down_range):
     while run_loop:
         obs.date = datetime.datetime.utcnow()
         satellite.compute(obs)
+        alt = str(satellite.alt).split(":")[0]
+        az = str(satellite.az).split(":")[0]
         shift_down = get_doppler_shift(current_down, satellite.range_velocity)
         shift_up = get_doppler_shift(current_up, satellite.range_velocity)
         shifted_down = get_shifted(current_down, shift_down, "down")
@@ -130,7 +132,10 @@ def sat_loop(obs, satellite, config, sat_up_range, sat_down_range):
             SELECTED_SAT,
             sat_up_range,
             sat_down_range,
+            alt,
+            az,
         )
+        print(f"alt: {alt}, az: {az} range: {satellite.range}")
 
 
 lcd = init_lcd()
@@ -141,8 +146,8 @@ lat, lon, ele = poll_gps(rootLogger)
 
 # override default coordinates with gps
 if lat != "n/a" and lon != "n/a" and ele != "n/a":
-    config["observer_conf"]["lon"] = lon
-    config["observer_conf"]["lat"] = lat
+    config["observer_conf"]["lon"] = str(lon)
+    config["observer_conf"]["lat"] = str(lat)
     config["observer_conf"]["ele"] = ele
     rootLogger.warning("setting gps coordinates")
 else:
@@ -163,10 +168,9 @@ except:
     time.sleep(3)
     rootLogger.warning("error downloading tles")
 
-libs.rigstarterlib.init_rigs(config, lcd, button)
-
 
 if config["enable_radios"]:
+    libs.rigstarterlib.init_rigs(config, lcd, button)
     rig_up = rigctllib.RigCtl(config["rig_up_config"])
     rig_down = rigctllib.RigCtl(config["rig_down_config"])
 
@@ -186,6 +190,7 @@ while True:
 
     lcd.clear()
     lcd.write_string("rotate knob to select a satellite")
+    rootLogger.warning("rotate knob to select a satellite")
     from_zone = tz.gettz("UTC")
     to_zone = tz.gettz(config["timezone"])
 

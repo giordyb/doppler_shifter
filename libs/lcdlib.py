@@ -12,6 +12,8 @@ def write_lcd_loop(
     SELECTED_SAT,
     sat_up_range,
     sat_down_range,
+    sat_alt,
+    sat_az,
 ):
 
     lcd.home()
@@ -19,10 +21,12 @@ def write_lcd_loop(
         lcd.write_string("xx")
     else:
         lcd.write_string("\x00 ")
-    lcd.write_string(f"{int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}")
+    lcd.write_string(
+        f"{int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}".replace(",", ".")
+    )
     lcd.crlf()
-    lcd.write_string("\x00 ")
-    lcd.write_string(f"{int(shifted_up):,.0f} {SELECTED_SAT['up_mode']}")
+    lcd.write_string(f"\x00{SELECTED_SAT['up_mode'][0]}")
+    lcd.write_string(f"{int(shifted_up):,.0f} A {sat_az}".replace(",", "."))
     lcd.crlf()
     if current_down == SELECTED_SAT.get("beacon", None):
         lcd.write_string("BC")
@@ -30,11 +34,13 @@ def write_lcd_loop(
         lcd.write_string("xx")
     else:
         lcd.write_string("\x01 ")
-    lcd.write_string(f"{int(current_down):,.0f} -{str(abs(shift_down)).zfill(5)}")
+    lcd.write_string(
+        f"{int(current_down):,.0f} -{str(abs(shift_down)).zfill(5)}".replace(",", ".")
+    )
     lcd.crlf()
 
-    lcd.write_string("\x01 ")
-    lcd.write_string(f"{int(shifted_down):,.0f} {SELECTED_SAT['down_mode']}")
+    lcd.write_string(f"\x01{SELECTED_SAT['down_mode'][0]}")
+    lcd.write_string(f"{int(shifted_down):,.0f} E {sat_alt}".replace(",", "."))
 
 
 def init_lcd():
