@@ -232,10 +232,12 @@ while True:
     )
 
     run_loop = True
-
-    loop_thread = Thread(
-        target=sat_loop, args=(obs, satellite, config, sat_up_range, sat_down_range)
-    )
-    loop_thread.start()
-    loop_thread.join()
-    rotary.close()
+    try:
+        loop_thread = Thread(
+            target=sat_loop, args=(obs, satellite, config, sat_up_range, sat_down_range)
+        )
+        loop_thread.start()
+        loop_thread.join()
+        rotary.close()
+    except Exception as e:
+        rootLogger.error(f"Exception error {e}")

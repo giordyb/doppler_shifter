@@ -6,7 +6,7 @@
         "DT": 18,
         "SW": 27
     },
-    "enable_radios": false,
+    "enable_radios": true,
     "rig_up_config": {
         "hostname": "localhost",
         "port": 4532,
