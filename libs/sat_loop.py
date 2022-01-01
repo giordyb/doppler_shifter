@@ -13,9 +13,8 @@ def sat_loop(
 ):
     rig_up = ns.rig_up
     rig_down = ns.rig_down
-    run_loop = ns.run_loop
 
-    while run_loop:
+    while ns.run_loop:
         obs.date = datetime.datetime.utcnow()
         satellite.compute(obs)
         alt = str(satellite.alt).split(":")[0] + "°"
