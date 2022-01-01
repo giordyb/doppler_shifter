@@ -10,15 +10,18 @@ logger = logging.getLogger(__name__)
 
 def get_tles(sat_name):
     logger.warning(f"getting tles for: {sat_name}")
-    with open(TLE_FILE, "r") as f:
-        sat_tle = f.readlines()
-        tles = [item.strip() for item in sat_tle]
-        tles = [
-            (tles[i], tles[i + 1], tles[i + 2]) for i in xrange(0, len(tles) - 2, 3)
-        ]
-        sat = [x for x in tles if x[0] == sat_name][0]
+    try:
+        with open(TLE_FILE, "r") as f:
+            sat_tle = f.readlines()
+            tles = [item.strip() for item in sat_tle]
+            tles = [
+                (tles[i], tles[i + 1], tles[i + 2]) for i in xrange(0, len(tles) - 2, 3)
+            ]
+            sat = [x for x in tles if x[0] == sat_name][0]
 
-        return sat
+            return sat
+    except Exception as ex:
+        logger.error(f"cannot find sat in tle file {ex}")
 
 
 # TLE Kepler elements
