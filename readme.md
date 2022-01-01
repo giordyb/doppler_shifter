@@ -34,8 +34,9 @@ it supports any rig compatible with Hamlib
     * the frequency you want to be tuned to.
     * the frequency's doppler shift
     * the actual tuned frequency, with the doppler shift added or subtracted
-    * the mode (USB/LSB/FM) 
+    * the mode (USB/LSB/FM)
+    * the az and el of the satellite (in °)
 * the uplink and downlink frequencies are locked together based on the table of the cheat sheet. rotating clockwise will increase the uplink frequency and decrease the downlink frequency by the rotary_step parameter set in the config.json
 * you can only tune up or down within the limits of the passband of the satellite (set in the satlist.py file)
-* if you turn the rotary control while pressing it, only the uplink frequency will change. This is needed to finely tune the relationship between the uplink and downlink. If anyone has any idea on how to automate this please tell...
-* if you press the rotary control for more than 20 seconds the program will let you select another satellite 
+* if you press the rotary button the uplink and downlink frequencies will be unlocked (you will see an open lock icon appear on the 2nd line of the display instead of the up arrows) and only the uplink frequency will change when moving the rotary control. Just press the rotary button again to lock. This is needed to finely tune the relationship between the uplink and downlink. If anyone has any idea on how to automate this please tell...
+* if you press the rotary control for more than 20 seconds the program will let you select another satellite
