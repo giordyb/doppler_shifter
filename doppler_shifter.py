@@ -72,6 +72,7 @@ def tune_lock_switch(button, ns):
 
 def exit_loop(button, ns):
     ns.run_loop = False
+    logger.warning("button held")
 
 
 def select_sat(rotary, lcd, ns):
