@@ -3,6 +3,10 @@ import socket
 import time
 import subprocess
 import os
+from libs.satlib import update_tles
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def wait_for_port(port, host="localhost", timeout=5.0):
@@ -39,6 +43,19 @@ def init_rigs(config, lcd, button):
     lcd.clear()
     lcd.write_string(f"press rotary encoder\n\rto start")
     button.wait_for_press()
+
+    if update_tles(config["sat_url"]):
+        if lcd:
+            lcd.clear()
+            lcd.write_string("successfully downloaded tles")
+        logger.warning("successfully downloaded tles")
+    else:
+        if lcd:
+            lcd.clear()
+            lcd.write_string("error downloading tles")
+        logger.warning("error downloading tles")
+    time.sleep(3)
+
     for side in ["down", "up"]:
         rig_init = False
         rig = libs.rigctllib.RigCtl(config[f"rig_{side}_config"])

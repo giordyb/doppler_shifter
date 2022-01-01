@@ -140,17 +140,7 @@ def main():
         libs.rigstarterlib.init_rigs(config, lcd, button)
         ns.rig_up = rigctllib.RigCtl(config["rig_up_config"])
         ns.rig_down = rigctllib.RigCtl(config["rig_down_config"])
-    if update_tles(config["sat_url"]):
-        if lcd:
-            lcd.clear()
-            lcd.write_string("successfully downloaded tles")
-        rootLogger.warning("successfully downloaded tles")
-    else:
-        if lcd:
-            lcd.clear()
-            lcd.write_string("error downloading tles")
-        rootLogger.warning("error downloading tles")
-    time.sleep(3)
+
     while True:
         rootLogger.warning("entering main loop")
         done = Event()
