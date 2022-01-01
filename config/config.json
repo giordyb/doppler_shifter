@@ -2,9 +2,9 @@
     "rotary_step": 100,
     "timezone": "Europe/Rome",
     "gpio_pins": {
-        "CLK": 17,
-        "DT": 18,
-        "SW": 27
+        "SW": 17,
+        "DT": 27,
+        "CLK": 220
     },
     "enable_radios": true,
     "rig_up_config": {
