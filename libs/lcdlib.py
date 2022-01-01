@@ -31,18 +31,24 @@ def write_lcd_loop(
     sat_down_range,
     sat_alt,
     sat_az,
+    tune_lock,
 ):
 
     lcd.home()
+    upchar = "\x00"
+    lockchar = ""
     if current_up not in sat_up_range:
         lcd.write_string("xx")
     else:
-        lcd.write_string("\x00 ")
+        lcd.write_string(f"{upchar} ")
+
     lcd.write_string(
         f"{int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}".replace(",", ".")
     )
     lcd.crlf()
-    lcd.write_string(f"\x00{SELECTED_SAT['up_mode'][0]}")
+    if tune_lock:
+        upchar = "\x02"
+    lcd.write_string(f"{upchar}{SELECTED_SAT['up_mode'][0]}")
     lcd.write_string(f"{int(shifted_up):,.0f} A {sat_az}".replace(",", "."))
     lcd.crlf()
     if current_down == SELECTED_SAT.get("beacon", None):
@@ -78,6 +84,9 @@ def init_lcd():
         lcd.create_char(
             1, (0b11111, 0b01110, 0b00100, 0b00000, 0b11111, 0b01110, 0b00100, 0b00000)
         )  # DOWN ARROW CHAR
+        lcd.create_char(
+            2, (0b01110, 0b11011, 0b10001, 0b11111, 0b11111, 0b11011, 0b11011, 0b01110)
+        )
     except:
         return Fake_LCD()
 

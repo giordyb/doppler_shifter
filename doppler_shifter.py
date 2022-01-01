@@ -23,7 +23,7 @@ import time
 import logging
 from libs.gpslib import poll_gps
 import os
-
+from libs.sat_loop import sat_loop
 
 DEBUG = bool(os.getenv("DEBUG", False))
 logFormatter = logging.Formatter(
@@ -42,53 +42,9 @@ rootLogger.addHandler(consoleHandler)
 gpio_pins = ["CLK", "DT", "SW"]
 selected_sat_idx = 0
 
-run_loop = True
-
-
-def sat_loop(
-    obs, satellite, config, sat_up_range, sat_down_range, lcd, SELECTED_SAT, ns
-):
-    global rig_up
-    global rig_down
-    global run_loop
-
-    while run_loop:
-        obs.date = datetime.datetime.utcnow()
-        satellite.compute(obs)
-        alt = str(satellite.alt).split(":")[0] + "°"
-        az = str(satellite.az).split(":")[0] + "°"
-        shift_down = get_doppler_shift(ns.current_down, satellite.range_velocity)
-        shift_up = get_doppler_shift(ns.current_up, satellite.range_velocity)
-        shifted_down = get_shifted(ns.current_down, shift_down, "down")
-        shifted_up = get_shifted(ns.current_up, shift_up, "up")
-
-        if config["enable_radios"]:
-            try:
-                rig_up.set_frequency(shifted_up)
-            except:
-                rootLogger.error("cannot set frequency on uplink")
-                libs.rigstarterlib.reset_rig("up")
-            try:
-                rig_down.set_frequency(shifted_down)
-            except:
-                rootLogger.error("cannot set frequency on downlink")
-                libs.rigstarterlib.reset_rig("down")
-
-        write_lcd_loop(
-            lcd,
-            ns.current_up,
-            ns.current_down,
-            shifted_up,
-            shifted_down,
-            shift_up,
-            shift_down,
-            SELECTED_SAT,
-            sat_up_range,
-            sat_down_range,
-            alt,
-            az,
-        )
-        print(f"alt: {alt}, az: {az} range: {satellite.range}")
+with open("config/config.json", "r") as f:
+    config = json.load(f)
+button = Button(config["gpio_pins"]["SW"], hold_time=20)
 
 
 def get_range(up, down):
@@ -108,9 +64,15 @@ def shutdown_raspi(button, lcd):
     subprocess.run(["sudo", "poweroff"])
 
 
-def exit_loop():
-    global run_loop
-    run_loop = False
+def tune_lock_switch(button, ns):
+    if ns.tune_lock:
+        ns.tune_lock = False
+    else:
+        ns.tune_lock = True
+
+
+def exit_loop(ns):
+    ns.run_loop = False
 
 
 def select_sat(rotary, lcd):
@@ -133,13 +95,9 @@ def select_sat(rotary, lcd):
 
 
 def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
-    # global rit
-    global button
-    # global current_down
-    # global current_up
     nextfrequp = ns.current_up
     nextfreqdown = ns.current_down
-    if button.is_pressed:
+    if ns.tune_lock:
         nextfrequp -= sign * config["rotary_step"]
     else:
         nextfrequp -= sign * config["rotary_step"]
@@ -158,12 +116,14 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
 
 
 def main():
+    button.when_held = exit_loop
+
     manager = multiprocessing.Manager()
     ns = manager.Namespace()
+    ns.run_loop = True
+
     lcd = init_lcd()
 
-    with open("config/config.json", "r") as f:
-        config = json.load(f)
     lat, lon, ele = poll_gps(rootLogger)
 
     # override default coordinates with gps
@@ -174,9 +134,6 @@ def main():
         rootLogger.warning("setting gps coordinates")
     else:
         rootLogger.warning("cannot read gps coordinates, using default")
-
-    button = Button(config["gpio_pins"]["SW"], hold_time=20)
-    button.when_held = exit_loop
     try:
         update_tles(config["sat_url"])
         if lcd:
@@ -191,12 +148,12 @@ def main():
         time.sleep(3)
         rootLogger.warning("error downloading tles")
 
-    rig_up = None
-    rig_down = None
+    ns.rig_up = None
+    ns.rig_down = None
     if config["enable_radios"] and not DEBUG:
         libs.rigstarterlib.init_rigs(config, lcd, button)
-        rig_up = rigctllib.RigCtl(config["rig_up_config"])
-        rig_down = rigctllib.RigCtl(config["rig_down_config"])
+        ns.rig_up = rigctllib.RigCtl(config["rig_up_config"])
+        ns.rig_down = rigctllib.RigCtl(config["rig_down_config"])
 
     while True:
         rootLogger.warning("entering main loop")
@@ -216,8 +173,8 @@ def main():
             lcd.clear()
             lcd.write_string("rotate knob to select a satellite")
         rootLogger.warning("rotate knob to select a satellite")
-        from_zone = tz.gettz("UTC")
-        to_zone = tz.gettz(config["timezone"])
+        # from_zone = tz.gettz("UTC")
+        # to_zone = tz.gettz(config["timezone"])
 
         if not DEBUG:
             done.wait()
@@ -237,11 +194,11 @@ def main():
         obs.lat = config["observer_conf"]["lat"]
         obs.elevation = config["observer_conf"]["ele"]
 
-        if isinstance(rig_down, rigctllib.RigCtl) and isinstance(
-            rig_up, rigctllib.RigCtl
+        if isinstance(ns.rig_down, rigctllib.RigCtl) and isinstance(
+            ns.rig_up, rigctllib.RigCtl
         ):
-            rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
-            rig_up.set_mode(mode=SELECTED_SAT["up_mode"])
+            ns.rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
+            ns.rig_up.set_mode(mode=SELECTED_SAT["up_mode"])
 
         sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
         sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
@@ -261,7 +218,8 @@ def main():
         rotary.when_rotated_counter_clockwise = lambda: tune_vfo(
             rotary, config, sat_down_range, sat_up_range, +1, ns
         )
-
+        ns.tune_lock = False
+        button.when_pressed = lambda: tune_lock_switch(button, ns)
         try:
             loop_thread = Thread(
                 target=sat_loop,
@@ -285,4 +243,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
