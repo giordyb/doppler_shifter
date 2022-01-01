@@ -91,6 +91,7 @@ def select_sat(rotary, lcd, ns):
         lcd.write_string(f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}")
     else:
         lcd.write_string("Linear")
+    ns.run_loop = True
 
 
 def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
@@ -118,7 +119,6 @@ def main():
 
     manager = multiprocessing.Manager()
     ns = manager.Namespace()
-    ns.run_loop = True
 
     lcd = init_lcd()
 
