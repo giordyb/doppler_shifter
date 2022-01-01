@@ -40,7 +40,6 @@ consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
 
 gpio_pins = ["CLK", "DT", "SW"]
-selected_sat_idx = 0
 
 with open("config/config.json", "r") as f:
     config = json.load(f)
@@ -75,21 +74,20 @@ def exit_loop(ns):
     ns.run_loop = False
 
 
-def select_sat(rotary, lcd):
-    global selected_sat_idx
-    selected_sat_idx = rotary.steps
+def select_sat(rotary, lcd, ns):
+    ns.selected_sat_idx = rotary.steps
     lcd.clear()
-    lcd.write_string(SAT_LIST[selected_sat_idx]["display_name"])
+    lcd.write_string(SAT_LIST[ns.selected_sat_idx]["display_name"])
     lcd.crlf()
     lcd.write_string(
-        f"BCN {int(SAT_LIST[selected_sat_idx].get('beacon','0')):,.0f}".replace(
+        f"BCN {int(SAT_LIST[ns.selected_sat_idx].get('beacon','0')):,.0f}".replace(
             ",", "."
         ).ljust(20, " ")
     )
 
     lcd.crlf()
-    if SAT_LIST[selected_sat_idx]["down_mode"] == "FM":
-        lcd.write_string(f"FM {SAT_LIST[selected_sat_idx]['tone'].ljust(20, ' ')}")
+    if SAT_LIST[ns.selected_sat_idx]["down_mode"] == "FM":
+        lcd.write_string(f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}")
     else:
         lcd.write_string("Linear")
 
@@ -150,6 +148,7 @@ def main():
 
     ns.rig_up = None
     ns.rig_down = None
+    ns.selected_sat_idx = 0
     if config["enable_radios"] and not DEBUG:
         libs.rigstarterlib.init_rigs(config, lcd, button)
         ns.rig_up = rigctllib.RigCtl(config["rig_up_config"])
@@ -164,9 +163,8 @@ def main():
             max_steps=len(SAT_LIST) - 1,
             wrap=True,
         )
-        selected_sat_idx = 0
 
-        rotary.when_rotated = lambda: select_sat(rotary, lcd)
+        rotary.when_rotated = lambda: select_sat(rotary, lcd, ns)
         button.when_pressed = lambda: selected_sat(button, done)
 
         if lcd:
@@ -179,9 +177,11 @@ def main():
         if not DEBUG:
             done.wait()
 
-        rootLogger.warning(f"selected sat {SAT_LIST[selected_sat_idx]['display_name']}")
+        rootLogger.warning(
+            f"selected sat {SAT_LIST[ns.selected_sat_idx]['display_name']}"
+        )
 
-        SELECTED_SAT = SAT_LIST[selected_sat_idx]
+        SELECTED_SAT = SAT_LIST[ns.selected_sat_idx]
 
         sat = get_tles(SELECTED_SAT["name"])
 

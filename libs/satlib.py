@@ -1,9 +1,13 @@
 import urllib.request
+import logging
 
 TLE_FILE = "config/tles.txt"
 
+logger = logging.getLogger(__name__)
+
 
 def get_tles(sat_name):
+    logger.warning(f"getting tles for: {sat_name}")
     with open(TLE_FILE, "r") as f:
         sat_tle = f.readlines()
         tles = [item.strip() for item in sat_tle]
