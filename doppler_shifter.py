@@ -18,7 +18,6 @@ import time
 import logging
 from libs.gpslib import poll_gps
 from libs.sat_loop import sat_loop
-from libs.rigstarterlib import reset_rig
 
 logFormatter = logging.Formatter(
     "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
@@ -61,12 +60,12 @@ def sat_loop(
                 rig_up.set_frequency(shifted_up)
             except:
                 rootLogger.error("cannot set frequency on uplink")
-                reset_rig("up")
+                libs.rigstarterlib.reset_rig("up")
             try:
                 rig_down.set_frequency(shifted_down)
             except:
                 rootLogger.error("cannot set frequency on downlink")
-                reset_rig("down")
+                libs.rigstarterlib.reset_rig("down")
 
         write_lcd_loop(
             lcd,
