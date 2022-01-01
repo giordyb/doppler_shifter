@@ -18,9 +18,9 @@
         "rig_number": 1
     },
     "observer_conf": {
-        "lat": "45.3012",
-        "lon": "9.1362",
-        "ele": 162
+        "lat": "45.3014",
+        "lon": "9.1360",
+        "ele": 130
     },
     "sat_url": "http://celestrak.com/NORAD/elements/active.txt"
 }
