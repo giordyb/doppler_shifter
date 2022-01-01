@@ -17,7 +17,6 @@ import subprocess
 import time
 import logging
 from libs.gpslib import poll_gps
-from libs.sat_loop import sat_loop
 
 logFormatter = logging.Formatter(
     "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
