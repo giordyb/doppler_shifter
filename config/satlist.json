@@ -25,7 +25,8 @@
         "down_center": 145870000,
         "down_end": 145880000,
         "inverting": true,
-        "beacon": 145855000
+        "beacon": 145855000,
+        "saved_uplink_diff": 500
     },
     {
         "name": "ZHUHAI-1 02 (CAS-4B)",
@@ -40,7 +41,7 @@
         "down_end": 145935000,
         "inverting": true,
         "beacon": 145910000,
-        "saved_uplink_diff": -700
+        "saved_uplink_diff": 3700
     },
     {
         "name": "CAS-6 (TIANQIN 1)",
@@ -53,7 +54,8 @@
         "down_start": 145915000,
         "down_center": 145925000,
         "down_end": 145935000,
-        "inverting": true
+        "inverting": true,
+        "saved_uplink_diff": -500
     },
     {
         "name": "OSCAR 7 (AO-7)",
@@ -219,7 +221,8 @@
         "down_center": 145865000,
         "down_end": 145875000,
         "inverting": true,
-        "beacon": 145840000
+        "beacon": 145840000,
+        "saved_uplink_diff": 500
     },
     {
         "name": "DIWATA-2B",
