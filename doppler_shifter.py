@@ -203,7 +203,9 @@ def main():
         sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
         sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
         ns.current_down = SELECTED_SAT["down_center"]
-        ns.current_up = SELECTED_SAT["up_center"] + SELECTED_SAT["saved_uplink_diff"]
+        ns.current_up = SELECTED_SAT["up_center"] + SELECTED_SAT.get(
+            "saved_uplink_diff", 0
+        )
 
         rotary.close()
         rotary = RotaryEncoder(
