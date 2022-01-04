@@ -15,10 +15,11 @@ def sat_loop(
     rig_down = ns.rig_down
 
     while ns.run_loop:
+
         obs.date = datetime.datetime.utcnow()
         satellite.compute(obs)
-        alt = str(satellite.alt).split(":")[0] + "°"
-        az = str(satellite.az).split(":")[0] + "°"
+        alt = str(satellite.alt).split(":")[0]
+        az = str(satellite.az).split(":")[0]
         shift_down = get_doppler_shift(ns.current_down, satellite.range_velocity)
         shift_up = get_doppler_shift(ns.current_up, satellite.range_velocity)
         shifted_down = get_shifted(ns.current_down, shift_down, "down")
@@ -55,4 +56,5 @@ def sat_loop(
             alt,
             az,
             ns.tune_lock,
+            ns.diff,
         )

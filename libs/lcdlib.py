@@ -32,6 +32,7 @@ def write_lcd_loop(
     sat_alt,
     sat_az,
     tune_lock,
+    diff,
 ):
 
     lcd.home()
@@ -48,7 +49,7 @@ def write_lcd_loop(
     if not tune_lock:
         upchar = "\x02"
     lcd.write_string(
-        f"{upchar}{SELECTED_SAT['up_mode'][0]}{int(shifted_up):,.0f} A {sat_az}".ljust(
+        f"{upchar}{SELECTED_SAT['up_mode'][0]}{int(shifted_up):,.0f} D{diff}".ljust(
             20, " "
         ).replace(",", ".")
     )
@@ -66,7 +67,7 @@ def write_lcd_loop(
     )
     lcd.crlf()
     lcd.write_string(
-        f"{firstchar}{SELECTED_SAT['down_mode'][0]}{int(shifted_down):,.0f} E {sat_alt}".ljust(
+        f"{firstchar}{SELECTED_SAT['down_mode'][0]}{int(shifted_down):,.0f}{sat_alt.zfill(2)}/{sat_az}".ljust(
             20, " "
         ).replace(
             ",", "."

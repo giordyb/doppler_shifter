@@ -27,10 +27,7 @@ def wait_for_port(port, host="localhost", timeout=5.0):
         except OSError as ex:
             time.sleep(0.01)
             if time.perf_counter() - start_time >= timeout:
-                raise TimeoutError(
-                    "Waited too long for the port {} on host {} to start accepting "
-                    "connections.".format(port, host)
-                ) from ex
+                return False
     return True
 
 
@@ -68,13 +65,10 @@ def init_rigs(config, lcd, button):
         wait_func = lambda x: wait_for_port(
             config[f"rig_{side}_config"]["port"],
             config[f"rig_{side}_config"]["hostname"],
-            timeout=10,
+            timeout=3,
         )
         rig = libs.rigctllib.RigCtl(config[f"rig_{side}_config"])
-        if wait_func(""):
-            rig_init = True
-        else:
-            rig_init = False
+        rig_init = wait_func("")
         while rig_init == False:
             try:
                 lcd.clear()
@@ -87,7 +81,8 @@ def init_rigs(config, lcd, button):
                 wait_for_press_wrapper(button)
 
                 reset_rig(side)
-                wait_func("")
+                if not wait_func(""):
+                    continue
                 change_mode_result = rig.set_mode(mode="AM")
 
                 lcd.clear()
