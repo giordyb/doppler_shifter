@@ -4,7 +4,7 @@
     "gpio_pins": {
         "SW": 17,
         "DT": 27,
-        "CLK": 220
+        "CLK": 22
     },
     "enable_radios": true,
     "rig_up_config": {
