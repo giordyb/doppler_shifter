@@ -312,6 +312,21 @@ class RigCtl(object):
 
         return self._request("X %s" % split_mode)
 
+    def set_split_vfo(self, enable_switch, split_vfo):
+        """Wrapper around _request. It configures the command for setting
+        split VFO.
+
+        """
+
+        if split_vfo not in ALLOWED_VFO_COMMANDS:
+            logger.error(
+                "split_mode value must be a string in {}, "
+                "got {}".format(ALLOWED_SPLIT_MODES, type(split_vfo))
+            )
+            raise ValueError
+
+        return self._request(f"S {enable_switch} {split_vfo}")
+
     def get_split_mode(self):
         """Wrapper around _request. It configures the command for getting
         the split mode.
