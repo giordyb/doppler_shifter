@@ -7,6 +7,7 @@ from libs.satlib import update_tles
 import logging
 
 logger = logging.getLogger(__name__)
+DEBUG = bool(os.getenv("DEBUG", False))
 
 
 def wait_for_port(port, host="localhost", timeout=5.0):
@@ -39,11 +40,16 @@ def reset_rig(rig_side):
         subprocess.run(["sudo", "systemctl", "start", f"rig{rig_side}"])
 
 
+def wait_for_press_wrapper(button):
+    if not DEBUG:
+        button.wait_for_press()
+
+
 def init_rigs(config, lcd, button):
     lcd.clear()
     lcd.write_string(f"press rotary encoder\n\rto start")
     logger.warning("press rotary encoder to start")
-    button.wait_for_press()
+    wait_for_press_wrapper(button)
 
     if update_tles(config["sat_url"]):
         if lcd:
@@ -61,7 +67,6 @@ def init_rigs(config, lcd, button):
         rig_init = False
         rig = libs.rigctllib.RigCtl(config[f"rig_{side}_config"])
         while rig_init == False:
-
             try:
                 lcd.clear()
                 lcd.write_string(
@@ -70,11 +75,9 @@ def init_rigs(config, lcd, button):
                 logger.warning(
                     f"turn on {side}link rig\n\rand press the rotary\n\rencoder button"
                 )
-                button.wait_for_press()
-                subprocess.run(["sudo", "systemctl", "stop", f"rig{side}"])
-                time.sleep(3)
-                subprocess.run(["sudo", "systemctl", "start", f"rig{side}"])
+                wait_for_press_wrapper(button)
 
+                reset_rig(side)
                 port_ready = 1
                 wait_for_port(
                     config[f"rig_{side}_config"]["port"],
@@ -83,22 +86,21 @@ def init_rigs(config, lcd, button):
                 )
 
                 change_mode_result = rig.set_mode(mode="AM")
-                if change_mode_result == "RPRT 0":
 
-                    lcd.clear()
+                lcd.clear()
+                if change_mode_result == "RPRT 0":
                     lcd.write_string(f"{side}link rig\n\rstarted")
                     logger.warning(f"{side}link rig\n\rstarted")
-                    button.wait_for_press()
                     rig_init = True
                 else:
-                    lcd.clear()
                     lcd.write_string(f"{side}link rig\n\rerror")
                     logger.warning(f"{side}link rig\n\rerror")
-                    button.wait_for_press()
                     rig_init = False
+                wait_for_press_wrapper(button)
 
             except (ConnectionRefusedError, TimeoutError):
                 lcd.clear()
                 lcd.write_string(f"error starting\n\r{side}link rig\n\rrigctld service")
                 logger.warning(f"error starting\n\r{side}link rig\n\rrigctld service")
-                button.wait_for_press()
+                wait_for_press_wrapper(button)
+

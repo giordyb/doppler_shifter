@@ -1,14 +1,17 @@
 #%%
-import datetime
-import ephem
-from dateutil import tz
 import libs.rigctllib as rigctllib
-from sys import platform
-from RPLCD import i2c
-from config.satlist import SAT_LIST
-import json
 from libs.satlib import *
 from libs.lcdlib import *
+import libs.rigstarterlib
+from libs.gpslib import poll_gps
+from libs.sat_loop import sat_loop
+import ephem
+from dateutil import tz
+from sys import platform
+from RPLCD import i2c
+
+from config.satlist import SAT_LIST
+import json
 
 try:
     import RPi.GPIO as GPIO
@@ -16,14 +19,10 @@ except:
     import Mock.GPIO as GPIO
 from threading import Event, Thread
 import multiprocessing
-import libs.rigstarterlib
 from gpiozero import RotaryEncoder, Button
 import subprocess
-import time
 import logging
-from libs.gpslib import poll_gps
 import os
-from libs.sat_loop import sat_loop
 
 DEBUG = bool(os.getenv("DEBUG", False))
 logFormatter = logging.Formatter(
@@ -91,7 +90,6 @@ def select_sat(rotary, lcd, ns):
         lcd.write_string(f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}")
     else:
         lcd.write_string("Linear")
-    ns.run_loop = True
 
 
 def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
@@ -133,11 +131,11 @@ def main():
         rootLogger.warning("setting gps coordinates")
     else:
         rootLogger.warning("cannot read gps coordinates, using default")
-
+    ns.run_loop = True
     ns.rig_up = None
     ns.rig_down = None
     ns.selected_sat_idx = 0
-    if config["enable_radios"] and not DEBUG:
+    if config["enable_radios"]:
         libs.rigstarterlib.init_rigs(config, lcd, button)
         ns.rig_up = rigctllib.RigCtl(config["rig_up_config"])
         ns.rig_down = rigctllib.RigCtl(config["rig_down_config"])
