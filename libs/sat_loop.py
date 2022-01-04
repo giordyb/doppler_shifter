@@ -26,7 +26,12 @@ def sat_loop(
 
         if config["enable_radios"]:
             try:
-                rig_up.set_frequency(shifted_up)
+                # rig_up.set_vfo("VFOA")
+                rig_up.set_frequency(shifted_down)
+                rig_up.set_split_freq(shifted_up)
+                # rig_up.set_vfo("VFOB")
+                # rig_up.set_frequency(shifted_up)
+                # rig_up.set_vfo("VFOB")
             except Exception as ex:
                 logger.error(f"cannot set frequency on uplink {ex}")
                 reset_rig("up")

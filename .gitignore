@@ -4,4 +4,3 @@ __pycache__/*
 *.log
 config/*.txt
 config/tles.txt.temp
-config/tles.txt.temp

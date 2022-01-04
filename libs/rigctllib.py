@@ -297,20 +297,20 @@ class RigCtl(object):
 
         return output
 
-    def set_split_mode(self, split_mode):
+    def set_split_mode(self, mode, bandwidth):
         """Wrapper around _request. It configures the command for setting
         slit frequency.
 
         """
 
-        if split_mode not in ALLOWED_SPLIT_MODES:
+        if mode not in ALLOWED_SPLIT_MODES:
             logger.error(
                 "split_mode value must be a string in {}, "
-                "got {}".format(ALLOWED_SPLIT_MODES, type(split_mode))
+                "got {}".format(ALLOWED_SPLIT_MODES, type(mode))
             )
             raise ValueError
 
-        return self._request("X %s" % split_mode)
+        return self._request(f"X {mode} {bandwidth}")
 
     def set_split_vfo(self, enable_switch, split_vfo):
         """Wrapper around _request. It configures the command for setting
