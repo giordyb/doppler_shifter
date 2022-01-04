@@ -36,34 +36,42 @@ def write_lcd_loop(
 
     lcd.home()
     upchar = "\x00"
-    lockchar = ""
     if current_up not in sat_up_range:
-        lcd.write_string("xx")
-    else:
-        lcd.write_string(f"{upchar} ")
+        upchar = "xx"
 
     lcd.write_string(
-        f"{int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}".replace(",", ".")
+        f"{upchar} {int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}".replace(
+            ",", "."
+        )
     )
     lcd.crlf()
-    if tune_lock:
+    if not tune_lock:
         upchar = "\x02"
-    lcd.write_string(f"{upchar}{SELECTED_SAT['up_mode'][0]}")
-    lcd.write_string(f"{int(shifted_up):,.0f} A {sat_az}".replace(",", "."))
+    lcd.write_string(
+        f"{upchar}{SELECTED_SAT['up_mode'][0]}{int(shifted_up):,.0f} A {sat_az}".ljust(
+            20, " "
+        ).replace(",", ".")
+    )
     lcd.crlf()
     if current_down == SELECTED_SAT.get("beacon", None):
-        lcd.write_string("BC")
+        firstchar = "BC"
     elif current_down not in sat_down_range:
-        lcd.write_string("xx")
+        firstchar = "xx"
     else:
-        lcd.write_string("\x01 ")
+        firstchar = "\x01"
     lcd.write_string(
-        f"{int(current_down):,.0f} -{str(abs(shift_down)).zfill(5)}".replace(",", ".")
+        f"{firstchar} {int(current_down):,.0f} -{str(abs(shift_down)).zfill(5)}".replace(
+            ",", "."
+        )
     )
     lcd.crlf()
-
-    lcd.write_string(f"\x01{SELECTED_SAT['down_mode'][0]}")
-    lcd.write_string(f"{int(shifted_down):,.0f} E {sat_alt}".replace(",", "."))
+    lcd.write_string(
+        f"{firstchar}{SELECTED_SAT['down_mode'][0]}{int(shifted_down):,.0f} E {sat_alt}".ljust(
+            20, " "
+        ).replace(
+            ",", "."
+        )
+    )
 
 
 def init_lcd():

@@ -1,6 +1,4 @@
 #!/bin/bash
-#/usr/local/bin/rigctld -t 4533 -m 2042 -r /dev/ttyUSB-d74 &
-#sleep 30
 # Optionally set PYTHONPATH
 cd /home/pi/doppler_shifter/
 sudo systemctl stop rigup

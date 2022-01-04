@@ -10,7 +10,10 @@ from dateutil import tz
 from sys import platform
 from RPLCD import i2c
 
-from config.satlist import SAT_LIST
+# from config.satlist import SAT_LIST
+import json
+from libs.satlib import *
+from libs.lcdlib import *
 import json
 
 try:
@@ -42,6 +45,8 @@ gpio_pins = ["CLK", "DT", "SW"]
 
 with open("config/config.json", "r") as f:
     config = json.load(f)
+with open("config/satlist.json", "r") as f:
+    SAT_LIST = json.load(f)
 button = Button(config["gpio_pins"]["SW"], hold_time=5)
 
 
@@ -66,7 +71,11 @@ def tune_lock_switch(button, ns):
     if ns.tune_lock:
         ns.tune_lock = False
     else:
+        ns.diff
         ns.tune_lock = True
+        SAT_LIST[ns.selected_sat_idx]["saved_uplink_diff"] = ns.diff
+        with open("config/satlist.json", "w") as f:
+            json.dump(SAT_LIST, f)
 
 
 def exit_loop(button, ns):
@@ -93,9 +102,10 @@ def select_sat(rotary, lcd, ns):
 
 
 def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
+
     nextfrequp = ns.current_up
     nextfreqdown = ns.current_down
-    if ns.tune_lock:
+    if not ns.tune_lock:
         ns.diff += sign * config["rotary_step"]
         rootLogger.warning(f"uplink freq diff is {ns.diff}")
         nextfrequp -= sign * config["rotary_step"]
@@ -135,6 +145,7 @@ def main():
     ns.rig_up = None
     ns.rig_down = None
     ns.selected_sat_idx = 0
+    ns.diff = 0
     if config["enable_radios"]:
         libs.rigstarterlib.init_rigs(config, lcd, button)
         ns.rig_up = rigctllib.RigCtl(config["rig_up_config"])
@@ -171,7 +182,8 @@ def main():
         SELECTED_SAT = SAT_LIST[ns.selected_sat_idx]
 
         sat = get_tles(SELECTED_SAT["name"])
-
+        ns.SAT_LIST = SAT_LIST
+        ns.SELECTED_SAT = SELECTED_SAT
         satellite = ephem.readtle(
             sat[0], sat[1], sat[2]
         )  # create ephem object from tle information
@@ -190,7 +202,9 @@ def main():
         sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
         sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
         ns.current_down = SELECTED_SAT["down_center"]
-        ns.current_up = SELECTED_SAT["up_center"]
+        ns.current_up = SELECTED_SAT["up_center"] + SELECTED_SAT.get(
+            "saved_uplink_diff", 0
+        )
 
         rotary.close()
         rotary = RotaryEncoder(
@@ -205,7 +219,7 @@ def main():
         rotary.when_rotated_counter_clockwise = lambda: tune_vfo(
             rotary, config, sat_down_range, sat_up_range, +1, ns
         )
-        ns.tune_lock = False
+        ns.tune_lock = True
         button.when_pressed = lambda: tune_lock_switch(button, ns)
         try:
             loop_thread = Thread(

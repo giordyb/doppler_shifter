@@ -36,7 +36,7 @@ def wait_for_port(port, host="localhost", timeout=5.0):
 def reset_rig(rig_side):
     if not os.getenv("DEBUG", False):
         subprocess.run(["sudo", "systemctl", "stop", f"rig{rig_side}"])
-        time.sleep(3)
+        time.sleep(1)
         subprocess.run(["sudo", "systemctl", "start", f"rig{rig_side}"])
 
 
@@ -61,7 +61,7 @@ def init_rigs(config, lcd, button):
             lcd.clear()
             lcd.write_string("error downloading tles")
         logger.warning("error downloading tles")
-    time.sleep(3)
+    time.sleep(1)
 
     for side in ["down", "up"]:
         rig_init = False
