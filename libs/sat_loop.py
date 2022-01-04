@@ -24,7 +24,7 @@ def sat_loop(
         shifted_down = get_shifted(ns.current_down, shift_down, "down")
         shifted_up = get_shifted(ns.current_up, shift_up, "up")
 
-        if config["enable_radios"] and not bool(os.getenv("DEBUG", False)):
+        if config["enable_radios"]:
             try:
                 rig_up.set_frequency(shifted_up)
             except Exception as ex:
