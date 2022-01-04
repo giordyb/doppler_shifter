@@ -40,7 +40,7 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
 13. copy the 99-serial-usb.rules file in /etc/udev/rules.d/ 
     + sudo cp 99-serial-usb.rules /etc/udev/rules.d/
 14. copy the .service files in the systemd folder in /etc/systemd/system/ 
-    + sudo cp *.service /etc/systemd/system/
+    + sudo cp systemd/*.service /etc/systemd/system/
 15. reload the systemd daemon 
     + sudo systemctl daemon-reload
 16. edit the config/config.json file and adjust the settings. 
