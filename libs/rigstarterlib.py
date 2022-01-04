@@ -31,6 +31,7 @@ def wait_for_port(port, host="localhost", timeout=5.0):
                     "Waited too long for the port {} on host {} to start accepting "
                     "connections.".format(port, host)
                 ) from ex
+    return True
 
 
 def reset_rig(rig_side):
@@ -64,8 +65,16 @@ def init_rigs(config, lcd, button):
     time.sleep(1)
 
     for side in ["down", "up"]:
-        rig_init = False
+        wait_func = lambda x: wait_for_port(
+            config[f"rig_{side}_config"]["port"],
+            config[f"rig_{side}_config"]["hostname"],
+            timeout=10,
+        )
         rig = libs.rigctllib.RigCtl(config[f"rig_{side}_config"])
+        if wait_func(""):
+            rig_init = True
+        else:
+            rig_init = False
         while rig_init == False:
             try:
                 lcd.clear()
@@ -78,13 +87,7 @@ def init_rigs(config, lcd, button):
                 wait_for_press_wrapper(button)
 
                 reset_rig(side)
-                port_ready = 1
-                wait_for_port(
-                    config[f"rig_{side}_config"]["port"],
-                    config[f"rig_{side}_config"]["hostname"],
-                    timeout=10,
-                )
-
+                wait_func("")
                 change_mode_result = rig.set_mode(mode="AM")
 
                 lcd.clear()
@@ -103,4 +106,3 @@ def init_rigs(config, lcd, button):
                 lcd.write_string(f"error starting\n\r{side}link rig\n\rrigctld service")
                 logger.warning(f"error starting\n\r{side}link rig\n\rrigctld service")
                 wait_for_press_wrapper(button)
-
