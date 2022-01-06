@@ -201,9 +201,9 @@ def main():
             ns.rig_up, rigctllib.RigCtl
         ):
             ns.rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
-            ns.rig_up.set_split_mode(mode=SELECTED_SAT["up_mode"], bandwidth=0)
-            ns.rig_up.set_mode(mode=SELECTED_SAT["down_mode"])
-            ns.rig_up.set_split_vfo(1, "VFOB")
+            # ns.rig_up.set_split_mode(mode=SELECTED_SAT["up_mode"], bandwidth=0)
+            ns.rig_up.set_mode(mode=SELECTED_SAT["up_mode"])
+            # ns.rig_up.set_split_vfo(1, "VFOB")
 
         sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
         sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
