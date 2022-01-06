@@ -65,11 +65,12 @@ def init_rigs(config, lcd, button):
         wait_func = lambda x: wait_for_port(
             config[f"rig_{side}_config"]["port"],
             config[f"rig_{side}_config"]["hostname"],
-            timeout=3,
+            timeout=5,
         )
         rig = libs.rigctllib.RigCtl(config[f"rig_{side}_config"])
         rig_init = wait_func("")
-        while rig_init == False:
+        reset_rig(side)
+        while not rig_init:
             try:
                 lcd.clear()
                 lcd.write_string(
@@ -101,3 +102,7 @@ def init_rigs(config, lcd, button):
                 lcd.write_string(f"error starting\n\r{side}link rig\n\rrigctld service")
                 logger.warning(f"error starting\n\r{side}link rig\n\rrigctld service")
                 wait_for_press_wrapper(button)
+        lcd.clear()
+        lcd.write_string(f"{side}link rig\n\rstarted")
+        logger.warning(f"{side}link rig\n\rstarted")
+        time.sleep(0.5)
