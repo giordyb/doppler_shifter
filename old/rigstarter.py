@@ -60,8 +60,6 @@ SW = 27
 clicked = True
 lcd = init_lcd()
 
-# %%
-
 
 def init_rigs():
 

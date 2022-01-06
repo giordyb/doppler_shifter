@@ -85,17 +85,24 @@ def exit_loop(button, ns):
 
 
 def select_sat(rotary, lcd, ns):
+    lcd.clear()
     ns.selected_sat_idx = rotary.steps
-    msg_str = f"{SAT_LIST[ns.selected_sat_idx]['display_name']}\n\r"
-    msg_str += f"BCN {int(SAT_LIST[ns.selected_sat_idx].get('beacon','0')):,.0f}\n\r"
-
-    msg_str = msg_str.replace(",", ".")
+    # 1st line
+    line1 = f"{SAT_LIST[ns.selected_sat_idx]['display_name']}"
+    lcd.write_string(line1)
+    lcd.crlf()
+    # 2nd line
+    line2 = f"BCN {int(SAT_LIST[ns.selected_sat_idx].get('beacon','0')):,.0f}".replace(
+        ",", "."
+    )
+    lcd.write_string(line2)
+    lcd.crlf()
 
     if SAT_LIST[ns.selected_sat_idx]["down_mode"] == "FM":
-        msg_str += f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}"
+        line3 = f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}"
     else:
-        msg_str += "Linear"
-    log_msg(msg_str, lcd, logger)
+        line3 = "Linear"
+    lcd.write_string(line3)
     ns.run_loop = True
 
 
