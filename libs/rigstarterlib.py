@@ -92,10 +92,7 @@ def init_rigs(config, lcd, button):
                     continue
                 change_mode_result = rig.set_mode(mode="AM")
 
-                lcd.clear()
                 if change_mode_result == "RPRT 0":
-                    lcd.write_string(f"{side}link rig\n\rstarted")
-                    logger.warning(f"{side}link rig\n\rstarted")
                     rig_init = True
                 else:
                     lcd.write_string(f"{side}link rig\n\rerror")

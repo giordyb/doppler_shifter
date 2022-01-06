@@ -41,7 +41,7 @@ def write_lcd_loop(
     if current_up not in sat_up_range:
         upchar = "X"
     msg_str = f"{upchar} {int(current_up):,.0f}".replace(",", ".")
-    msg_str += f" +{str(abs(shift_up)).zfill(5)}"
+    msg_str += f" -{str(abs(shift_up)).zfill(5)}"
 
     lcd.write_string(msg_str.ljust(20, " "))
     lcd.crlf()
@@ -62,7 +62,7 @@ def write_lcd_loop(
     else:
         firstchar = "\x01"
     lcd.write_string(
-        f"{firstchar} {int(current_down):,.0f} -{str(abs(shift_down)).zfill(5)}".replace(
+        f"{firstchar} {int(current_down):,.0f} +{str(abs(shift_down)).zfill(5)}".replace(
             ",", "."
         )
     )
