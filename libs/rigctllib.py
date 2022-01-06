@@ -181,6 +181,22 @@ class RigCtl(object):
 
         return output
 
+    def send_custom_cmd(self, command):
+        """Wrapper around _request. It configures the command for getting
+        the signal level.
+
+        """
+
+        output = self._request(command)
+        if not isinstance(output, str):
+            logger.error(
+                "Expected unicode string while getting radio "
+                "signal level, got {}".format(output)
+            )
+            raise ValueError
+
+        return output
+
     def set_vfo(self, vfo):
         """Wrapper around _request. It configures the command for setting
         VFO.

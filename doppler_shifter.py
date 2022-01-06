@@ -200,6 +200,12 @@ def main():
         if isinstance(ns.rig_down, rigctllib.RigCtl) and isinstance(
             ns.rig_up, rigctllib.RigCtl
         ):
+            if config["rig_down_config"]["rig_name"] == "TH-D74":
+                if SELECTED_SAT["down_mode"] == "FM":
+                    ns.rig_down.send_custom_cmd("w FT 0\r")
+                else:
+                    ns.rig_down.send_custom_cmd("w FT 1\r")
+
             ns.rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
             # ns.rig_up.set_split_mode(mode=SELECTED_SAT["up_mode"], bandwidth=0)
             ns.rig_up.set_mode(mode=SELECTED_SAT["up_mode"])

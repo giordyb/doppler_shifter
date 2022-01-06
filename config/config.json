@@ -10,12 +10,14 @@
     "rig_up_config": {
         "hostname": "localhost",
         "port": 4532,
-        "rig_number": 1
+        "rig_number": 1,
+        "rig_name": "IC-705"
     },
     "rig_down_config": {
         "hostname": "localhost",
         "port": 4533,
-        "rig_number": 1
+        "rig_number": 1,
+        "rig_name": "TH-D74"
     },
     "observer_conf": {
         "lat": "45.3014",
