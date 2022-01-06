@@ -5,9 +5,18 @@ import subprocess
 import os
 from libs.satlib import update_tles
 import logging
+import datetime
+from time import sleep
 
 logger = logging.getLogger(__name__)
 DEBUG = bool(os.getenv("DEBUG", False))
+
+
+def log_msg(message, lcd, logger):
+    logger.warning(message)
+    lcd.clear()
+    lcd.write_string(message)
+    sleep(0.5)
 
 
 def wait_for_port(port, host="localhost", timeout=5.0):
@@ -44,21 +53,18 @@ def wait_for_press_wrapper(button):
 
 
 def init_rigs(config, lcd, button):
-    lcd.clear()
-    lcd.write_string(f"press rotary encoder\n\rto start")
-    logger.warning("press rotary encoder to start")
+    datestring = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_msg(
+        f"press rotary encoder\n\rto init rigs\n\r{datestring}",
+        lcd,
+        logger,
+    )
     wait_for_press_wrapper(button)
 
     if update_tles(config["sat_url"]):
-        if lcd:
-            lcd.clear()
-            lcd.write_string("successfully downloaded tles")
-        logger.warning("successfully downloaded tles")
+        log_msg("successfully downloaded tles", lcd, logger)
     else:
-        if lcd:
-            lcd.clear()
-            lcd.write_string("error downloading tles")
-        logger.warning("error downloading tles")
+        log_msg("error downloading tles", lcd, logger)
     time.sleep(1)
 
     for side in ["down", "up"]:

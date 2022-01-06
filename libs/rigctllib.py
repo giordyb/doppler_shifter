@@ -48,7 +48,7 @@ class RigCtl(object):
         :raises TypeError: if the target is not a dict of 3 keys
         """
 
-        if not isinstance(target, dict) or not len(target.keys()) == 3:
+        if not isinstance(target, dict) or not len(target.keys()) == 4:
             logger.error("target is not of type dict " "but {}".format(type(target)))
             raise TypeError
         self.target = target

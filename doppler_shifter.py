@@ -1,8 +1,9 @@
 #%%
+from time import sleep
 import libs.rigctllib as rigctllib
 from libs.satlib import *
 from libs.lcdlib import *
-import libs.rigstarterlib
+from libs.rigstarterlib import log_msg, init_rigs
 from libs.gpslib import poll_gps
 from libs.sat_loop import sat_loop
 import ephem
@@ -85,21 +86,16 @@ def exit_loop(button, ns):
 
 def select_sat(rotary, lcd, ns):
     ns.selected_sat_idx = rotary.steps
-    lcd.clear()
-    lcd.write_string(SAT_LIST[ns.selected_sat_idx]["display_name"])
-    lcd.crlf()
-    lcd.write_string(
-        f"BCN {int(SAT_LIST[ns.selected_sat_idx].get('beacon','0')):,.0f}".replace(
-            ",", "."
-        ).ljust(20, " ")
-    )
+    msg_str = f"{SAT_LIST[ns.selected_sat_idx]['display_name']}\n\r"
+    msg_str += f"BCN {int(SAT_LIST[ns.selected_sat_idx].get('beacon','0')):,.0f}\n\r"
 
-    lcd.crlf()
+    msg_str = msg_str.replace(",", ".")
 
     if SAT_LIST[ns.selected_sat_idx]["down_mode"] == "FM":
-        lcd.write_string(f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}")
+        msg_str += f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}"
     else:
-        lcd.write_string("Linear")
+        msg_str += "Linear"
+    log_msg(msg_str, lcd, logger)
     ns.run_loop = True
 
 
@@ -133,23 +129,25 @@ def main():
 
     lcd = init_lcd()
 
-    lat, lon, ele = poll_gps(rootLogger)
+    lat, lon, ele = poll_gps()
 
     # override default coordinates with gps
     if lat != "n/a" and lon != "n/a" and ele != "n/a":
         config["observer_conf"]["lon"] = str(lon)
         config["observer_conf"]["lat"] = str(lat)
         config["observer_conf"]["ele"] = ele
-        rootLogger.warning("setting gps coordinates")
+        log_msg("setting gps coordinates from radio", lcd, rootLogger)
     else:
-        rootLogger.warning("cannot read gps coordinates, using default")
+        log_msg(
+            "cannot read gps coordinates from radio, using default", lcd, rootLogger
+        )
     ns.run_loop = True
     ns.rig_up = None
     ns.rig_down = None
     ns.selected_sat_idx = 0
     ns.diff = 0
     if config["enable_radios"]:
-        libs.rigstarterlib.init_rigs(config, lcd, button)
+        init_rigs(config, lcd, button)
         ns.rig_up = rigctllib.RigCtl(config["rig_up_config"])
         ns.rig_down = rigctllib.RigCtl(config["rig_down_config"])
 
@@ -169,10 +167,7 @@ def main():
         button.when_pressed = lambda: selected_sat(button, done)
         button.when_held = lambda: exit_loop(button, ns)
 
-        if lcd:
-            lcd.clear()
-            lcd.write_string("rotate knob to select a satellite")
-        rootLogger.warning("rotate knob to select a satellite")
+        log_msg("rotate knob to select a satellite", lcd, rootLogger)
         # from_zone = tz.gettz("UTC")
         # to_zone = tz.gettz(config["timezone"])
 

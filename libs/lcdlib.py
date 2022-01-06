@@ -37,15 +37,15 @@ def write_lcd_loop(
 
     lcd.home()
     upchar = "\x00"
+    # 1st line - don't use log_msg because it's too slow
     if current_up not in sat_up_range:
-        upchar = "xx"
+        upchar = "X"
+    msg_str = f"{upchar} {int(current_up):,.0f}".replace(",", ".")
+    msg_str += f" +{str(abs(shift_up)).zfill(5)}"
 
-    lcd.write_string(
-        f"{upchar} {int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}".replace(
-            ",", "."
-        )
-    )
+    lcd.write_string(msg_str.ljust(20, " "))
     lcd.crlf()
+    # 2nd line
     if not tune_lock:
         upchar = "\x02"
     lcd.write_string(
@@ -54,10 +54,11 @@ def write_lcd_loop(
         ).replace(",", ".")
     )
     lcd.crlf()
+    # 3rd line
     if current_down == SELECTED_SAT.get("beacon", None):
         firstchar = "BC"
     elif current_down not in sat_down_range:
-        firstchar = "xx"
+        firstchar = "X"
     else:
         firstchar = "\x01"
     lcd.write_string(
@@ -66,6 +67,7 @@ def write_lcd_loop(
         )
     )
     lcd.crlf()
+    # 4th line
     lcd.write_string(
         f"{firstchar}{SELECTED_SAT['down_mode'][0]}{int(shifted_down):,.0f}{sat_alt.zfill(2)}/{sat_az}".ljust(
             20, " "
