@@ -1,14 +1,21 @@
 #%%
-import datetime
+from time import sleep
+import libs.rigctllib as rigctllib
+from libs.satlib import *
+from libs.lcdlib import *
+from libs.rigstarterlib import log_msg, init_rigs
+from libs.gpslib import poll_gps
+from libs.sat_loop import sat_loop
 import ephem
 from dateutil import tz
-import libs.rigctllib as rigctllib
 from sys import platform
 from RPLCD import i2c
-from config.satlist import SAT_LIST
+
+# from config.satlist import SAT_LIST
 import json
 from libs.satlib import *
 from libs.lcdlib import *
+import json
 
 try:
     import RPi.GPIO as GPIO
@@ -16,14 +23,10 @@ except:
     import Mock.GPIO as GPIO
 from threading import Event, Thread
 import multiprocessing
-import libs.rigstarterlib
 from gpiozero import RotaryEncoder, Button
 import subprocess
-import time
 import logging
-from libs.gpslib import poll_gps
 import os
-from libs.sat_loop import sat_loop
 
 DEBUG = bool(os.getenv("DEBUG", False))
 logFormatter = logging.Formatter(
@@ -43,6 +46,8 @@ gpio_pins = ["CLK", "DT", "SW"]
 
 with open("config/config.json", "r") as f:
     config = json.load(f)
+with open("config/satlist.json", "r") as f:
+    SAT_LIST = json.load(f)
 button = Button(config["gpio_pins"]["SW"], hold_time=5)
 
 
@@ -67,7 +72,11 @@ def tune_lock_switch(button, ns):
     if ns.tune_lock:
         ns.tune_lock = False
     else:
+        ns.diff
         ns.tune_lock = True
+        SAT_LIST[ns.selected_sat_idx]["saved_uplink_diff"] = ns.diff
+        with open("config/satlist.json", "w") as f:
+            json.dump(SAT_LIST, f)
 
 
 def exit_loop(button, ns):
@@ -76,28 +85,34 @@ def exit_loop(button, ns):
 
 
 def select_sat(rotary, lcd, ns):
-    ns.selected_sat_idx = rotary.steps
     lcd.clear()
-    lcd.write_string(SAT_LIST[ns.selected_sat_idx]["display_name"])
+    ns.selected_sat_idx = rotary.steps
+    # 1st line
+    line1 = f"{SAT_LIST[ns.selected_sat_idx]['display_name']}"
+    lcd.write_string(line1)
     lcd.crlf()
-    lcd.write_string(
-        f"BCN {int(SAT_LIST[ns.selected_sat_idx].get('beacon','0')):,.0f}".replace(
-            ",", "."
-        ).ljust(20, " ")
+    # 2nd line
+    line2 = f"BCN {int(SAT_LIST[ns.selected_sat_idx].get('beacon','0')):,.0f}".replace(
+        ",", "."
     )
-
+    lcd.write_string(line2)
     lcd.crlf()
+
     if SAT_LIST[ns.selected_sat_idx]["down_mode"] == "FM":
-        lcd.write_string(f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}")
+        line3 = f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}"
     else:
-        lcd.write_string("Linear")
+        line3 = "Linear"
+    lcd.write_string(line3)
     ns.run_loop = True
 
 
 def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
+
     nextfrequp = ns.current_up
     nextfreqdown = ns.current_down
-    if ns.tune_lock:
+    if not ns.tune_lock:
+        ns.diff += sign * config["rotary_step"]
+        rootLogger.warning(f"uplink freq diff is {ns.diff}")
         nextfrequp -= sign * config["rotary_step"]
     else:
         nextfrequp -= sign * config["rotary_step"]
@@ -110,7 +125,6 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
     rootLogger.warning(f"step: {sign}")
     rootLogger.warning(nextfreqdown in sat_down_range)
     rootLogger.warning(nextfrequp in sat_up_range)
-    # if nextfreqdown in sat_down_range and nextfrequp in sat_up_range:
     ns.current_down = nextfreqdown
     ns.current_up = nextfrequp
 
@@ -122,26 +136,31 @@ def main():
 
     lcd = init_lcd()
 
-    lat, lon, ele = poll_gps(rootLogger)
+    lat, lon, ele = poll_gps()
 
     # override default coordinates with gps
     if lat != "n/a" and lon != "n/a" and ele != "n/a":
         config["observer_conf"]["lon"] = str(lon)
         config["observer_conf"]["lat"] = str(lat)
         config["observer_conf"]["ele"] = ele
-        rootLogger.warning("setting gps coordinates")
+        log_msg("setting gps coordinates from radio", lcd, rootLogger)
     else:
-        rootLogger.warning("cannot read gps coordinates, using default")
-
+        log_msg(
+            "cannot read gps coordinates from radio, using default", lcd, rootLogger
+        )
+    ns.run_loop = True
     ns.rig_up = None
     ns.rig_down = None
     ns.selected_sat_idx = 0
-    if config["enable_radios"] and not DEBUG:
-        libs.rigstarterlib.init_rigs(config, lcd, button)
+    ns.diff = 0
+    if config["enable_radios"]:
+        init_rigs(config, lcd, button)
         ns.rig_up = rigctllib.RigCtl(config["rig_up_config"])
         ns.rig_down = rigctllib.RigCtl(config["rig_down_config"])
 
     while True:
+        with open("config/satlist.json", "r") as f:
+            ns.SAT_LIST = json.load(f)
         rootLogger.warning("entering main loop")
         done = Event()
         rotary = RotaryEncoder(
@@ -155,10 +174,7 @@ def main():
         button.when_pressed = lambda: selected_sat(button, done)
         button.when_held = lambda: exit_loop(button, ns)
 
-        if lcd:
-            lcd.clear()
-            lcd.write_string("rotate knob to select a satellite")
-        rootLogger.warning("rotate knob to select a satellite")
+        log_msg("rotate knob to select a satellite", lcd, rootLogger)
         # from_zone = tz.gettz("UTC")
         # to_zone = tz.gettz(config["timezone"])
 
@@ -172,7 +188,8 @@ def main():
         SELECTED_SAT = SAT_LIST[ns.selected_sat_idx]
 
         sat = get_tles(SELECTED_SAT["name"])
-
+        ns.SAT_LIST = SAT_LIST
+        ns.SELECTED_SAT = SELECTED_SAT
         satellite = ephem.readtle(
             sat[0], sat[1], sat[2]
         )  # create ephem object from tle information
@@ -185,13 +202,23 @@ def main():
         if isinstance(ns.rig_down, rigctllib.RigCtl) and isinstance(
             ns.rig_up, rigctllib.RigCtl
         ):
+            if config["rig_down_config"]["rig_name"] == "TH-D74":
+                if SELECTED_SAT["down_mode"] == "FM":
+                    ns.rig_down.send_custom_cmd("w FT 0\r")
+                else:
+                    ns.rig_down.send_custom_cmd("w FT 1\r")
+
             ns.rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
+            # ns.rig_up.set_split_mode(mode=SELECTED_SAT["up_mode"], bandwidth=0)
             ns.rig_up.set_mode(mode=SELECTED_SAT["up_mode"])
+            # ns.rig_up.set_split_vfo(1, "VFOB")
 
         sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
         sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
         ns.current_down = SELECTED_SAT["down_center"]
-        ns.current_up = SELECTED_SAT["up_center"]
+        ns.current_up = SELECTED_SAT["up_center"] + SELECTED_SAT.get(
+            "saved_uplink_diff", 0
+        )
 
         rotary.close()
         rotary = RotaryEncoder(
@@ -206,7 +233,7 @@ def main():
         rotary.when_rotated_counter_clockwise = lambda: tune_vfo(
             rotary, config, sat_down_range, sat_up_range, +1, ns
         )
-        ns.tune_lock = False
+        ns.tune_lock = True
         button.when_pressed = lambda: tune_lock_switch(button, ns)
         try:
             loop_thread = Thread(

@@ -48,7 +48,7 @@ class RigCtl(object):
         :raises TypeError: if the target is not a dict of 3 keys
         """
 
-        if not isinstance(target, dict) or not len(target.keys()) == 3:
+        if not isinstance(target, dict) or not len(target.keys()) == 4:
             logger.error("target is not of type dict " "but {}".format(type(target)))
             raise TypeError
         self.target = target
@@ -181,6 +181,22 @@ class RigCtl(object):
 
         return output
 
+    def send_custom_cmd(self, command):
+        """Wrapper around _request. It configures the command for getting
+        the signal level.
+
+        """
+
+        output = self._request(command)
+        if not isinstance(output, str):
+            logger.error(
+                "Expected unicode string while getting radio "
+                "signal level, got {}".format(output)
+            )
+            raise ValueError
+
+        return output
+
     def set_vfo(self, vfo):
         """Wrapper around _request. It configures the command for setting
         VFO.
@@ -297,20 +313,35 @@ class RigCtl(object):
 
         return output
 
-    def set_split_mode(self, split_mode):
+    def set_split_mode(self, mode, bandwidth):
         """Wrapper around _request. It configures the command for setting
         slit frequency.
 
         """
 
-        if split_mode not in ALLOWED_SPLIT_MODES:
+        if mode not in ALLOWED_SPLIT_MODES:
             logger.error(
                 "split_mode value must be a string in {}, "
-                "got {}".format(ALLOWED_SPLIT_MODES, type(split_mode))
+                "got {}".format(ALLOWED_SPLIT_MODES, type(mode))
             )
             raise ValueError
 
-        return self._request("X %s" % split_mode)
+        return self._request(f"X {mode} {bandwidth}")
+
+    def set_split_vfo(self, enable_switch, split_vfo):
+        """Wrapper around _request. It configures the command for setting
+        split VFO.
+
+        """
+
+        if split_vfo not in ALLOWED_VFO_COMMANDS:
+            logger.error(
+                "split_mode value must be a string in {}, "
+                "got {}".format(ALLOWED_SPLIT_MODES, type(split_vfo))
+            )
+            raise ValueError
+
+        return self._request(f"S {enable_switch} {split_vfo}")
 
     def get_split_mode(self):
         """Wrapper around _request. It configures the command for getting

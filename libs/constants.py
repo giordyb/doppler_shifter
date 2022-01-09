@@ -22,7 +22,7 @@ import os
 
 
 # constant definition
-RIG_TIMEOUT = 1
+RIG_TIMEOUT = 10
 RESET_CMD_DICT = {
     "NONE": 0,
     "SOFTWARE_RESET": 1,
@@ -99,17 +99,6 @@ ALLOWED_FUNC_COMMANDS = [
     "TUNER",
 ]
 
-ALLOWED_VFO_COMMANDS = [
-    "VFOA",
-    "VFOB" "VFOC",
-    "currVFO",
-    "VFO",
-    "MEM",
-    "Main",
-    "Sub",
-    "TX",
-    "RX",
-]
 
 ALLOWED_SPLIT_MODES = [
     "AM",
@@ -134,74 +123,6 @@ ALLOWED_SPLIT_MODES = [
     "DSB",
 ]
 
-RIG_TIMEOUT = 10
-RESET_CMD_DICT = {
-    "NONE": 0,
-    "SOFTWARE_RESET": 1,
-    "VFO_RESET": 2,
-    "MEMORY_CLEAR_RESET": 4,
-    "MASTER_RESET": 8,
-}
-
-ALLOWED_RIGCTL_MODES = (
-    "USB",
-    "LSB",
-    "CW",
-    "CWR",
-    "RTTY",
-    "RTTYR",
-    "AM",
-    "FM",
-    "WFM",
-    "AMS",
-    "PKTLSB",
-    "PKTU",
-    "SB",
-    "PKTFM",
-    "ECSSUSB",
-    "ECSSLSB",
-    "WFM_ST",
-    "FAX",
-    "SAM",
-    "SAL",
-    "SAH",
-    "DSB",
-)
-
-ALLOWED_PARM_COMMANDS = ["ANN", "APO", "BACKLIGHT", "BEEP", "TIME", "BAT", "KEYLIGHT"]
-
-ALLOWED_FUNC_COMMANDS = [
-    "FAGC",
-    "NB",
-    "COMP",
-    "VOX",
-    "TONE",
-    "TSQL",
-    "SBKIN",
-    "FBKIN",
-    "ANF",
-    "NR",
-    "AIP",
-    "APF",
-    "MON",
-    "MN",
-    "RF",
-    "ARO",
-    "LOCK",
-    "MUTE",
-    "VSC",
-    "REV",
-    "SQL",
-    "ABM",
-    "BC",
-    "MBC",
-    "AFC",
-    "SATMODE",
-    "SCOPE",
-    "RESUME",
-    "TBURST",
-    "TUNER",
-]
 
 ALLOWED_VFO_COMMANDS = [
     "VFOA",
@@ -216,28 +137,7 @@ ALLOWED_VFO_COMMANDS = [
     "RX",
 ]
 
-ALLOWED_SPLIT_MODES = [
-    "AM",
-    "FM",
-    "CW",
-    "CWR",
-    "USB",
-    "LSB",
-    "RTTY",
-    "RTTYR",
-    "WFM",
-    "AMS",
-    "PKTLSB",
-    "PKTUSB",
-    "PKTFM",
-    "ECSSUSB",
-    "ECSSLSB",
-    "FAX",
-    "SAM",
-    "SAL",
-    "SAH",
-    "DSB",
-]
+
 ALLOWED_BOOKMARK_TASKS = ["load", "save"]
 DIRMODE = 644
 CBB_MODES = (

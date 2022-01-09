@@ -1,4 +1,4 @@
-SAT_LIST = [
+[
     {
         "name": "RS-44 & BREEZE-KM R/B",
         "display_name": "RS-44",
@@ -10,8 +10,8 @@ SAT_LIST = [
         "down_center": 435640000,
         "down_end": 435670000,
         "down_mode": "USB",
-        "inverting": True,
-        "beacon": 435605000,
+        "inverting": true,
+        "beacon": 435605000
     },
     {
         "name": "ZHUHAI-1 01 (CAS-4A)",
@@ -24,8 +24,9 @@ SAT_LIST = [
         "down_start": 145860000,
         "down_center": 145870000,
         "down_end": 145880000,
-        "inverting": True,
+        "inverting": true,
         "beacon": 145855000,
+        "saved_uplink_diff": 500
     },
     {
         "name": "ZHUHAI-1 02 (CAS-4B)",
@@ -38,8 +39,9 @@ SAT_LIST = [
         "down_start": 145915000,
         "down_center": 145925000,
         "down_end": 145935000,
-        "inverting": True,
+        "inverting": true,
         "beacon": 145910000,
+        "saved_uplink_diff": 0
     },
     {
         "name": "CAS-6 (TIANQIN 1)",
@@ -52,7 +54,8 @@ SAT_LIST = [
         "down_start": 145915000,
         "down_center": 145925000,
         "down_end": 145935000,
-        "inverting": True,
+        "inverting": true,
+        "saved_uplink_diff": 0
     },
     {
         "name": "OSCAR 7 (AO-7)",
@@ -65,7 +68,8 @@ SAT_LIST = [
         "down_start": 145925000,
         "down_center": 145950000,
         "down_end": 145975000,
-        "inverting": True,
+        "inverting": true,
+        "saved_uplink_diff": 0
     },
     {
         "name": "NAYIF-1 (EO-88)",
@@ -78,7 +82,7 @@ SAT_LIST = [
         "down_start": 145960000,
         "down_center": 145975000,
         "down_end": 145990000,
-        "inverting": True,
+        "inverting": true
     },
     {
         "name": "XW-2A",
@@ -91,8 +95,9 @@ SAT_LIST = [
         "down_start": 145665000,
         "down_center": 145675000,
         "down_end": 145685000,
-        "inverting": True,
+        "inverting": true,
         "beacon": 145660000,
+        "saved_uplink_diff": 100
     },
     {
         "name": "XW-2B",
@@ -105,8 +110,9 @@ SAT_LIST = [
         "down_start": 145730000,
         "down_center": 145740000,
         "down_end": 145750000,
-        "inverting": True,
+        "inverting": true,
         "beacon": 145725000,
+        "saved_uplink_diff": 0
     },
     {
         "name": "XW-2C",
@@ -119,8 +125,8 @@ SAT_LIST = [
         "down_start": 145795000,
         "down_center": 145805000,
         "down_end": 145815000,
-        "inverting": True,
-        "beacon": 145790000,
+        "inverting": true,
+        "beacon": 145790000
     },
     {
         "name": "XW-2D",
@@ -133,8 +139,8 @@ SAT_LIST = [
         "down_start": 145860000,
         "down_center": 145870000,
         "down_end": 145880000,
-        "inverting": True,
-        "beacon": 145855000,
+        "inverting": true,
+        "beacon": 145855000
     },
     {
         "name": "XW-2F",
@@ -147,8 +153,8 @@ SAT_LIST = [
         "down_start": 146000000,
         "down_center": 145990000,
         "down_end": 145980000,
-        "inverting": True,
-        "beacon": 145795000,
+        "inverting": true,
+        "beacon": 145795000
     },
     {
         "name": "XW-3 (CAS-9)",
@@ -161,8 +167,9 @@ SAT_LIST = [
         "down_start": 435165000,
         "down_center": 435180000,
         "down_end": 435195000,
-        "inverting": True,
+        "inverting": true,
         "beacon": 435725000,
+        "saved_uplink_diff": 0
     },
     {
         "name": "FUNCUBE-1 (AO-73)",
@@ -175,8 +182,8 @@ SAT_LIST = [
         "down_start": 145970000,
         "down_center": 145960000,
         "down_end": 145950000,
-        "inverting": True,
-        "beacon": 145935000,
+        "inverting": true,
+        "beacon": 145935000
     },
     {
         "name": "ISS (ZARYA)",
@@ -189,8 +196,8 @@ SAT_LIST = [
         "down_start": 145990000,
         "down_center": 145990000,
         "down_end": 145990000,
-        "inverting": False,
-        "tone": "67Hz",
+        "inverting": false,
+        "tone": "67Hz"
     },
     {
         "name": "SAUDISAT 1C (SO-50)",
@@ -203,8 +210,8 @@ SAT_LIST = [
         "down_start": 145850000,
         "down_center": 145850000,
         "down_end": 145850000,
-        "inverting": False,
-        "tone": "67Hz",
+        "inverting": false,
+        "tone": "67Hz"
     },
     {
         "name": "JY1SAT (JO-97)",
@@ -217,8 +224,9 @@ SAT_LIST = [
         "down_start": 145855000,
         "down_center": 145865000,
         "down_end": 145875000,
-        "inverting": True,
+        "inverting": true,
         "beacon": 145840000,
+        "saved_uplink_diff": 0
     },
     {
         "name": "DIWATA-2B",
@@ -231,7 +239,8 @@ SAT_LIST = [
         "down_start": 145900000,
         "down_center": 145900000,
         "down_end": 145900000,
-        "inverting": False,
+        "inverting": false,
         "tone": "141.3Hz",
-    },
+        "saved_uplink_diff": 0
+    }
 ]

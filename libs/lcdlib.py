@@ -32,38 +32,49 @@ def write_lcd_loop(
     sat_alt,
     sat_az,
     tune_lock,
+    diff,
 ):
 
     lcd.home()
     upchar = "\x00"
-    lockchar = ""
+    # 1st line - don't use log_msg because it's too slow
     if current_up not in sat_up_range:
-        lcd.write_string("xx")
-    else:
-        lcd.write_string(f"{upchar} ")
+        upchar = "X"
+    msg_str = f"{upchar} {int(current_up):,.0f}".replace(",", ".")
+    msg_str += f" -{str(abs(shift_up)).zfill(5)}"
 
-    lcd.write_string(
-        f"{int(current_up):,.0f} +{str(abs(shift_up)).zfill(5)}".replace(",", ".")
-    )
+    lcd.write_string(msg_str.ljust(20, " "))
     lcd.crlf()
-    if tune_lock:
+    # 2nd line
+    if not tune_lock:
         upchar = "\x02"
-    lcd.write_string(f"{upchar}{SELECTED_SAT['up_mode'][0]}")
-    lcd.write_string(f"{int(shifted_up):,.0f} A {sat_az}".replace(",", "."))
-    lcd.crlf()
-    if current_down == SELECTED_SAT.get("beacon", None):
-        lcd.write_string("BC")
-    elif current_down not in sat_down_range:
-        lcd.write_string("xx")
-    else:
-        lcd.write_string("\x01 ")
     lcd.write_string(
-        f"{int(current_down):,.0f} -{str(abs(shift_down)).zfill(5)}".replace(",", ".")
+        f"{upchar}{SELECTED_SAT['up_mode'][0]}{int(shifted_up):,.0f} D{diff}".ljust(
+            20, " "
+        ).replace(",", ".")
     )
     lcd.crlf()
-
-    lcd.write_string(f"\x01{SELECTED_SAT['down_mode'][0]}")
-    lcd.write_string(f"{int(shifted_down):,.0f} E {sat_alt}".replace(",", "."))
+    # 3rd line
+    if current_down == SELECTED_SAT.get("beacon", None):
+        firstchar = "BC"
+    elif current_down not in sat_down_range:
+        firstchar = "X"
+    else:
+        firstchar = "\x01"
+    lcd.write_string(
+        f"{firstchar} {int(current_down):,.0f} +{str(abs(shift_down)).zfill(5)}".replace(
+            ",", "."
+        )
+    )
+    lcd.crlf()
+    # 4th line
+    lcd.write_string(
+        f"{firstchar}{SELECTED_SAT['down_mode'][0]}{int(shifted_down):,.0f}{sat_alt.zfill(2)}/{sat_az}".ljust(
+            20, " "
+        ).replace(
+            ",", "."
+        )
+    )
 
 
 def init_lcd():
