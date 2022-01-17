@@ -4,9 +4,7 @@
 doppler_shifter is a tool to adjust the frequencies of two radios via cat control based on the satellite's doppler shift in a portable setting
 it is designed to run on a raspberry pi with a 4x20 lcd screen connected via i2c and a rotary encoder via GPIOs
 
-many thanks to https://github.com/Marzona for providing already made Python libs to connect to rigctld and sends commands
-
-The LCD and rotary tool
+The LCD and rotary encoder
 
 ![lcd and rotary tool](./lcd.jpg?raw=true "lcd and rotary tool")
 
@@ -21,14 +19,14 @@ it supports any rig compatible with Hamlib
 
 [here are the install instructions](https://github.com/giordyb/doppler_shifter/blob/5015b8ee5b41cb8cf3b3a181e51b40ee519a29c2/install.md)
 
-* added feature: turning the rotary wheel while pressing it will change only the uplink frequency
+* added feature: turning the rotary encoder while pressing it will unlock the two radios and allow you to tune only the uplink frequency
 
 
 
 # usage
 
 * turn on the device and follow the setup steps
-* select the satellite, using the rotary control to scroll through the list
+* select the satellite, using the rotary encoder to scroll through the list
 * after selecting the satellite the uplink and downlink frequencies will be set, starting in the middle of the band (for linear sats). the frequencies are taken from [ke0bpr frequency cheat sheet](https://ke0pbr.wordpress.com/2018/12/31/my-frequency-cheat-sheet/)
 * on the display you will see the following info (for both uplink and downlink):
     * the frequency you want to be tuned to.
@@ -38,5 +36,5 @@ it supports any rig compatible with Hamlib
     * the az and el of the satellite (in °)
 * the uplink and downlink frequencies are locked together based on the table of the cheat sheet. rotating clockwise will increase the uplink frequency and decrease the downlink frequency by the rotary_step parameter set in the config.json
 * you can only tune up or down within the limits of the passband of the satellite (set in the satlist.py file)
-* if you press the rotary button the uplink and downlink frequencies will be unlocked (you will see an open lock icon appear on the 2nd line of the display instead of the up arrows) and only the uplink frequency will change when moving the rotary control. Just press the rotary button again to lock. This is needed to finely tune the relationship between the uplink and downlink. If anyone has any idea on how to automate this please tell...
-* if you press the rotary control for more than 20 seconds the program will let you select another satellite
+* if you press the rotary button the uplink and downlink frequencies will be unlocked (you will see an open lock icon appear on the 2nd line of the display instead of the up arrows) and only the uplink frequency will change when moving the rotary encoder. Just press the rotary button again to lock. This is needed to finely tune the relationship between the uplink and downlink. If anyone has any idea on how to automate this please tell...
+* if you press the rotary encoder for more than 20 seconds the program will let you select another satellite
