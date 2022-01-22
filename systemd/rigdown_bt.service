@@ -1,0 +1,13 @@
+[Unit]
+Description=rigctld d74
+After=syslog.target network.target
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/rigctld -t 4533 -m 2042 -r /dev/rfcomm0 -vvv
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=60
+Restart=always
+User=root
+Group=root
+[Install]
+WantedBy=multi-user.target

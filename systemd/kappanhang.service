@@ -1,0 +1,12 @@
+[Unit]
+Description=kappanhang
+After=syslog.target network.target
+[Service]
+Type=simple
+ExecStart=/home/pi/go/bin/kappanhang
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=60
+Restart=always
+User=pi
+[Install]
+WantedBy=multi-user.target
