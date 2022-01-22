@@ -126,7 +126,7 @@ def change_sat(title, newsat) -> None:
     CURRENT_UP_FREQ = CURRENT_SAT_CONFIG["up_center"]
     CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG["down_center"]
     RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
-    RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
+
     if CURRENT_SAT_CONFIG["up_mode"] == "FM":
         if CONFIG["rig_down_config"]["rig_name"] == "TH-D74":
             RIG_DOWN.set_vfo(RIG_VFOS[CONFIG["rig_down_config"]["vfo_name"]])
@@ -141,7 +141,11 @@ def change_sat(title, newsat) -> None:
                 int(CURRENT_SAT_CONFIG["tone"].replace(".", "")),
             )
     else:
+        if CONFIG["rig_down_config"]["rig_name"] == "TH-D74":
+            RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
+            RIG_DOWN.set_ts(RIG_VFOS[CONFIG["rig_down_config"]["vfo_name"]], 100)
         RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
+    RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
 
     set_slider()
 
