@@ -1,7 +1,7 @@
-RPLCD
 ephem
 pytz
 python-dateutil
-gpiozero
 smbus2
 gps3
+pygame
+pygame-menu

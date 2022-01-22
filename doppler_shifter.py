@@ -1,17 +1,16 @@
 #%%
 from time import sleep
-import libs.rigctllib as rigctllib
 from libs.satlib import *
 from libs.lcdlib import *
 from libs.rigstarterlib import log_msg, init_rigs
 from libs.gpslib import poll_gps
-from libs.sat_loop import sat_loop
 import ephem
 from dateutil import tz
 from sys import platform
 from RPLCD import i2c
-
-# from config.satlist import SAT_LIST
+import Hamlib
+from libs.rigstarterlib import reset_rig
+import time
 import json
 from libs.satlib import *
 from libs.lcdlib import *
@@ -32,6 +31,13 @@ DEBUG = bool(os.getenv("DEBUG", False))
 logFormatter = logging.Formatter(
     "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
 )
+
+RIG_MODES = {
+    "FM": Hamlib.RIG_MODE_FM,
+    "AM": Hamlib.RIG_MODE_AM,
+    "USB": Hamlib.RIG_MODE_USB,
+    "LSB": Hamlib.RIG_MODE_LSB,
+}
 rootLogger = logging.getLogger()
 
 fileHandler = logging.FileHandler("./doppler_shifter.log")
@@ -49,6 +55,10 @@ with open("config/config.json", "r") as f:
 with open("config/satlist.json", "r") as f:
     SAT_LIST = json.load(f)
 button = Button(config["gpio_pins"]["SW"], hold_time=5)
+Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
+
+rig_up = Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL)
+rig_down = Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL)
 
 
 def get_range(up, down):
@@ -76,7 +86,7 @@ def tune_lock_switch(button, ns):
         ns.tune_lock = True
         SAT_LIST[ns.selected_sat_idx]["saved_uplink_diff"] = ns.diff
         with open("config/satlist.json", "w") as f:
-            json.dump(SAT_LIST, f)
+            json.dump(SAT_LIST, f, indent=4)
 
 
 def exit_loop(button, ns):
@@ -106,6 +116,77 @@ def select_sat(rotary, lcd, ns):
     ns.run_loop = True
 
 
+def handle_rig_error(rig, side):
+    while rig.error_status != 0:
+        rig.close()
+        if "localhost" in rig.get_conf("rig_pathname"):
+            reset_rig(side)
+            time.sleep(3)
+        rig.open()
+        if rig.error_status == 0:
+            break
+
+
+def sat_loop(
+    obs, satellite, config, sat_up_range, sat_down_range, lcd, SELECTED_SAT, ns
+):
+    global rig_up
+    global rig_down
+    while rig_down.error_status != 0:
+        rig_down.open()
+    while rig_up.error_status != 0:
+        rig_up.open()
+    while ns.run_loop:
+        obs.date = datetime.datetime.utcnow()
+        satellite.compute(obs)
+        alt = str(satellite.alt).split(":")[0]
+        az = str(satellite.az).split(":")[0]
+        shift_down = get_doppler_shift(ns.current_down, satellite.range_velocity)
+        shift_up = get_doppler_shift(ns.current_up, satellite.range_velocity)
+        shifted_up = get_shifted(ns.current_up, shift_up, "up")
+        shifted_down = get_shifted(ns.current_down, shift_down, "down")
+        rf_level = 0
+        if config["enable_radios"]:
+            if rig_up.error_status == 0:
+                rig_up.set_freq(Hamlib.RIG_VFO_CURR, shifted_up)
+                rf_level = int(rig_up.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
+            else:
+                logger.warning("rigup has errors")
+                handle_rig_error(rig_up, "up")
+            if rig_down.error_status == 0:
+                rig_down.set_freq(Hamlib.RIG_VFO_CURR, shifted_down)
+            else:
+                logger.warning("rigdown has errors")
+                handle_rig_error(rig_down, "down")
+
+            # rig_up.set_split_freq(shifted_up)
+            # rig_up.set_vfo("VFOB")
+            # rig_up.set_frequency(shifted_up)
+            # rig_up.set_vfo("VFOB")
+        # try:
+        # except Exception as ex:
+        #    logger.error(f"cannot set frequency on downlink {ex}")
+        #    reset_rig("down")
+
+        write_lcd_loop(
+            lcd,
+            ns.current_up,
+            ns.current_down,
+            shifted_up,
+            shifted_down,
+            shift_up,
+            shift_down,
+            SELECTED_SAT,
+            sat_up_range,
+            sat_down_range,
+            alt,
+            az,
+            ns.tune_lock,
+            ns.diff,
+            rf_level,
+        )
+
+
 def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
 
     nextfrequp = ns.current_up
@@ -130,7 +211,9 @@ def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
 
 
 def main():
-
+    global rig_up
+    global rig_down
+    global RIG_MODES
     manager = multiprocessing.Manager()
     ns = manager.Namespace()
 
@@ -149,14 +232,11 @@ def main():
             "cannot read gps coordinates from radio, using default", lcd, rootLogger
         )
     ns.run_loop = True
-    ns.rig_up = None
-    ns.rig_down = None
+
     ns.selected_sat_idx = 0
     ns.diff = 0
     if config["enable_radios"]:
-        init_rigs(config, lcd, button)
-        ns.rig_up = rigctllib.RigCtl(config["rig_up_config"])
-        ns.rig_down = rigctllib.RigCtl(config["rig_down_config"])
+        rig_up, rig_down = init_rigs(config, lcd, button, rig_up, rig_down)
 
     while True:
         with open("config/satlist.json", "r") as f:
@@ -199,19 +279,34 @@ def main():
         obs.lat = config["observer_conf"]["lat"]
         obs.elevation = config["observer_conf"]["ele"]
 
-        if isinstance(ns.rig_down, rigctllib.RigCtl) and isinstance(
-            ns.rig_up, rigctllib.RigCtl
-        ):
-            if config["rig_down_config"]["rig_name"] == "TH-D74":
-                if SELECTED_SAT["down_mode"] == "FM":
-                    ns.rig_down.send_custom_cmd("w FT 0\r")
-                else:
-                    ns.rig_down.send_custom_cmd("w FT 1\r")
+        if isinstance(rig_down, Hamlib.Rig) and isinstance(rig_up, Hamlib.Rig):
+            while rig_down.error_status != 0:
+                rig_down.open()
+            while rig_up.error_status != 0:
+                rig_up.open()
 
-            ns.rig_down.set_mode(mode=SELECTED_SAT["down_mode"])
-            # ns.rig_up.set_split_mode(mode=SELECTED_SAT["up_mode"], bandwidth=0)
-            ns.rig_up.set_mode(mode=SELECTED_SAT["up_mode"])
-            # ns.rig_up.set_split_vfo(1, "VFOB")
+            if SELECTED_SAT["down_mode"] == "FM":
+                if config["rig_down_config"]["rig_name"] == "TH-D74":
+                    rig_down.set_vfo(Hamlib.RIG_VFO_SUB)
+                    rig_down.set_level(Hamlib.RIG_LEVEL_SQL, 0.0)
+                    rig_down.set_ts(Hamlib.RIG_VFO_SUB, 5000)
+
+                rig_down.set_mode(RIG_MODES[SELECTED_SAT["down_mode"]])
+                if SELECTED_SAT["tone"] == "0.0":
+                    rig_up.set_func(Hamlib.RIG_FUNC_TONE, 0)
+                else:
+                    rig_up.set_func(Hamlib.RIG_FUNC_TONE, 1)
+                    rig_up.set_ctcss_tone(
+                        Hamlib.RIG_VFO_MAIN, int(SELECTED_SAT["tone"].replace(".", ""))
+                    )
+            else:
+                rig_down.set_mode(RIG_MODES[SELECTED_SAT["down_mode"]])
+                if config["rig_down_config"]["rig_name"] == "TH-D74":
+                    rig_down.set_vfo(Hamlib.RIG_VFO_SUB)
+                    rig_down.set_rptr_offs(Hamlib.RIG_VFO_B, 0)
+                    rig_down.set_ts(Hamlib.RIG_VFO_SUB, 100)
+
+            rig_up.set_mode(RIG_MODES[SELECTED_SAT["up_mode"]])
 
         sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
         sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])

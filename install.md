@@ -19,7 +19,7 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
 
 1. make sure you have python 3.x installed on the raspberry pi
 2. install git and python3 w/ pip 
-    + sudo apt-get install git python3-pip -y
+    + sudo apt-get install git python3-pip swig -y
 3. clone the hamlib repository (from master if you are using the th-d74 since it fixes some initialization issues) 
     + git clone https://github.com/Hamlib/Hamlib.git
 4. clone this repository 
@@ -29,8 +29,10 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
 6. cd into the Hamlib directory 
     + cd Hamlib
 7. execute ./bootstrap
-8. execute ./configure
-9. execute make -j4 && sudo make install
+8. execute ./configure --with-python-binding PYTHON=$(which python3)
+9a. execute make -j4 && sudo make install
+9b. cd into bindings
+9c. make && sudo make install 
 10. refresh the ld library cache
     + sudo ldconfig
 11. cd into the doppler_shifter folder 
@@ -51,3 +53,4 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
 18. if everything works then you can add and enable the service
     + sudo systemctl enable doppler_shifter
     + sudo systemctl start doppler_shifter
+    + sudo cp doppler_shifter.desktop /usr/share/applications/

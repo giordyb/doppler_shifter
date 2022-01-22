@@ -4,3 +4,4 @@ __pycache__/*
 *.log
 config/*.txt
 config/tles.txt.temp
+.DS_Store
