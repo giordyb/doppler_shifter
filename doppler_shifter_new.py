@@ -62,7 +62,7 @@ Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
 CURRENT_SAT_OBJECT = get_satellite(CURRENT_SAT_CONFIG)
 
-
+ON_BEACON = False
 RIG_UP = Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL)
 RIG_DOWN = Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL)
 
@@ -71,6 +71,9 @@ RIG_DOWN.set_conf("retry", "5")
 RIG_UP = configure_rig(RIG_UP, "up", CONFIG)
 RIG_DOWN = configure_rig(RIG_DOWN, "down", CONFIG)
 # RIG_DOWN.set_vfo_opt(0)
+
+SAVED_UP_FREQ = 0
+SAVED_DOWN_FREQ = 0
 
 
 RIG_UP.open()
@@ -99,6 +102,8 @@ def set_slider(type="center"):
         #    CURRENT_SAT_CONFIG["down_end"] + 1,
         # )
     else:
+        RANGE_SLIDER_UP._visible = True
+        RANGE_SLIDER_DOWN._visible = True
         RANGE_SLIDER_UP._range_values = (
             CURRENT_SAT_CONFIG["up_start"],
             CURRENT_SAT_CONFIG["up_end"],
@@ -142,17 +147,31 @@ def change_sat(title, newsat) -> None:
 
 
 def tune_beacon():
+    global SAVED_UP_FREQ
+    global SAVED_DOWN_FREQ
     global CURRENT_UP_FREQ
     global CURRENT_DOWN_FREQ
     global RANGE_SLIDER_UP
     global RANGE_SLIDER_DOWN
-    CURRENT_UP_FREQ = CURRENT_SAT_CONFIG.get("beacon", CURRENT_SAT_CONFIG["up_center"])
-    CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG.get(
-        "beacon", CURRENT_SAT_CONFIG["down_center"]
-    )
-
-    set_slider(type="beacon")
-    bcnbt._background_color = RED
+    global ON_BEACON
+    if ON_BEACON:
+        CURRENT_UP_FREQ = SAVED_UP_FREQ
+        CURRENT_DOWN_FREQ = SAVED_DOWN_FREQ
+        bcnbt._background_color = None
+        ON_BEACON = False
+        set_slider()
+    else:
+        SAVED_UP_FREQ = CURRENT_UP_FREQ
+        SAVED_DOWN_FREQ = CURRENT_DOWN_FREQ
+        CURRENT_UP_FREQ = CURRENT_SAT_CONFIG.get(
+            "beacon", CURRENT_SAT_CONFIG["up_center"]
+        )
+        CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG.get(
+            "beacon", CURRENT_SAT_CONFIG["down_center"]
+        )
+        ON_BEACON = True
+        bcnbt._background_color = RED
+        set_slider(type="beacon")
 
 
 def tune_center():
