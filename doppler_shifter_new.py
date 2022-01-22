@@ -43,6 +43,8 @@ from libs.constants import (
     RIG_STATUS,
     WHITE,
     RED,
+    DEFAULT_RIG_UP,
+    DEFAULT_RIG_DOWN,
 )
 from libs.gpslib import poll_gps
 from pygame.locals import Color
@@ -63,13 +65,10 @@ Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 CURRENT_SAT_OBJECT = get_satellite(CURRENT_SAT_CONFIG)
 
 ON_BEACON = False
-RIG_UP = Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL)
-RIG_DOWN = Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL)
-
-RIG_UP.set_conf("retry", "5")
-RIG_DOWN.set_conf("retry", "5")
-RIG_UP = configure_rig(RIG_UP, "up", CONFIG)
-RIG_DOWN = configure_rig(RIG_DOWN, "down", CONFIG)
+RIG_UP = configure_rig(Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL), DEFAULT_RIG_UP, CONFIG)
+RIG_DOWN = configure_rig(
+    Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL), DEFAULT_RIG_DOWN, CONFIG
+)
 # RIG_DOWN.set_vfo_opt(0)
 
 SAVED_UP_FREQ = 0
@@ -87,6 +86,17 @@ RANGE_SLIDER_DOWN = create_slider(CURRENT_SAT_CONFIG, "down")
 def changefreq(value=0):
     global CURRENT_DOWN_FREQ
     CURRENT_DOWN_FREQ = CURRENT_DOWN_FREQ + value
+
+
+def change_rig(rigtuple, rigidx, RIG):
+    global CONFIG
+    rigdata, rigidx = rigtuple
+    rigname, _, _ = rigdata
+    print(f"rigname: {rigname}, rigidx {rigidx}, {RIG.rig_name}")
+    RIG.close()
+    RIG = configure_rig(RIG, rigidx, CONFIG)
+    RIG.open()
+    change_sat(None, CURRENT_SAT_CONFIG)
 
 
 def set_slider(type="center"):
@@ -128,23 +138,24 @@ def change_sat(title, newsat) -> None:
     RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
 
     if CURRENT_SAT_CONFIG["up_mode"] == "FM":
-        if CONFIG["rig_down_config"]["rig_name"] == "TH-D74":
-            RIG_DOWN.set_vfo(RIG_VFOS[CONFIG["rig_down_config"]["vfo_name"]])
+        if "TH-D74" in RIG_DOWN.rig_name:
+            RIG_DOWN.set_vfo(RIG_VFOS[RIG_DOWN.vfo_name])
             RIG_DOWN.set_level(Hamlib.RIG_LEVEL_SQL, 0.0)
-            RIG_DOWN.set_ts(RIG_VFOS[CONFIG["rig_down_config"]["vfo_name"]], 5000)
+            RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 5000)
         if CURRENT_SAT_CONFIG["tone"] == "0.0":
             RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
         else:
             RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 1)
             RIG_UP.set_ctcss_tone(
-                RIG_VFOS[CONFIG["rig_down_config"]["vfo_name"]],
+                RIG_VFOS[RIG_UP.vfo_name],
                 int(CURRENT_SAT_CONFIG["tone"].replace(".", "")),
             )
     else:
-        if CONFIG["rig_down_config"]["rig_name"] == "TH-D74":
+        if "TH-D74" in RIG_DOWN.rig_name:
             RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
-            RIG_DOWN.set_ts(RIG_VFOS[CONFIG["rig_down_config"]["vfo_name"]], 100)
+            RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 100)
         RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
+
     RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
 
     set_slider()
@@ -239,9 +250,23 @@ radio_menu = pygame_menu.Menu(
     height=H_SIZE, theme=common_theme, title="Radio", width=W_SIZE  # Fullscreen
 )
 
+radio_menu.add.dropselect(
+    "Uplink",
+    [(x["rig_name"], ind, RIG_UP) for ind, x in enumerate(CONFIG["rigs"])],
+    onchange=change_rig,
+    selection_box_height=5,
+)
+radio_menu.add.dropselect(
+    "Downlink",
+    [(x["rig_name"], ind, RIG_DOWN) for ind, x in enumerate(CONFIG["rigs"])],
+    onchange=change_rig,
+    selection_box_height=5,
+)
 radio_menu.add.button("restart downlink rig", lambda: restart_rig("down"))
 radio_menu.add.button("restart uplink rig", lambda: restart_rig("up"))
+
 radio_menu.add.vertical_margin(25)
+
 radio_menu.add.button("Return to Menu", pygame_menu.events.BACK)
 
 # -------------------------------------------------------------------------
@@ -339,8 +364,8 @@ while True:
         lckstr = "UnLocked"
         az_el_label.set_background_color((255, 0, 0))
 
-    RIG_UP.set_freq(RIG_VFOS[CONFIG["rig_up_config"]["vfo_name"]], shifted_up)
-    RIG_DOWN.set_freq(RIG_VFOS[CONFIG["rig_down_config"]["vfo_name"]], shifted_down)
+    RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
+    RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
     rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
 
     az_el_label.set_title(f"Az {az} El {ele} {lckstr} PWR {rf_level}%")

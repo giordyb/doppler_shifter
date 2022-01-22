@@ -20,3 +20,5 @@ CONFIG = load_conf()
 RIG_STATUS = {-1: "ERR", 0: "OK", -9: "ERR", -6: "ERR", -11: "ERR", -8: "ERR"}
 WHITE = (255, 255, 255, 255)
 RED = (255, 0, 0, 255)
+DEFAULT_RIG_UP = 0
+DEFAULT_RIG_DOWN = 1

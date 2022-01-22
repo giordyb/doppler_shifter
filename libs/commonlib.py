@@ -9,20 +9,23 @@ import time
 logger = logging.getLogger(__name__)
 
 
-def configure_rig(rig, side, CONFIG):
-    rig_side_config = f"rig_{side}_config"
+def configure_rig(rig, rignum, CONFIG):
+    rig.set_conf("retry", "5")
+
     rig_pathname = (
-        f"{CONFIG[rig_side_config]['hostname']}:{CONFIG[rig_side_config]['port']}"
+        f"{CONFIG['rigs'][rignum]['hostname']}:{CONFIG['rigs'][rignum]['port']}"
     )
     rig.set_conf(
         "rig_pathname",
         rig_pathname,
     )
+    rig.rig_name = CONFIG["rigs"][rignum]["rig_name"]
+    rig.vfo_name = CONFIG["rigs"][rignum]["vfo_name"]
     return rig
 
 
 def create_slider(CURRENT_SAT_CONFIG, side):
-    return pygame_menu.widgets.RangeSlider(
+    slider = pygame_menu.widgets.RangeSlider(
         title="",
         default_value=CURRENT_SAT_CONFIG[f"{side}_center"],
         range_values=(
@@ -34,6 +37,10 @@ def create_slider(CURRENT_SAT_CONFIG, side):
         cursor=None,
         range_width=300,
     )
+    slider.is_selectable = False
+    slider.readonly = True
+
+    return slider
 
 
 def restart_rig(side):
