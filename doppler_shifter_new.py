@@ -43,6 +43,7 @@ from libs.constants import (
     RIG_STATUS,
     WHITE,
     RED,
+    GREEN,
     DEFAULT_RIG_UP,
     DEFAULT_RIG_DOWN,
 )
@@ -77,8 +78,9 @@ SAVED_DOWN_FREQ = 0
 
 RIG_UP.open()
 RIG_DOWN.open()
+LOCKED = True
 
-
+RUN = False
 RANGE_SLIDER_UP = create_slider(CURRENT_SAT_CONFIG, "up")
 RANGE_SLIDER_DOWN = create_slider(CURRENT_SAT_CONFIG, "down")
 
@@ -189,6 +191,16 @@ def tune_beacon():
         set_slider(type="beacon")
 
 
+def stop_start():
+    global RUN
+    if RUN == True:
+        RUN = False
+        runbt._background_color = RED
+    else:
+        RUN = True
+        runbt._background_color = GREEN
+
+
 def tune_center():
     global CURRENT_UP_FREQ
     global CURRENT_DOWN_FREQ
@@ -211,9 +223,10 @@ Main program.
 
 surface = create_example_window("Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN)
 
-common_theme = pygame_menu.themes.THEME_DARK.copy()
+common_theme = pygame_menu.themes.THEME_DEFAULT.copy()
 common_theme.title_font_size = 30
 common_theme.widget_font_size = 25
+common_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
 
 # -------------------------------------------------------------------------
 # Create SAT MENU
@@ -256,14 +269,15 @@ radio_menu.add.dropselect(
     onchange=change_rig,
     selection_box_height=5,
 )
+radio_menu.add.button("restart downlink rig", lambda: restart_rig("down"))
+radio_menu.add.button("restart uplink rig", lambda: restart_rig("up"))
 radio_menu.add.dropselect(
     "Downlink",
     [(x["rig_name"], ind, RIG_DOWN) for ind, x in enumerate(CONFIG["rigs"])],
     onchange=change_rig,
     selection_box_height=5,
 )
-radio_menu.add.button("restart downlink rig", lambda: restart_rig("down"))
-radio_menu.add.button("restart uplink rig", lambda: restart_rig("up"))
+
 
 radio_menu.add.vertical_margin(25)
 
@@ -324,6 +338,14 @@ centerbt = main_menu.add.button(
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
 centerbt.translate(-0, -10)
+runbt = main_menu.add.button(
+    "On/Off",
+    stop_start,
+    float=True,
+    align=pygame_menu.locals.ALIGN_RIGHT,
+)
+runbt.translate(-0, 40)
+runbt._background_color = RED
 
 sliderup = main_menu.add.generic_widget(RANGE_SLIDER_UP, configure_defaults=True)
 sliderup.readonly = True
@@ -335,7 +357,6 @@ change_sat("", CURRENT_SAT_CONFIG)
 # -------------------------------------------------------------------------
 # Main loop
 # -------------------------------------------------------------------------
-LOCKED = True
 observer = get_observer(CONFIG)
 
 while True:
@@ -345,10 +366,6 @@ while True:
     if RIG_DOWN.error_status != 0:
         logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
         RIG_DOWN.open()
-
-    az, ele, shift_down, shift_up, shifted_down, shifted_up = recalc_shift_and_pos(
-        observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
-    )
 
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
         sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
@@ -364,43 +381,48 @@ while True:
         lckstr = "UnLocked"
         az_el_label.set_background_color((255, 0, 0))
 
-    RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
-    RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
-    rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
+    if RUN:
 
-    az_el_label.set_title(f"Az {az} El {ele} {lckstr} PWR {rf_level}%")
-    up_label1.set_title(
-        f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
-            ",", "."
-        ),
-    )
-    up_label2.set_title(
-        f"UP: {shifted_up:,.0f} SHIFT: {abs(shift_up)}".replace(",", ".")
-    )
-
-    down_label1.set_title(
-        f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {RIG_STATUS[RIG_DOWN.error_status]}".replace(
-            ",", "."
+        az, ele, shift_down, shift_up, shifted_down, shifted_up = recalc_shift_and_pos(
+            observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
         )
-    )
+        RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
+        RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
+        rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
 
-    down_label2.set_title(
-        f"DN: {shifted_down:,.0f} SHIFT: {abs(shift_down)}".replace(",", ".")
-    )
-    if CURRENT_UP_FREQ in range(
-        CURRENT_SAT_CONFIG["up_start"], CURRENT_SAT_CONFIG["up_end"]
-    ):
-        RANGE_SLIDER_UP.set_value(CURRENT_UP_FREQ)
+        az_el_label.set_title(f"Az {az} El {ele} {lckstr} PWR {rf_level}%")
+        up_label1.set_title(
+            f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
+                ",", "."
+            ),
+        )
+        up_label2.set_title(
+            f"UP: {shifted_up:,.0f} SHIFT: {abs(shift_up)}".replace(",", ".")
+        )
 
-    if CURRENT_DOWN_FREQ in range(
-        CURRENT_SAT_CONFIG["down_start"], CURRENT_SAT_CONFIG["down_end"]
-    ):
+        down_label1.set_title(
+            f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {RIG_STATUS[RIG_DOWN.error_status]}".replace(
+                ",", "."
+            )
+        )
 
-        RANGE_SLIDER_DOWN.set_value(CURRENT_DOWN_FREQ)
+        down_label2.set_title(
+            f"DN: {shifted_down:,.0f} SHIFT: {abs(shift_down)}".replace(",", ".")
+        )
+        if CURRENT_UP_FREQ in range(
+            CURRENT_SAT_CONFIG["up_start"], CURRENT_SAT_CONFIG["up_end"]
+        ):
+            RANGE_SLIDER_UP.set_value(CURRENT_UP_FREQ)
 
-    # down_range.set_value(CURRENT_DOWN_FREQ)
+        if CURRENT_DOWN_FREQ in range(
+            CURRENT_SAT_CONFIG["down_start"], CURRENT_SAT_CONFIG["down_end"]
+        ):
 
-    # Application events
+            RANGE_SLIDER_DOWN.set_value(CURRENT_DOWN_FREQ)
+
+        # down_range.set_value(CURRENT_DOWN_FREQ)
+
+        # Application events
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
@@ -420,8 +442,8 @@ while True:
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 7:
             tune_beacon()
 
-    main_menu.draw(surface)
     main_menu.update(events)
+    main_menu.draw(surface)
 
     # Flip surface
     pygame.display.flip()
