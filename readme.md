@@ -20,6 +20,7 @@ It supports any rig compatible with Hamlib
 * turn on the raspberry pi
 * select the satellite by clicking on the Sats menu
 * after selecting the satellite the uplink and downlink frequencies will be set, starting in the middle of the band (for linear sats). the frequencies are taken from [ke0bpr frequency cheat sheet](https://ke0pbr.wordpress.com/2018/12/31/my-frequency-cheat-sheet/)
+* select the radio configuration (see the config file for examples)
 * on the display you will see the following info (for both uplink and downlink):
     * the satellite name and beacon frequency
     * the current azimuth and elevation of the satellite, if the VFOs are locked and the power of the rig (needed when lowering the tx power to avoid de-sense) 
