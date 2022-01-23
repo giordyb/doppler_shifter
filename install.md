@@ -51,3 +51,5 @@ Also tried it with [kappanhang](https://github.com/nonoo/kappanhang) for remote 
     + sudo systemctl enable doppler_shifter
     + sudo systemctl start doppler_shifter
     + sudo cp doppler_shifter.desktop /usr/share/applications/ (this will create an icon in the raspberry pi's menu that you can click on and run the software)
+
+19. if available GPS location and time can be set using the IC-705 GPS (see http://www.w1hkj.com/W3YJ/Pi_IC-705_GPS.pdf)

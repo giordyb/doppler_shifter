@@ -12,7 +12,7 @@ It supports any rig compatible with Hamlib
 
 ![here is a video of it running](./images/usage.gif?raw=true)
 
-[here are the install instructions](https://github.com/giordyb/doppler_shifter/blob/5015b8ee5b41cb8cf3b3a181e51b40ee519a29c2/install.md)
+[install instructions](https://github.com/giordyb/doppler_shifter/blob/5015b8ee5b41cb8cf3b3a181e51b40ee519a29c2/install.md)
 
 
 # usage
@@ -31,3 +31,11 @@ It supports any rig compatible with Hamlib
 * you can only tune up or down within the limits of the passband of the satellite (set in the satlist.json file)
 
 * if you press one of the mouse buttons (configured in the code) the uplink and downlink frequencies will be unlocked and only the uplink frequency will change when moving the mouse scroll wheel. This is needed to finely tune the relationship between the uplink and downlink. If anyone has any idea on how to automate this please let me know
+
+# features
+
+* tracks the satellite using available TLEs and shows Azimuth and Elevation data on the display
+* controls the VFOs of 2 radios and synchronize them during frequency change (for inverting linear satellites)
+* adjusts the frequencies of the radios by calculating the doppler shift
+* can set the gps coordinates and time using the IC-705 GPS (if configured)
+* 
