@@ -31,6 +31,7 @@ from libs.commonlib import (
     create_slider,
     recalc_shift_and_pos,
     restart_rig,
+    shutdown,
 )
 from libs.constants import (
     RIG_MODES,
@@ -253,6 +254,7 @@ satselector.scale(1.4, 1.4)
 sat_menu.add.vertical_margin(30)
 sat_menu.add.clock(font_size=25, font_name=pygame_menu.font.FONT_DIGITAL)
 sat_menu.add.button("Return to Menu", pygame_menu.events.BACK)
+sat_menu.add.button("Shutdown", shutdown)
 sat_menu.add.button("Quit", pygame.QUIT)
 
 # -------------------------------------------------------------------------

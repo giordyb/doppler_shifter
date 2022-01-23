@@ -9,6 +9,10 @@ import time
 logger = logging.getLogger(__name__)
 
 
+def shutdown():
+    subprocess.run(["sudo", "shutdown", "-h", "now"])
+
+
 def configure_rig(rig, rignum, CONFIG):
     rig.set_conf("retry", "5")
 

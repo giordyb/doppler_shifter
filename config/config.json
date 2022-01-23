@@ -18,23 +18,30 @@
         {
             "hostname": "localhost",
             "port": 4533,
-            "rig_number": 3,
+            "rig_number": 2,
             "rig_name": "TH-D74",
             "vfo_name": "VFOB"
         },
         {
             "hostname": "192.168.146.123",
             "port": 4533,
-            "rig_number": 2,
+            "rig_number": 3,
             "rig_name": "SDRPP",
             "vfo_name": "VFOA"
         },
         {
             "hostname": "localhost",
             "port": 4534,
-            "rig_number": 3,
+            "rig_number": 4,
             "rig_name": "TH-D74_BT",
             "vfo_name": "VFOB"
+        },
+        {
+            "hostname": "localhost",
+            "port": 4535,
+            "rig_number": 4,
+            "rig_name": "IC705-REMOTE",
+            "vfo_name": "VFOA"
         }
     ],
     "observer_conf": {
