@@ -33,7 +33,6 @@ from libs.commonlib import (
     recalc_shift_and_pos,
     restart_rig,
     shutdown,
-    reset_rig_connection,
 )
 from libs.constants import (
     RIG_MODES,
