@@ -365,7 +365,7 @@ change_sat("", CURRENT_SAT_CONFIG)
 # Main loop
 # -------------------------------------------------------------------------
 observer = get_observer(CONFIG)
-pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.png")
+pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
 pygame.display.set_icon(pygame_icon)
 
 while True:

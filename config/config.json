@@ -2,8 +2,8 @@
     "frequency_step": 100,
     "timezone": "Europe/Rome",
     "mouse_buttons": {
-        "freq_up": 4,
-        "freq_down": 5,
+        "freq_up": 5,
+        "freq_down": 4,
         "lock_vfo": 6,
         "tune_center": 1,
         "tune_beacon": 7

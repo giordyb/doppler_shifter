@@ -27,11 +27,14 @@ It supports any rig compatible with Hamlib
     * the uplink frequency you want to be tuned to, the mode and the status of the connection to the rig
     * the actual uplink tuned frequency (doppler shift adjusted) and the doppler shift 
 
-* the uplink and downlink frequencies are locked together based on the table of the cheat sheet. rotating the mouse wheel will increase the uplink frequency and decrease the downlink frequency
+* the uplink and downlink frequencies are locked together based on the table of the cheat sheet. moving the mouse wheel in either direction will increase/decrease the uplink frequency and decrease/increase the downlink frequency.
 
-* you can only tune up or down within the limits of the passband of the satellite (set in the satlist.json file)
+* the two sliders will show where you are in respect to the passband of the transponder (if you have selected a linear sat, in FM mode the sliders are hidden)
 
-* if you press one of the mouse buttons (configured in the code) the uplink and downlink frequencies will be unlocked and only the uplink frequency will change when moving the mouse scroll wheel. This is needed to finely tune the relationship between the uplink and downlink. If anyone has any idea on how to automate this please let me know
+* the mouse buttons can be configured in the config file to respond to the following functions
+    * lock/unlock the two VFOs
+    * switch to the beacon frequency
+    * switch to the center frequency
 
 # features
 
