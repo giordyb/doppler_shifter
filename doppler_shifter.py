@@ -391,7 +391,7 @@ while True:
         RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
         rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
 
-        az_el_label.set_title(f"Az {az} El {ele} {lckstr} PWR {rf_level}%")
+        az_el_label.set_title(f"Az {az} El {ele} {lckstr} TXPWR {rf_level}%")
         up_label1.set_title(
             f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
                 ",", "."
