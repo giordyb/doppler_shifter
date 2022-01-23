@@ -11,6 +11,7 @@ __all__ = ["main"]
 import sys
 import os
 import logging
+import subprocess
 
 logger = logging.getLogger(__name__)
 DEBUG = bool(os.getenv("DEBUG", False))
@@ -60,7 +61,6 @@ CURRENT_SAT_CONFIG = SAT_LIST[0]
 update_tles(CONFIG["sat_url"])
 
 surface: Optional["pygame.Surface"] = None
-
 
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
@@ -268,14 +268,21 @@ radio_menu.add.dropselect(
     [(x["rig_name"], ind, RIG_UP) for ind, x in enumerate(CONFIG["rigs"])],
     onchange=change_rig,
     selection_box_height=5,
+    default=RIG_UP.rig_num,
 )
+
 radio_menu.add.button("restart downlink rig", lambda: restart_rig("down"))
 radio_menu.add.button("restart uplink rig", lambda: restart_rig("up"))
+radio_menu.add.button(
+    "start kappanhang",
+    lambda: subprocess.run(["systemctl", "--user", "start", "kappanhang"]),
+)
 radio_menu.add.dropselect(
     "Downlink",
     [(x["rig_name"], ind, RIG_DOWN) for ind, x in enumerate(CONFIG["rigs"])],
     onchange=change_rig,
     selection_box_height=5,
+    default=RIG_DOWN.rig_num,
 )
 
 
@@ -358,6 +365,8 @@ change_sat("", CURRENT_SAT_CONFIG)
 # Main loop
 # -------------------------------------------------------------------------
 observer = get_observer(CONFIG)
+pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.png")
+pygame.display.set_icon(pygame_icon)
 
 while True:
     if RIG_UP.error_status != 0:

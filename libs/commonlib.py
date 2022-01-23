@@ -25,6 +25,7 @@ def configure_rig(rig, rignum, CONFIG):
     )
     rig.rig_name = CONFIG["rigs"][rignum]["rig_name"]
     rig.vfo_name = CONFIG["rigs"][rignum]["vfo_name"]
+    rig.rig_num = rignum
 
     rig.open()
     if rig.rig_name == "SDRPP":
