@@ -3,7 +3,7 @@
 
 doppler_shifter is a tool to adjust the frequencies of two radios via cat control based on the satellite's doppler shift in a portable setting.
 
-It is designed to run on a raspberry pi with a ~~4x20 lcd screen connected via i2c and a rotary encoder via GPIOs~~ (old version, it looked like [this](./images/oldversion.jpg)) 3.5in [LCD TouchScreen](http://www.lcdwiki.com/3.5inch_RPi_Display) and it can be controlled with a mouse. The mouse is needed to control some of the functions (switch to the beacon frequency, go back to the center, unlock the VFOs), etc) via the buttons and control the frequency adjustment with the mouse wheel.
+It is designed to run on a raspberry pi with a ~~4x20 lcd screen connected via i2c and a rotary encoder via GPIOs~~ (old version, it looked like [this](https://github.com/giordyb/doppler_shifter/raw/main/images/oldversion.JPG)) 3.5in [LCD TouchScreen](http://www.lcdwiki.com/3.5inch_RPi_Display) and it can be controlled with a mouse. The mouse is needed to control some of the functions (switch to the beacon frequency, go back to the center, unlock the VFOs), etc) via the buttons and control the frequency adjustment with the mouse wheel.
 
 ![doppler_shifter](./images/newversion.jpg?raw=true)
 
