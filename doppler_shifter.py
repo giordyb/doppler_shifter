@@ -371,11 +371,11 @@ pygame.display.set_icon(pygame_icon)
 while True:
     if RIG_UP.error_status != 0:
         logger.warning(f"rigup error: {RIG_UP.error_status}")
-        RIG_UP = reset_rig_connection(RIG_UP)
+        RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
 
     if RIG_DOWN.error_status != 0:
         logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
-        RIG_DOWN = reset_rig_connection(RIG_DOWN)
+        RIG_DOWN = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
 
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
         sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
