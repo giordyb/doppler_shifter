@@ -2,7 +2,7 @@
 
 
 doppler_shifter is a tool to adjust the frequencies of two radios via cat control based on the satellite's doppler shift in a portable setting
-it is designed to run on a raspberry pi with a ~~4x20 lcd screen connected via i2c and a rotary encoder via GPIOs~~
+it is designed to run on a raspberry pi with a ~~4x20 lcd screen connected via i2c and a rotary encoder via GPIOs (old version, it looked like [this]()~~ 3.5in [LCD Screen](http://www.lcdwiki.com/3.5inch_RPi_Display)  
 
 The LCD and rotary tool
 

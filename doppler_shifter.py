@@ -1,355 +1,455 @@
-#%%
-from time import sleep
-from libs.satlib import *
-from libs.lcdlib import *
-from libs.rigstarterlib import log_msg, init_rigs
-from libs.gpslib import poll_gps
-import ephem
-from dateutil import tz
-from sys import platform
-from RPLCD import i2c
-import Hamlib
-from libs.rigstarterlib import reset_rig
-import time
-import json
-from libs.satlib import *
-from libs.lcdlib import *
-import json
+"""
+pygame-menu
+https://github.com/ppizarror/pygame-menu
 
-try:
-    import RPi.GPIO as GPIO
-except:
-    import Mock.GPIO as GPIO
-from threading import Event, Thread
-import multiprocessing
-from gpiozero import RotaryEncoder, Button
-import subprocess
-import logging
+EXAMPLE - TIMER CLOCK
+Example file, timer clock with in-menu options.
+"""
+
+
+__all__ = ["main"]
+import sys
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 DEBUG = bool(os.getenv("DEBUG", False))
-logFormatter = logging.Formatter(
-    "%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s"
+sys.path.append("/usr/local/lib/python3.9/site-packages/")
+
+import Hamlib
+
+import pygame
+import pygame_menu
+from pygame_menu.examples import create_example_window
+from libs.satlib import (
+    get_satellite,
+    update_tles,
+    get_observer,
 )
+from libs.commonlib import (
+    configure_rig,
+    create_slider,
+    recalc_shift_and_pos,
+    restart_rig,
+    shutdown,
+)
+from libs.constants import (
+    RIG_MODES,
+    RIG_VFOS,
+    STEP,
+    H_SIZE,
+    W_SIZE,
+    SAT_LIST,
+    CONFIG,
+    RIG_STATUS,
+    WHITE,
+    RED,
+    GREEN,
+    DEFAULT_RIG_UP,
+    DEFAULT_RIG_DOWN,
+)
+from libs.gpslib import poll_gps
+from pygame.locals import Color
+from pygame_menu.widgets.core.widget import Widget
 
-RIG_MODES = {
-    "FM": Hamlib.RIG_MODE_FM,
-    "AM": Hamlib.RIG_MODE_AM,
-    "USB": Hamlib.RIG_MODE_USB,
-    "LSB": Hamlib.RIG_MODE_LSB,
-}
-rootLogger = logging.getLogger()
+from random import randrange
+from typing import List, Tuple, Optional
 
-fileHandler = logging.FileHandler("./doppler_shifter.log")
-fileHandler.setFormatter(logFormatter)
-rootLogger.addHandler(fileHandler)
 
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(logFormatter)
-rootLogger.addHandler(consoleHandler)
+CURRENT_SAT_CONFIG = SAT_LIST[0]
+update_tles(CONFIG["sat_url"])
 
-gpio_pins = ["CLK", "DT", "SW"]
+surface: Optional["pygame.Surface"] = None
 
-with open("config/config.json", "r") as f:
-    config = json.load(f)
-with open("config/satlist.json", "r") as f:
-    SAT_LIST = json.load(f)
-button = Button(config["gpio_pins"]["SW"], hold_time=5)
+
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
-rig_up = Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL)
-rig_down = Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL)
+CURRENT_SAT_OBJECT = get_satellite(CURRENT_SAT_CONFIG)
+
+ON_BEACON = False
+RIG_UP = configure_rig(Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL), DEFAULT_RIG_UP, CONFIG)
+RIG_DOWN = configure_rig(
+    Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL), DEFAULT_RIG_DOWN, CONFIG
+)
+# RIG_DOWN.set_vfo_opt(0)
+
+SAVED_UP_FREQ = 0
+SAVED_DOWN_FREQ = 0
 
 
-def get_range(up, down):
-    if up > down:
-        return range(down, up + 1)
+RIG_UP.open()
+RIG_DOWN.open()
+LOCKED = True
+
+RUN = False
+RANGE_SLIDER_UP = create_slider(CURRENT_SAT_CONFIG, "up")
+RANGE_SLIDER_DOWN = create_slider(CURRENT_SAT_CONFIG, "down")
+
+
+def changefreq(value=0):
+    global CURRENT_DOWN_FREQ
+    CURRENT_DOWN_FREQ = CURRENT_DOWN_FREQ + value
+
+
+def change_rig(rigtuple, rigidx, RIG):
+    global CONFIG
+    rigdata, rigidx = rigtuple
+    rigname, _, _ = rigdata
+    print(f"rigname: {rigname}, rigidx {rigidx}, {RIG.rig_name}")
+    RIG.close()
+    RIG = configure_rig(RIG, rigidx, CONFIG)
+    RIG.open()
+    change_sat(None, CURRENT_SAT_CONFIG)
+
+
+def set_slider(type="center"):
+    if CURRENT_SAT_CONFIG["up_mode"] == "FM":
+        RANGE_SLIDER_UP._visible = False
+        RANGE_SLIDER_DOWN._visible = False
+        # RANGE_SLIDER_UP._range_values = (
+        #    CURRENT_SAT_CONFIG["up_start"] - 1,
+        #    CURRENT_SAT_CONFIG["up_end"] + 1,
+        # )
+        # RANGE_SLIDER_DOWN._range_values = (
+        #    CURRENT_SAT_CONFIG["down_start"] - 1,
+        #    CURRENT_SAT_CONFIG["down_end"] + 1,
+        # )
     else:
-        return range(up, down + 1)
-
-
-def selected_sat(button, done):
-    done.set()
-
-
-def shutdown_raspi(button, lcd):
-    lcd.clear()
-    lcd.write_string(f"shutting down")
-    subprocess.run(["sudo", "poweroff"])
-
-
-def tune_lock_switch(button, ns):
-    if ns.tune_lock:
-        ns.tune_lock = False
-    else:
-        ns.diff
-        ns.tune_lock = True
-        SAT_LIST[ns.selected_sat_idx]["saved_uplink_diff"] = ns.diff
-        with open("config/satlist.json", "w") as f:
-            json.dump(SAT_LIST, f, indent=4)
-
-
-def exit_loop(button, ns):
-    ns.run_loop = False
-    logger.warning("button held")
-
-
-def select_sat(rotary, lcd, ns):
-    lcd.clear()
-    ns.selected_sat_idx = rotary.steps
-    # 1st line
-    line1 = f"{SAT_LIST[ns.selected_sat_idx]['display_name']}"
-    lcd.write_string(line1)
-    lcd.crlf()
-    # 2nd line
-    line2 = f"BCN {int(SAT_LIST[ns.selected_sat_idx].get('beacon','0')):,.0f}".replace(
-        ",", "."
-    )
-    lcd.write_string(line2)
-    lcd.crlf()
-
-    if SAT_LIST[ns.selected_sat_idx]["down_mode"] == "FM":
-        line3 = f"FM {SAT_LIST[ns.selected_sat_idx]['tone'].ljust(20, ' ')}"
-    else:
-        line3 = "Linear"
-    lcd.write_string(line3)
-    ns.run_loop = True
-
-
-def handle_rig_error(rig, side):
-    while rig.error_status != 0:
-        rig.close()
-        if "localhost" in rig.get_conf("rig_pathname"):
-            reset_rig(side)
-            time.sleep(3)
-        rig.open()
-        if rig.error_status == 0:
-            break
-
-
-def sat_loop(
-    obs, satellite, config, sat_up_range, sat_down_range, lcd, SELECTED_SAT, ns
-):
-    global rig_up
-    global rig_down
-    while rig_down.error_status != 0:
-        rig_down.open()
-    while rig_up.error_status != 0:
-        rig_up.open()
-    while ns.run_loop:
-        obs.date = datetime.datetime.utcnow()
-        satellite.compute(obs)
-        alt = str(satellite.alt).split(":")[0]
-        az = str(satellite.az).split(":")[0]
-        shift_down = get_doppler_shift(ns.current_down, satellite.range_velocity)
-        shift_up = get_doppler_shift(ns.current_up, satellite.range_velocity)
-        shifted_up = get_shifted(ns.current_up, shift_up, "up")
-        shifted_down = get_shifted(ns.current_down, shift_down, "down")
-        rf_level = 0
-        if config["enable_radios"]:
-            if rig_up.error_status == 0:
-                rig_up.set_freq(Hamlib.RIG_VFO_CURR, shifted_up)
-                rf_level = int(rig_up.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
-            else:
-                logger.warning("rigup has errors")
-                handle_rig_error(rig_up, "up")
-            if rig_down.error_status == 0:
-                rig_down.set_freq(Hamlib.RIG_VFO_CURR, shifted_down)
-            else:
-                logger.warning("rigdown has errors")
-                handle_rig_error(rig_down, "down")
-
-            # rig_up.set_split_freq(shifted_up)
-            # rig_up.set_vfo("VFOB")
-            # rig_up.set_frequency(shifted_up)
-            # rig_up.set_vfo("VFOB")
-        # try:
-        # except Exception as ex:
-        #    logger.error(f"cannot set frequency on downlink {ex}")
-        #    reset_rig("down")
-
-        write_lcd_loop(
-            lcd,
-            ns.current_up,
-            ns.current_down,
-            shifted_up,
-            shifted_down,
-            shift_up,
-            shift_down,
-            SELECTED_SAT,
-            sat_up_range,
-            sat_down_range,
-            alt,
-            az,
-            ns.tune_lock,
-            ns.diff,
-            rf_level,
+        RANGE_SLIDER_UP._visible = True
+        RANGE_SLIDER_DOWN._visible = True
+        RANGE_SLIDER_UP._range_values = (
+            CURRENT_SAT_CONFIG["up_start"],
+            CURRENT_SAT_CONFIG["up_end"],
+        )
+        RANGE_SLIDER_DOWN._range_values = (
+            CURRENT_SAT_CONFIG["down_start"],
+            CURRENT_SAT_CONFIG["down_end"],
         )
 
 
-def tune_vfo(rotary, config, sat_down_range, sat_up_range, sign, ns):
+def change_sat(title, newsat) -> None:
+    global CURRENT_SAT_CONFIG
+    global CURRENT_SAT_OBJECT
+    global CURRENT_UP_FREQ
+    global CURRENT_DOWN_FREQ
+    global RANGE_SLIDER_UP
+    global RANGE_SLIDER_DOWN
+    CURRENT_SAT_CONFIG = newsat
+    CURRENT_SAT_OBJECT = get_satellite(newsat)
+    CURRENT_UP_FREQ = CURRENT_SAT_CONFIG["up_center"]
+    CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG["down_center"]
+    RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
 
-    nextfrequp = ns.current_up
-    nextfreqdown = ns.current_down
-    if not ns.tune_lock:
-        ns.diff += sign * config["rotary_step"]
-        rootLogger.warning(f"uplink freq diff is {ns.diff}")
-        nextfrequp -= sign * config["rotary_step"]
-    else:
-        nextfrequp -= sign * config["rotary_step"]
-        nextfreqdown += sign * config["rotary_step"]
-    rootLogger.warning(f"uprange{sat_up_range}")
-    rootLogger.warning(f"uplink: {nextfrequp}")
-
-    rootLogger.warning(f"down range{sat_down_range}")
-    rootLogger.warning(f"downlink: {nextfreqdown}")
-    rootLogger.warning(f"step: {sign}")
-    rootLogger.warning(nextfreqdown in sat_down_range)
-    rootLogger.warning(nextfrequp in sat_up_range)
-    ns.current_down = nextfreqdown
-    ns.current_up = nextfrequp
-
-
-def main():
-    global rig_up
-    global rig_down
-    global RIG_MODES
-    manager = multiprocessing.Manager()
-    ns = manager.Namespace()
-
-    lcd = init_lcd()
-
-    lat, lon, ele = poll_gps()
-
-    # override default coordinates with gps
-    if lat != "n/a" and lon != "n/a" and ele != "n/a":
-        config["observer_conf"]["lon"] = str(lon)
-        config["observer_conf"]["lat"] = str(lat)
-        config["observer_conf"]["ele"] = ele
-        log_msg("setting gps coordinates from radio", lcd, rootLogger)
-    else:
-        log_msg(
-            "cannot read gps coordinates from radio, using default", lcd, rootLogger
-        )
-    ns.run_loop = True
-
-    ns.selected_sat_idx = 0
-    ns.diff = 0
-    if config["enable_radios"]:
-        rig_up, rig_down = init_rigs(config, lcd, button, rig_up, rig_down)
-
-    while True:
-        with open("config/satlist.json", "r") as f:
-            ns.SAT_LIST = json.load(f)
-        rootLogger.warning("entering main loop")
-        done = Event()
-        rotary = RotaryEncoder(
-            config["gpio_pins"]["CLK"],
-            config["gpio_pins"]["DT"],
-            max_steps=len(SAT_LIST) - 1,
-            wrap=True,
-        )
-
-        rotary.when_rotated = lambda: select_sat(rotary, lcd, ns)
-        button.when_pressed = lambda: selected_sat(button, done)
-        button.when_held = lambda: exit_loop(button, ns)
-
-        log_msg("rotate knob to select a satellite", lcd, rootLogger)
-        # from_zone = tz.gettz("UTC")
-        # to_zone = tz.gettz(config["timezone"])
-
-        if not DEBUG:
-            done.wait()
-
-        rootLogger.warning(
-            f"selected sat {SAT_LIST[ns.selected_sat_idx]['display_name']}"
-        )
-
-        SELECTED_SAT = SAT_LIST[ns.selected_sat_idx]
-
-        sat = get_tles(SELECTED_SAT["name"])
-        ns.SAT_LIST = SAT_LIST
-        ns.SELECTED_SAT = SELECTED_SAT
-        satellite = ephem.readtle(
-            sat[0], sat[1], sat[2]
-        )  # create ephem object from tle information
-
-        obs = ephem.Observer()  # recreate Oberserver with current time
-        obs.lon = config["observer_conf"]["lon"]
-        obs.lat = config["observer_conf"]["lat"]
-        obs.elevation = config["observer_conf"]["ele"]
-
-        if isinstance(rig_down, Hamlib.Rig) and isinstance(rig_up, Hamlib.Rig):
-            while rig_down.error_status != 0:
-                rig_down.open()
-            while rig_up.error_status != 0:
-                rig_up.open()
-
-            if SELECTED_SAT["down_mode"] == "FM":
-                if config["rig_down_config"]["rig_name"] == "TH-D74":
-                    rig_down.set_vfo(Hamlib.RIG_VFO_SUB)
-                    rig_down.set_level(Hamlib.RIG_LEVEL_SQL, 0.0)
-                    rig_down.set_ts(Hamlib.RIG_VFO_SUB, 5000)
-
-                rig_down.set_mode(RIG_MODES[SELECTED_SAT["down_mode"]])
-                if SELECTED_SAT["tone"] == "0.0":
-                    rig_up.set_func(Hamlib.RIG_FUNC_TONE, 0)
-                else:
-                    rig_up.set_func(Hamlib.RIG_FUNC_TONE, 1)
-                    rig_up.set_ctcss_tone(
-                        Hamlib.RIG_VFO_MAIN, int(SELECTED_SAT["tone"].replace(".", ""))
-                    )
-            else:
-                rig_down.set_mode(RIG_MODES[SELECTED_SAT["down_mode"]])
-                if config["rig_down_config"]["rig_name"] == "TH-D74":
-                    rig_down.set_vfo(Hamlib.RIG_VFO_SUB)
-                    rig_down.set_rptr_offs(Hamlib.RIG_VFO_B, 0)
-                    rig_down.set_ts(Hamlib.RIG_VFO_SUB, 100)
-
-            rig_up.set_mode(RIG_MODES[SELECTED_SAT["up_mode"]])
-
-        sat_down_range = get_range(SELECTED_SAT["down_start"], SELECTED_SAT["down_end"])
-        sat_up_range = get_range(SELECTED_SAT["up_start"], SELECTED_SAT["up_end"])
-        ns.current_down = SELECTED_SAT["down_center"]
-        ns.current_up = SELECTED_SAT["up_center"] + SELECTED_SAT.get(
-            "saved_uplink_diff", 0
-        )
-
-        rotary.close()
-        rotary = RotaryEncoder(
-            config["gpio_pins"]["CLK"],
-            config["gpio_pins"]["DT"],
-            max_steps=1,
-            wrap=False,
-        )
-        rotary.when_rotated_clockwise = lambda: tune_vfo(
-            rotary, config, sat_down_range, sat_up_range, -1, ns
-        )
-        rotary.when_rotated_counter_clockwise = lambda: tune_vfo(
-            rotary, config, sat_down_range, sat_up_range, +1, ns
-        )
-        ns.tune_lock = True
-        button.when_pressed = lambda: tune_lock_switch(button, ns)
-        try:
-            loop_thread = Thread(
-                target=sat_loop,
-                args=(
-                    obs,
-                    satellite,
-                    config,
-                    sat_up_range,
-                    sat_down_range,
-                    lcd,
-                    SELECTED_SAT,
-                    ns,
-                ),
+    if CURRENT_SAT_CONFIG["up_mode"] == "FM":
+        if "TH-D74" in RIG_DOWN.rig_name:
+            RIG_DOWN.set_vfo(RIG_VFOS[RIG_DOWN.vfo_name])
+            RIG_DOWN.set_level(Hamlib.RIG_LEVEL_SQL, 0.0)
+            RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 5000)
+        if CURRENT_SAT_CONFIG["tone"] == "0.0":
+            RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
+        else:
+            RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 1)
+            RIG_UP.set_ctcss_tone(
+                RIG_VFOS[RIG_UP.vfo_name],
+                int(CURRENT_SAT_CONFIG["tone"].replace(".", "")),
             )
-            loop_thread.start()
-            loop_thread.join()
-            rotary.close()
-        except Exception as e:
-            rootLogger.error(f"Exception error {e}")
+    else:
+        if "TH-D74" in RIG_DOWN.rig_name:
+            RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
+            RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 100)
+        RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
+
+    RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
+
+    set_slider()
 
 
-if __name__ == "__main__":
-    main()
+def tune_beacon():
+    global SAVED_UP_FREQ
+    global SAVED_DOWN_FREQ
+    global CURRENT_UP_FREQ
+    global CURRENT_DOWN_FREQ
+    global RANGE_SLIDER_UP
+    global RANGE_SLIDER_DOWN
+    global ON_BEACON
+    if ON_BEACON:
+        CURRENT_UP_FREQ = SAVED_UP_FREQ
+        CURRENT_DOWN_FREQ = SAVED_DOWN_FREQ
+        bcnbt._background_color = None
+        ON_BEACON = False
+        set_slider()
+    else:
+        SAVED_UP_FREQ = CURRENT_UP_FREQ
+        SAVED_DOWN_FREQ = CURRENT_DOWN_FREQ
+        CURRENT_UP_FREQ = CURRENT_SAT_CONFIG.get(
+            "beacon", CURRENT_SAT_CONFIG["up_center"]
+        )
+        CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG.get(
+            "beacon", CURRENT_SAT_CONFIG["down_center"]
+        )
+        ON_BEACON = True
+        bcnbt._background_color = RED
+        set_slider(type="beacon")
+
+
+def stop_start():
+    global RUN
+    if RUN == True:
+        RUN = False
+        runbt._background_color = RED
+    else:
+        RUN = True
+        runbt._background_color = GREEN
+
+
+def tune_center():
+    global CURRENT_UP_FREQ
+    global CURRENT_DOWN_FREQ
+    global RANGE_SLIDER_UP
+    global RANGE_SLIDER_DOWN
+    CURRENT_UP_FREQ = CURRENT_SAT_CONFIG["up_center"]
+    CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG["down_center"]
+    set_slider()
+    bcnbt._background_color = None
+
+
+"""
+Main program.
+
+:param test: Indicate function is being tested
+:return: None
+"""
+
+# Create window
+
+surface = create_example_window("Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN)
+
+common_theme = pygame_menu.themes.THEME_DEFAULT.copy()
+common_theme.title_font_size = 30
+common_theme.widget_font_size = 25
+common_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
+
+# -------------------------------------------------------------------------
+# Create SAT MENU
+# -------------------------------------------------------------------------
+
+sat_menu = pygame_menu.Menu(
+    height=H_SIZE,
+    onclose=pygame_menu.events.RESET,
+    title="Sats",
+    width=W_SIZE,
+    theme=common_theme,
+)
+
+sat_tuples = [(x["display_name"], x) for x in SAT_LIST]
+satselector = sat_menu.add.selector(
+    title="",
+    items=sat_tuples,
+    default=0,
+    onchange=change_sat,
+    style="fancy",
+)
+satselector.scale(1.4, 1.4)
+
+sat_menu.add.vertical_margin(30)
+sat_menu.add.clock(font_size=25, font_name=pygame_menu.font.FONT_DIGITAL)
+sat_menu.add.button("Return to Menu", pygame_menu.events.BACK)
+sat_menu.add.button("Shutdown", shutdown)
+sat_menu.add.button("Quit", pygame.QUIT)
+
+# -------------------------------------------------------------------------
+# Create Radio MENU
+# -------------------------------------------------------------------------
+
+radio_menu = pygame_menu.Menu(
+    height=H_SIZE, theme=common_theme, title="Radio", width=W_SIZE  # Fullscreen
+)
+
+radio_menu.add.dropselect(
+    "Uplink",
+    [(x["rig_name"], ind, RIG_UP) for ind, x in enumerate(CONFIG["rigs"])],
+    onchange=change_rig,
+    selection_box_height=5,
+)
+radio_menu.add.button("restart downlink rig", lambda: restart_rig("down"))
+radio_menu.add.button("restart uplink rig", lambda: restart_rig("up"))
+radio_menu.add.dropselect(
+    "Downlink",
+    [(x["rig_name"], ind, RIG_DOWN) for ind, x in enumerate(CONFIG["rigs"])],
+    onchange=change_rig,
+    selection_box_height=5,
+)
+
+
+radio_menu.add.vertical_margin(25)
+
+radio_menu.add.button("Return to Menu", pygame_menu.events.BACK)
+
+# -------------------------------------------------------------------------
+# Create Main menu
+# -------------------------------------------------------------------------
+
+main_menu = pygame_menu.Menu(
+    enabled=True,
+    height=H_SIZE,
+    theme=common_theme,
+    title="Main Menu",
+    width=W_SIZE,
+)
+az_el_label = main_menu.add.label(
+    title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+)
+up_label1 = main_menu.add.label(
+    title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+)
+up_label2 = main_menu.add.label(
+    title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+)
+down_label1 = main_menu.add.label(
+    title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+)
+down_label2 = main_menu.add.label(
+    title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+)
+sat_bt = main_menu.add.button(
+    sat_menu.get_title(),
+    sat_menu,
+    float=True,
+    align=pygame_menu.locals.ALIGN_RIGHT,
+)
+sat_bt.translate(-0, -150)
+
+radiobt = main_menu.add.button(
+    radio_menu.get_title(),
+    radio_menu,
+    float=True,
+    align=pygame_menu.locals.ALIGN_RIGHT,
+)  #
+radiobt.translate(-0, -100)
+bcnbt = main_menu.add.button(
+    "Beacon",
+    tune_beacon,
+    float=True,
+    align=pygame_menu.locals.ALIGN_RIGHT,
+)
+bcnbt.translate(-0, -60)
+centerbt = main_menu.add.button(
+    "Center",
+    tune_center,
+    float=True,
+    align=pygame_menu.locals.ALIGN_RIGHT,
+)
+centerbt.translate(-0, -10)
+runbt = main_menu.add.button(
+    "On/Off",
+    stop_start,
+    float=True,
+    align=pygame_menu.locals.ALIGN_RIGHT,
+)
+runbt.translate(-0, 40)
+runbt._background_color = RED
+
+sliderup = main_menu.add.generic_widget(RANGE_SLIDER_UP, configure_defaults=True)
+sliderup.readonly = True
+sliderup._font_readonly_color = WHITE
+sliderdown = main_menu.add.generic_widget(RANGE_SLIDER_DOWN, configure_defaults=True)
+sliderdown.readonly = True
+sliderdown._font_readonly_color = WHITE
+change_sat("", CURRENT_SAT_CONFIG)
+# -------------------------------------------------------------------------
+# Main loop
+# -------------------------------------------------------------------------
+observer = get_observer(CONFIG)
+
+while True:
+    if RIG_UP.error_status != 0:
+        logger.warning(f"rigup error: {RIG_UP.error_status}")
+        RIG_UP.open()
+    if RIG_DOWN.error_status != 0:
+        logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
+        RIG_DOWN.open()
+
+    if CURRENT_SAT_CONFIG["up_mode"] != "FM":
+        sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
+            ",", "."
+        )
+    else:
+        sidestring = f"TONE {CURRENT_SAT_CONFIG.get('tone', None)}"
+    main_menu.set_title(f"{CURRENT_SAT_CONFIG['display_name']} - {sidestring}")
+    if LOCKED:
+        lckstr = "Locked"
+        az_el_label.set_background_color(None)
+    else:
+        lckstr = "UnLocked"
+        az_el_label.set_background_color((255, 0, 0))
+
+    if RUN:
+
+        az, ele, shift_down, shift_up, shifted_down, shifted_up = recalc_shift_and_pos(
+            observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
+        )
+        RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
+        RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
+        rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
+
+        az_el_label.set_title(f"Az {az} El {ele} {lckstr} PWR {rf_level}%")
+        up_label1.set_title(
+            f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
+                ",", "."
+            ),
+        )
+        up_label2.set_title(
+            f"UP: {shifted_up:,.0f} SHIFT: {abs(shift_up)}".replace(",", ".")
+        )
+
+        down_label1.set_title(
+            f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {RIG_STATUS[RIG_DOWN.error_status]}".replace(
+                ",", "."
+            )
+        )
+
+        down_label2.set_title(
+            f"DN: {shifted_down:,.0f} SHIFT: {abs(shift_down)}".replace(",", ".")
+        )
+        if CURRENT_UP_FREQ in range(
+            CURRENT_SAT_CONFIG["up_start"], CURRENT_SAT_CONFIG["up_end"]
+        ):
+            RANGE_SLIDER_UP.set_value(CURRENT_UP_FREQ)
+
+        if CURRENT_DOWN_FREQ in range(
+            CURRENT_SAT_CONFIG["down_start"], CURRENT_SAT_CONFIG["down_end"]
+        ):
+
+            RANGE_SLIDER_DOWN.set_value(CURRENT_DOWN_FREQ)
+
+        # down_range.set_value(CURRENT_DOWN_FREQ)
+
+        # Application events
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.QUIT:
+            exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:
+            CURRENT_UP_FREQ += 1 * STEP
+            if LOCKED:
+                CURRENT_DOWN_FREQ -= 1 * STEP
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:
+            CURRENT_UP_FREQ -= 1 * STEP
+            if LOCKED:
+                CURRENT_DOWN_FREQ += 1 * STEP
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 6:
+            LOCKED = not LOCKED
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            tune_center()
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 7:
+            tune_beacon()
+
+    main_menu.update(events)
+    main_menu.draw(surface)
+
+    # Flip surface
+    pygame.display.flip()
+
+
+RIG_UP.close()
+RIG_DOWN.close()
