@@ -2,19 +2,18 @@
 # hardware needed
 
 1. a raspberry pi (tested on a 3b and 4b) with an sd card and raspbian installed
-2. a rotary encoder (KY-040)
-3. a 20x4 i2c lcd display (I have used this one https://www.amazon.it/gp/product/B0859YY2NZ/ref=ppx_yo_dt_b_asin_title_o03_s00?ie=UTF8&psc=1)
-4. some wires to hook up the rotary encoder and the lcd display
+2. a 3.5in [LCD touch screen](http://www.lcdwiki.com/3.5inch_RPi_Display
+)
+3. a mouse with a few extra buttons (like the [Logitech MX Anywhere 3](https://www.logitech.com/en-us/products/mice/mx-anywhere-3-for-business.910-006215.html) )
 
 # hardware setup
-1. connect the 20x4 i2c lcd using this guide: https://www.circuitbasics.com/raspberry-pi-i2c-lcd-set-up-and-programming/
-2. connect the rotary encoder https://thepihut.com/blogs/raspberry-pi-tutorials/how-to-use-a-rotary-encoder-with-the-raspberry-pi
-3. edit the config.json file to specify the gpio pins that you have used to connect the rotary encoder
-4. run "sudo raspi-config" and enable both SPI and I2C from "Interface Options"
+1. connect the LCD Touchscreen to the raspberry pi and install the driver (i've used https://github.com/goodtft/LCD-show)
+2. attach the mouse or configure it via bluetooth 
 
 # quickstart instructions
 
-these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but since hamlib supports many rigs it could work with other radios as well, the only thing that would change would be the specific device setup
+these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but since hamlib supports many rigs it could work with other radios as well, the only thing that would change would be the specific device setup.
+Also tried it with [kappanhang](https://github.com/nonoo/kappanhang) for remote CAT control to the Icom IC-705
 
 
 1. make sure you have python 3.x installed on the raspberry pi
@@ -30,18 +29,16 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
     + cd Hamlib
 7. execute ./bootstrap
 8. execute ./configure --with-python-binding PYTHON=$(which python3)
-9a. execute make -j4 && sudo make install
-9b. cd into bindings
-9c. make && sudo make install 
+9. execute make -j4 && sudo make install
 10. refresh the ld library cache
     + sudo ldconfig
 11. cd into the doppler_shifter folder 
     + cd ../doppler_shifter
 12. install the required libraries 
     + pip3 install -r requirements.txt
-13. copy the 99-serial-usb.rules file in /etc/udev/rules.d/ 
+13. copy the 99-serial-usb.rules file in /etc/udev/rules.d/ (needed if you use the same radios as me) 
     + sudo cp 99-serial-usb.rules /etc/udev/rules.d/
-14. copy the .service files in the systemd folder in /etc/systemd/system/ 
+14. copy the .service files that are relevant to your situation in the systemd folder in /etc/systemd/system/. these are needed to start up the rigctld daemon, your mileage may vary (in the folder you'll find a few examples)
     + sudo cp systemd/*.service /etc/systemd/system/
 15. reload the systemd daemon 
     + sudo systemctl daemon-reload
@@ -53,4 +50,4 @@ these instructions are specific to my setup (Icom IC-705 and Kenwood TH-D74) but
 18. if everything works then you can add and enable the service
     + sudo systemctl enable doppler_shifter
     + sudo systemctl start doppler_shifter
-    + sudo cp doppler_shifter.desktop /usr/share/applications/
+    + sudo cp doppler_shifter.desktop /usr/share/applications/ (this will create an icon in the raspberry pi's menu that you can click on and run the software)
