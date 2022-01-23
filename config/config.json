@@ -17,18 +17,18 @@
             "vfo_name": "VFOA"
         },
         {
+            "hostname": "192.168.146.123",
+            "port": 4533,
+            "rig_number": 3,
+            "rig_name": "SDRPP",
+            "vfo_name": "VFO"
+        },
+        {
             "hostname": "localhost",
             "port": 4533,
             "rig_number": 2,
             "rig_name": "TH-D74",
             "vfo_name": "VFOB"
-        },
-        {
-            "hostname": "192.168.146.123",
-            "port": 4533,
-            "rig_number": 3,
-            "rig_name": "SDRPP",
-            "vfo_name": "VFOA"
         },
         {
             "hostname": "localhost",

@@ -25,6 +25,10 @@ def configure_rig(rig, rignum, CONFIG):
     )
     rig.rig_name = CONFIG["rigs"][rignum]["rig_name"]
     rig.vfo_name = CONFIG["rigs"][rignum]["vfo_name"]
+
+    rig.open()
+    if rig.rig_name == "SDRPP":
+        rig.set_vfo_opt(0)
     return rig
 
 
@@ -68,3 +72,10 @@ def recalc_shift_and_pos(
     shifted_down = get_shifted(CURRENT_DOWN_FREQ, shift_down, "down")
     shifted_up = get_shifted(CURRENT_UP_FREQ, shift_up, "up")
     return az, ele, shift_down, shift_up, shifted_down, shifted_up
+
+
+def reset_rig_connection(RIG):
+    RIG.open()
+    if RIG.rig_name == "SDRPP":
+        RIG.set_vfo_opt(0)
+    return RIG

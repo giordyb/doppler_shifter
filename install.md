@@ -8,6 +8,7 @@
 
 # hardware setup
 1. connect the LCD Touchscreen to the raspberry pi and install the driver (i've used https://github.com/goodtft/LCD-show)
+    * if using the 
 2. attach the mouse or configure it via bluetooth 
 
 # quickstart instructions

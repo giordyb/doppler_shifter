@@ -32,6 +32,7 @@ from libs.commonlib import (
     recalc_shift_and_pos,
     restart_rig,
     shutdown,
+    reset_rig_connection,
 )
 from libs.constants import (
     RIG_MODES,
@@ -76,8 +77,6 @@ SAVED_UP_FREQ = 0
 SAVED_DOWN_FREQ = 0
 
 
-RIG_UP.open()
-RIG_DOWN.open()
 LOCKED = True
 
 RUN = False
@@ -363,10 +362,11 @@ observer = get_observer(CONFIG)
 while True:
     if RIG_UP.error_status != 0:
         logger.warning(f"rigup error: {RIG_UP.error_status}")
-        RIG_UP.open()
+        RIG_UP = reset_rig_connection(RIG_UP)
+
     if RIG_DOWN.error_status != 0:
         logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
-        RIG_DOWN.open()
+        RIG_DOWN = reset_rig_connection(RIG_DOWN)
 
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
         sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
