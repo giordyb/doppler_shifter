@@ -36,7 +36,6 @@ from libs.commonlib import (
 from libs.constants import (
     RIG_MODES,
     RIG_VFOS,
-    STEP,
     H_SIZE,
     W_SIZE,
     SAT_LIST,
@@ -429,20 +428,39 @@ while True:
     for event in events:
         if event.type == pygame.QUIT:
             exit()
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:
-            CURRENT_UP_FREQ += 1 * STEP
+        elif (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == CONFIG["mouse_buttons"]["freq_up"]
+        ):
+            CURRENT_UP_FREQ += 1 * CONFIG["frequency_step"]
             if LOCKED:
-                CURRENT_DOWN_FREQ -= 1 * STEP
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:
-            CURRENT_UP_FREQ -= 1 * STEP
+                CURRENT_DOWN_FREQ -= 1 * CONFIG["frequency_step"]
+        elif (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == CONFIG["mouse_buttons"]["freq_down"]
+        ):
+            CURRENT_UP_FREQ -= 1 * CONFIG["frequency_step"]
             if LOCKED:
-                CURRENT_DOWN_FREQ += 1 * STEP
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 6:
+                CURRENT_DOWN_FREQ += 1 * CONFIG["frequency_step"]
+
+        elif (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == CONFIG["mouse_buttons"]["lock_vfo"]
+        ):
             LOCKED = not LOCKED
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        elif (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == CONFIG["mouse_buttons"]["tune_center"]
+        ):
             tune_center()
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 7:
+        elif (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and event.button == CONFIG["mouse_buttons"]["tune_beacon"]
+        ):
             tune_beacon()
+        if DEBUG:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                print(f"pressed mouse button {event.button}")
 
     main_menu.update(events)
     main_menu.draw(surface)

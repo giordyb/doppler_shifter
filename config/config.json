@@ -1,12 +1,13 @@
 {
-    "rotary_step": 100,
+    "frequency_step": 100,
     "timezone": "Europe/Rome",
-    "gpio_pins": {
-        "SW": 14,
-        "DT": 15,
-        "CLK": 18
+    "mouse_buttons": {
+        "freq_up": 4,
+        "freq_down": 5,
+        "lock_vfo": 6,
+        "tune_center": 1,
+        "tune_beacon": 7
     },
-    "enable_radios": true,
     "rigs": [
         {
             "hostname": "localhost",
