@@ -223,8 +223,10 @@ surface = create_example_window("Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN
 
 common_theme = pygame_menu.themes.THEME_DEFAULT.copy()
 common_theme.title_font_size = 30
+common_theme.font = pygame_menu.font.FONT_FIRACODE
 common_theme.widget_font_size = 25
 common_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
+common_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
 
 # -------------------------------------------------------------------------
 # Create SAT MENU
@@ -236,6 +238,7 @@ sat_menu = pygame_menu.Menu(
     title="Sats",
     width=W_SIZE,
     theme=common_theme,
+    touchscreen=True,
 )
 
 sat_tuples = [(x["display_name"], x) for x in SAT_LIST]
@@ -259,7 +262,11 @@ sat_menu.add.button("Quit", pygame.QUIT)
 # -------------------------------------------------------------------------
 
 radio_menu = pygame_menu.Menu(
-    height=H_SIZE, theme=common_theme, title="Radio", width=W_SIZE  # Fullscreen
+    height=H_SIZE,
+    theme=common_theme,
+    title="Radio",
+    width=W_SIZE,
+    touchscreen=True,  # Fullscreen
 )
 
 radio_menu.add.dropselect(
@@ -299,6 +306,7 @@ main_menu = pygame_menu.Menu(
     theme=common_theme,
     title="Main Menu",
     width=W_SIZE,
+    touchscreen=True,
 )
 az_el_label = main_menu.add.label(
     title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
@@ -328,7 +336,8 @@ radiobt = main_menu.add.button(
     radio_menu,
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
-)  #
+)
+
 radiobt.translate(-0, -100)
 bcnbt = main_menu.add.button(
     "Beacon",
@@ -336,6 +345,7 @@ bcnbt = main_menu.add.button(
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
+
 bcnbt.translate(-0, -60)
 centerbt = main_menu.add.button(
     "Center",
@@ -344,6 +354,13 @@ centerbt = main_menu.add.button(
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
 centerbt.translate(-0, -10)
+centerbt.border = 1
+centerbt.border_color = (
+    255,
+    255,
+    255,
+    255,
+)
 runbt = main_menu.add.button(
     "On/Off",
     stop_start,
