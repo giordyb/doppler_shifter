@@ -13,6 +13,18 @@ def shutdown():
     subprocess.run(["sudo", "shutdown", "-h", "now"])
 
 
+def configure_rot(rot, CONFIG):
+    rot.set_conf("retry", "5")
+
+    rot_pathname = f"{CONFIG['rotator']['hostname']}:{CONFIG['rotator']['port']}"
+    rot.set_conf(
+        "rot_pathname",
+        rot_pathname,
+    )
+    rot.open()
+    return rot
+
+
 def configure_rig(rig, rignum, CONFIG):
     rig.set_conf("retry", "5")
 

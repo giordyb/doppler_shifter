@@ -29,6 +29,7 @@ from libs.satlib import (
 )
 from libs.commonlib import (
     configure_rig,
+    configure_rot,
     create_slider,
     recalc_shift_and_pos,
     restart_rig,
@@ -72,6 +73,7 @@ RIG_DOWN = configure_rig(
 )
 # RIG_DOWN.set_vfo_opt(0)
 
+ROT = configure_rot(Hamlib.Rot(Hamlib.ROT_MODEL_NETROTCTL), CONFIG)
 SAVED_UP_FREQ = 0
 SAVED_DOWN_FREQ = 0
 
@@ -79,6 +81,7 @@ SAVED_DOWN_FREQ = 0
 LOCKED = True
 
 RUN = False
+ROTATOR = False
 RANGE_SLIDER_UP = create_slider(CURRENT_SAT_CONFIG, "up")
 RANGE_SLIDER_DOWN = create_slider(CURRENT_SAT_CONFIG, "down")
 
@@ -191,12 +194,22 @@ def tune_beacon():
 
 def stop_start():
     global RUN
-    if RUN == True:
+    if RUN:
         RUN = False
         runbt._background_color = RED
     else:
         RUN = True
         runbt._background_color = GREEN
+
+
+def enable_rotator():
+    global ROTATOR
+    if ROTATOR:
+        ROTATOR = False
+        enablerot._background_color = None
+    else:
+        ROTATOR = True
+        enablerot._background_color = GREEN
 
 
 def tune_center():
@@ -321,7 +334,7 @@ sat_bt = main_menu.add.button(
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
-sat_bt.translate(-0, -150)
+sat_bt.translate(-0, -160)
 
 radiobt = main_menu.add.button(
     radio_menu.get_title(),
@@ -329,28 +342,36 @@ radiobt = main_menu.add.button(
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )  #
-radiobt.translate(-0, -100)
+radiobt.translate(-0, -120)
 bcnbt = main_menu.add.button(
     "Beacon",
     tune_beacon,
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
-bcnbt.translate(-0, -60)
+bcnbt.translate(-0, -80)
 centerbt = main_menu.add.button(
     "Center",
     tune_center,
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
-centerbt.translate(-0, -10)
+centerbt.translate(-0, -40)
+
+enablerot = main_menu.add.button(
+    "Track",
+    enable_rotator,
+    float=True,
+    align=pygame_menu.locals.ALIGN_RIGHT,
+)
+enablerot.translate(-0, 0)
 runbt = main_menu.add.button(
     "On/Off",
     stop_start,
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
-runbt.translate(-0, 40)
+runbt.translate(-0, 50)
 runbt._background_color = RED
 
 sliderup = main_menu.add.generic_widget(RANGE_SLIDER_UP, configure_defaults=True)
@@ -384,22 +405,34 @@ while True:
         sidestring = f"TONE {CURRENT_SAT_CONFIG.get('tone', None)}"
     main_menu.set_title(f"{CURRENT_SAT_CONFIG['display_name']} - {sidestring}")
     if LOCKED:
-        lckstr = "Locked"
+        lckstr = "Lock"
         az_el_label.set_background_color(None)
     else:
-        lckstr = "UnLocked"
+        lckstr = "UnLock"
         az_el_label.set_background_color((255, 0, 0))
 
     if RUN:
-
         az, ele, shift_down, shift_up, shifted_down, shifted_up = recalc_shift_and_pos(
             observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
         )
         RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
         RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
         rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
+        if ROTATOR:
+            rot_ele = float(ele)
+            rot_azi = float(az)
+            if float(ele) > -4:
+                rot_ele = 0.0
+                if float(ele) >= 0:
+                    rot_ele = float(ele)
+                ROT.set_position(rot_azi, rot_ele)
+            curr_rot_azi, curr_rot_ele = ROT.get_position()
+            az_el_label.set_title(
+                f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {lckstr} TXPWR {rf_level}%"
+            )
+        else:
+            az_el_label.set_title(f"Az {az} El {ele} {lckstr} TX {rf_level}%")
 
-        az_el_label.set_title(f"Az {az} El {ele} {lckstr} TXPWR {rf_level}%")
         up_label1.set_title(
             f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
                 ",", "."

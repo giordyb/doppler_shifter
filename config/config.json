@@ -8,6 +8,10 @@
         "tune_center": 1,
         "tune_beacon": 7
     },
+    "rotator": {
+        "hostname": "192.168.146.225",
+        "port": 4555
+    },
     "rigs": [
         {
             "hostname": "localhost",
