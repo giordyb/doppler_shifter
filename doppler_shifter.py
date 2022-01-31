@@ -136,12 +136,10 @@ def change_sat(title, newsat) -> None:
     CURRENT_UP_FREQ = CURRENT_SAT_CONFIG["up_center"]
     CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG["down_center"]
     RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
+    RIG_UP.set_vfo(RIG_VFOS[RIG_UP.vfo_name])
+    RIG_DOWN.set_vfo(RIG_VFOS[RIG_DOWN.vfo_name])
 
     if CURRENT_SAT_CONFIG["up_mode"] == "FM":
-        if "TH-D74" in RIG_DOWN.rig_name:
-            RIG_DOWN.set_vfo(RIG_VFOS[RIG_DOWN.vfo_name])
-            RIG_DOWN.set_level(Hamlib.RIG_LEVEL_SQL, 0.0)
-            RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 5000)
         if CURRENT_SAT_CONFIG["tone"] == "0.0":
             RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
         else:
@@ -151,9 +149,8 @@ def change_sat(title, newsat) -> None:
                 int(CURRENT_SAT_CONFIG["tone"].replace(".", "")),
             )
     else:
-        if "TH-D74" in RIG_DOWN.rig_name:
-            RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
-            RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 100)
+        RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
+        RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 100)
         RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
 
     RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
@@ -383,15 +380,19 @@ change_sat("", CURRENT_SAT_CONFIG)
 observer = get_observer(CONFIG)
 pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
 pygame.display.set_icon(pygame_icon)
+RIG_UP.open()
+RIG_DOWN.open()
 
 while True:
-    if RIG_UP.error_status != 0:
-        logger.warning(f"rigup error: {RIG_UP.error_status}")
-        RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
+    if RIG_UP.error_status not in [0]:
+        RIG_UP.open()
+
+        # logger.warning(f"rigup error: {RIG_UP.error_status}")
+        # RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
 
     if RIG_DOWN.error_status != 0:
         logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
-        RIG_DOWN = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
+        RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
 
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
         sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
@@ -414,8 +415,8 @@ while True:
         )
         RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
         RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
-        rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
-
+        # rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
+        rf_level = 100
         az_el_label.set_title(f"Az {az} El {ele} {lckstr} TXPWR {rf_level}%")
         up_label1.set_title(
             f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
