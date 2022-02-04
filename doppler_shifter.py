@@ -206,9 +206,12 @@ def enable_rotator():
     global ROTATOR
     if ROTATOR:
         ROTATOR = False
+        ROT.set_position(0, 0)
+        ROT.close()
         enablerot._background_color = None
     else:
         ROTATOR = True
+        ROT.open()
         enablerot._background_color = GREEN
 
 
@@ -417,7 +420,7 @@ while True:
         )
         RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
         RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
-        rf_level = int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
+        rf_level = 100  # int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
         if ROTATOR:
             rot_ele = float(ele)
             rot_azi = float(az)
@@ -427,6 +430,10 @@ while True:
                     rot_ele = float(ele)
                 ROT.set_position(rot_azi, rot_ele)
             curr_rot_azi, curr_rot_ele = ROT.get_position()
+            if ROT.error_status != 0:
+                ROT.open()
+                curr_rot_azi, curr_rot_ele = 99, 99
+
             az_el_label.set_title(
                 f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {lckstr} TXPWR {rf_level}%"
             )
