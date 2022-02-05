@@ -12,9 +12,10 @@ import sys
 import os
 import logging
 import subprocess
+import argparse
 
 logger = logging.getLogger(__name__)
-DEBUG = bool(os.getenv("DEBUG", False))
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
 sys.path.append("/usr/local/lib/python3.9/site-packages/")
 
 import Hamlib
@@ -22,11 +23,7 @@ import Hamlib
 import pygame
 import pygame_menu
 from pygame_menu.examples import create_example_window
-from libs.satlib import (
-    get_satellite,
-    update_tles,
-    get_observer,
-)
+from libs.satlib import get_satellite, update_tles, get_observer, load_conf
 from libs.commonlib import (
     configure_rig,
     configure_rot,
@@ -41,7 +38,6 @@ from libs.constants import (
     H_SIZE,
     W_SIZE,
     SAT_LIST,
-    CONFIG,
     RIG_STATUS,
     WHITE,
     RED,
@@ -55,6 +51,18 @@ from pygame_menu.widgets.core.widget import Widget
 
 from random import randrange
 from typing import List, Tuple, Optional
+
+all_args = argparse.ArgumentParser()
+all_args.add_argument(
+    "-c",
+    "--configpath",
+    required=False,
+    help="config file path",
+    default="config/config.json",
+)
+args = vars(all_args.parse_args())
+
+CONFIG = load_conf(args["configpath"])
 
 
 CURRENT_SAT_CONFIG = SAT_LIST[0]
@@ -91,15 +99,30 @@ def changefreq(value=0):
     CURRENT_DOWN_FREQ = CURRENT_DOWN_FREQ + value
 
 
-def change_rig(rigtuple, rigidx, RIG):
+def change_rig_up(rigtuple, rigidx, RIG):
     global CONFIG
+    global RIG_UP
     rigdata, rigidx = rigtuple
     rigname, _, _ = rigdata
     print(f"rigname: {rigname}, rigidx {rigidx}, {RIG.rig_name}")
     RIG.close()
-    RIG = configure_rig(RIG, rigidx, CONFIG)
+    RIG = configure_rig(RIG_UP, rigidx, CONFIG)
     RIG.open()
     change_sat(None, CURRENT_SAT_CONFIG)
+    RIG_UP = RIG
+
+
+def change_rig_down(rigtuple, rigidx, RIG):
+    global CONFIG
+    global RIG_DOWN
+    rigdata, rigidx = rigtuple
+    rigname, _, _ = rigdata
+    print(f"rigname: {rigname}, rigidx {rigidx}, {RIG.rig_name}")
+    RIG.close()
+    RIG = configure_rig(RIG_DOWN, rigidx, CONFIG)
+    RIG.open()
+    change_sat(None, CURRENT_SAT_CONFIG)
+    RIG_DOWN = RIG
 
 
 def set_slider(type="center"):
@@ -173,17 +196,17 @@ def tune_beacon():
     global RANGE_SLIDER_DOWN
     global ON_BEACON
     if ON_BEACON:
-        CURRENT_UP_FREQ = SAVED_UP_FREQ
+        # CURRENT_UP_FREQ = SAVED_UP_FREQ
         CURRENT_DOWN_FREQ = SAVED_DOWN_FREQ
         bcnbt._background_color = None
         ON_BEACON = False
         set_slider()
     else:
-        SAVED_UP_FREQ = CURRENT_UP_FREQ
+        # SAVED_UP_FREQ = CURRENT_UP_FREQ
         SAVED_DOWN_FREQ = CURRENT_DOWN_FREQ
-        CURRENT_UP_FREQ = CURRENT_SAT_CONFIG.get(
-            "beacon", CURRENT_SAT_CONFIG["up_center"]
-        )
+        # CURRENT_UP_FREQ = CURRENT_SAT_CONFIG.get(
+        #    "beacon", CURRENT_SAT_CONFIG["up_center"]
+        # )
         CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG.get(
             "beacon", CURRENT_SAT_CONFIG["down_center"]
         )
@@ -281,7 +304,7 @@ radio_menu = pygame_menu.Menu(
 radio_menu.add.dropselect(
     "Uplink",
     [(x["rig_name"], ind, RIG_UP) for ind, x in enumerate(CONFIG["rigs"])],
-    onchange=change_rig,
+    onchange=change_rig_up,
     selection_box_height=5,
     default=RIG_UP.rig_num,
 )
@@ -295,7 +318,7 @@ radio_menu.add.button(
 radio_menu.add.dropselect(
     "Downlink",
     [(x["rig_name"], ind, RIG_DOWN) for ind, x in enumerate(CONFIG["rigs"])],
-    onchange=change_rig,
+    onchange=change_rig_down,
     selection_box_height=5,
     default=RIG_DOWN.rig_num,
 )
@@ -392,13 +415,15 @@ pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
 pygame.display.set_icon(pygame_icon)
 
 while True:
+    # print(f"rig_up: {RIG_UP.rig_name} - rig_down: {RIG_DOWN.rig_name}")
+
     if RIG_UP.error_status != 0:
         logger.warning(f"rigup error: {RIG_UP.error_status}")
         RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
 
     if RIG_DOWN.error_status != 0:
         logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
-        RIG_DOWN = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
+        RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
 
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
         sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
@@ -414,31 +439,32 @@ while True:
         lckstr = "UnLock"
         az_el_label.set_background_color((255, 0, 0))
 
+    az, ele, shift_down, shift_up, shifted_down, shifted_up = recalc_shift_and_pos(
+        observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
+    )
+    if ROTATOR:
+        rot_ele = float(ele)
+        rot_azi = float(az)
+        if float(ele) > -4:
+            rot_ele = 0.0
+            if float(ele) >= 0:
+                rot_ele = float(ele)
+            ROT.set_position(rot_azi, rot_ele)
+        curr_rot_azi, curr_rot_ele = ROT.get_position()
+        if ROT.error_status != 0:
+            ROT.open()
+            curr_rot_azi, curr_rot_ele = 99, 99
+
+        az_el_label.set_title(
+            f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {lckstr}"
+        )  # TXPWR {rf_level}%"
+
+    else:
+        az_el_label.set_title(f"Az {az} El {ele} {lckstr}")  # TX {rf_level}%")
     if RUN:
-        az, ele, shift_down, shift_up, shifted_down, shifted_up = recalc_shift_and_pos(
-            observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
-        )
         RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
         RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
-        rf_level = 100  # int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
-        if ROTATOR:
-            rot_ele = float(ele)
-            rot_azi = float(az)
-            if float(ele) > -4:
-                rot_ele = 0.0
-                if float(ele) >= 0:
-                    rot_ele = float(ele)
-                ROT.set_position(rot_azi, rot_ele)
-            curr_rot_azi, curr_rot_ele = ROT.get_position()
-            if ROT.error_status != 0:
-                ROT.open()
-                curr_rot_azi, curr_rot_ele = 99, 99
-
-            az_el_label.set_title(
-                f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {lckstr} TXPWR {rf_level}%"
-            )
-        else:
-            az_el_label.set_title(f"Az {az} El {ele} {lckstr} TX {rf_level}%")
+        # rf_level = 100  # int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
 
         up_label1.set_title(
             f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
@@ -476,17 +502,11 @@ while True:
     for event in events:
         if event.type == pygame.QUIT:
             exit()
-        elif (
-            event.type == pygame.MOUSEBUTTONDOWN
-            and event.button == CONFIG["mouse_buttons"]["freq_up"]
-        ):
+        elif event.type == pygame.MOUSEWHEEL and event.y > 0:
             CURRENT_UP_FREQ += 1 * CONFIG["frequency_step"]
             if LOCKED:
                 CURRENT_DOWN_FREQ -= 1 * CONFIG["frequency_step"]
-        elif (
-            event.type == pygame.MOUSEBUTTONDOWN
-            and event.button == CONFIG["mouse_buttons"]["freq_down"]
-        ):
+        elif event.type == pygame.MOUSEWHEEL and event.y < 0:
             CURRENT_UP_FREQ -= 1 * CONFIG["frequency_step"]
             if LOCKED:
                 CURRENT_DOWN_FREQ += 1 * CONFIG["frequency_step"]
@@ -507,6 +527,10 @@ while True:
         ):
             tune_beacon()
         if DEBUG:
+            if event.type == pygame.MOUSEWHEEL:
+                print(event)
+                print(event.x, event.y)
+                print(event.flipped)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(f"pressed mouse button {event.button}")
 

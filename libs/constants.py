@@ -1,6 +1,7 @@
-from .satlib import get_sat_list, load_conf
+from .satlib import get_sat_list
 import Hamlib
 import pygame_menu
+
 
 RIG_MODES = {
     "FM": Hamlib.RIG_MODE_FM,
@@ -20,7 +21,7 @@ STEP = 50
 H_SIZE = 320
 W_SIZE = 480
 SAT_LIST = get_sat_list()
-CONFIG = load_conf()
+
 RIG_STATUS = {-1: "ERR", 0: "OK", -9: "ERR", -6: "ERR", -11: "ERR", -8: "ERR"}
 WHITE = (255, 255, 255, 255)
 RED = (255, 0, 0, 255)
