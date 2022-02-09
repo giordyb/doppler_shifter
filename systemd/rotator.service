@@ -3,8 +3,7 @@ Description=rotctld
 After=syslog.target network.target
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/rotctld -t 4555 -vvvvv -m 202 --serial-speed=115200 -r /dev/serial/by-id/usb-Arduino_Srl_Arduino_Uno_8543130373635110E1A
-1-if00 -vvv
+ExecStart=/usr/local/bin/rotctld -t 4555 -vvvvv -m 202 --serial-speed=115200 -r /dev/serial/by-id/usb-Arduino_Srl_Arduino_Uno_8543130373635110E1A1-if00 -vvv
 ExecReload=/bin/kill -HUP $MAINPID
 RestartSec=60
 Restart=always
