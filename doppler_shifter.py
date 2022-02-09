@@ -407,13 +407,13 @@ runbt = main_menu.add.button(
 )
 runbt.translate(-0, 40)
 runbt._background_color = RED
-runbt = main_menu.add.button(
+swapbt = main_menu.add.button(
     "swap",
     swap_rig,
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
-runbt.translate(-0, 90)
+swapbt.translate(-0, 90)
 
 sliderup = main_menu.add.generic_widget(RANGE_SLIDER_UP, configure_defaults=True)
 sliderup.readonly = True
