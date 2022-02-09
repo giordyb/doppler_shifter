@@ -13,6 +13,7 @@ import os
 import logging
 import subprocess
 import argparse
+import asyncio
 
 logger = logging.getLogger(__name__)
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
@@ -217,12 +218,18 @@ def tune_beacon():
 
 def stop_start():
     global RUN
+    global RIG_UP
+    global RIG_DOWN
     if RUN:
         RUN = False
         runbt._background_color = RED
     else:
         RUN = True
+        RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
+        RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
         runbt._background_color = GREEN
+        RIG_UP.open()
+        RIG_DOWN.open()
 
 
 def enable_rotator():
@@ -255,6 +262,12 @@ def swap_rig():
     RIG_TEMP = RIG_DOWN
     RIG_DOWN = RIG_UP
     RIG_UP = RIG_TEMP
+    RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
+    RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
+
+
+async def set_freq_async(RIG, freq):
+    RIG.set_freq(RIG_VFOS[RIG.vfo_name], freq)
 
 
 """
@@ -434,11 +447,11 @@ while True:
 
     if RIG_UP.error_status != 0:
         logger.warning(f"rigup error: {RIG_UP.error_status}")
-        RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
+        # RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
 
     if RIG_DOWN.error_status != 0:
         logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
-        RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
+        # RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
 
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
         sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
@@ -477,8 +490,13 @@ while True:
     else:
         az_el_label.set_title(f"Az {az} El {ele} {lckstr}")  # TX {rf_level}%")
     if RUN:
-        RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
-        RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
+        asyncio.run(set_freq_async(RIG_UP, shifted_up))
+        asyncio.run(
+            set_freq_async(RIG_DOWN, shifted_down),
+        )
+
+        # RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
+        # RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
         # rf_level = 100  # int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
 
         up_label1.set_title(
