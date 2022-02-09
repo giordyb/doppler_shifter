@@ -441,6 +441,8 @@ change_sat("", CURRENT_SAT_CONFIG)
 observer = get_observer(CONFIG)
 pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
 pygame.display.set_icon(pygame_icon)
+radio_delay = pygame.time.get_ticks()
+rotator_delay = pygame.time.get_ticks()
 
 while True:
     # print(f"rig_up: {RIG_UP.rig_name} - rig_down: {RIG_DOWN.rig_name}")
@@ -470,6 +472,7 @@ while True:
     az, ele, shift_down, shift_up, shifted_down, shifted_up = recalc_shift_and_pos(
         observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
     )
+
     if ROTATOR:
         rot_ele = float(ele)
         rot_azi = float(az)
@@ -477,7 +480,10 @@ while True:
             rot_ele = 0.0
             if float(ele) >= 0:
                 rot_ele = float(ele)
-            ROT.set_position(rot_azi, rot_ele)
+            if pygame.time.get_ticks() - rotator_delay > 2000:
+                print("tock")
+                ROT.set_position(rot_azi, rot_ele)
+                rotator_delay = pygame.time.get_ticks()
         curr_rot_azi, curr_rot_ele = ROT.get_position()
         if ROT.error_status != 0:
             ROT.open()
@@ -490,10 +496,11 @@ while True:
     else:
         az_el_label.set_title(f"Az {az} El {ele} {lckstr}")  # TX {rf_level}%")
     if RUN:
-        asyncio.run(set_freq_async(RIG_UP, shifted_up))
-        asyncio.run(
-            set_freq_async(RIG_DOWN, shifted_down),
-        )
+        if pygame.time.get_ticks() - radio_delay > 2000:
+            print("tick")
+            RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
+            RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
+            radio_delay = pygame.time.get_ticks()
 
         # RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
         # RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
@@ -532,6 +539,7 @@ while True:
 
         # Application events
     events = pygame.event.get()
+
     for event in events:
         if event.type == pygame.QUIT:
             exit()
