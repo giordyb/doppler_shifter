@@ -536,13 +536,13 @@ while True:
         if event.type == pygame.QUIT:
             exit()
         elif event.type == pygame.MOUSEWHEEL and event.y > 0:
-            CURRENT_UP_FREQ += 1 * CONFIG["frequency_step"]
+            CURRENT_DOWN_FREQ -= 1 * CONFIG["frequency_step"]
             if LOCKED:
-                CURRENT_DOWN_FREQ -= 1 * CONFIG["frequency_step"]
+                CURRENT_UP_FREQ += 1 * CONFIG["frequency_step"]
         elif event.type == pygame.MOUSEWHEEL and event.y < 0:
-            CURRENT_UP_FREQ -= 1 * CONFIG["frequency_step"]
+            CURRENT_DOWN_FREQ += 1 * CONFIG["frequency_step"]
             if LOCKED:
-                CURRENT_DOWN_FREQ += 1 * CONFIG["frequency_step"]
+                CURRENT_UP_FREQ -= 1 * CONFIG["frequency_step"]
 
         elif (
             event.type == pygame.MOUSEBUTTONDOWN
