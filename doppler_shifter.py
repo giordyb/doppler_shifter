@@ -249,6 +249,14 @@ def tune_center():
     bcnbt._background_color = None
 
 
+def swap_rig():
+    global RIG_DOWN
+    global RIG_UP
+    RIG_TEMP = RIG_DOWN
+    RIG_DOWN = RIG_UP
+    RIG_UP = RIG_TEMP
+
+
 """
 Main program.
 
@@ -397,8 +405,15 @@ runbt = main_menu.add.button(
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
-runbt.translate(-0, 50)
+runbt.translate(-0, 40)
 runbt._background_color = RED
+runbt = main_menu.add.button(
+    "swap",
+    swap_rig,
+    float=True,
+    align=pygame_menu.locals.ALIGN_RIGHT,
+)
+runbt.translate(-0, 90)
 
 sliderup = main_menu.add.generic_widget(RANGE_SLIDER_UP, configure_defaults=True)
 sliderup.readonly = True

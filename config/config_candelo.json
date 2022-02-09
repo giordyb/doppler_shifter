@@ -1,0 +1,51 @@
+{
+    "frequency_step": 100,
+    "timezone": "Europe/Rome",
+    "mouse_buttons": {
+        "freq_up": 5,
+        "freq_down": 4,
+        "lock_vfo": 6,
+        "tune_center": 1,
+        "tune_beacon": 7
+    },
+    "rotator": {
+        "hostname": "localhost",
+        "port": 4555
+    },
+    "rigs": [
+        {
+            "hostname": "localhost",
+            "port": 4533,
+            "rig_number": 0,
+            "rig_name": "FT-818",
+            "vfo_name": "VFOB"
+        },
+        {
+            "hostname": "localhost",
+            "port": 4532,
+            "rig_number": 1,
+            "rig_name": "IC-705",
+            "vfo_name": "VFOA"
+        },
+        {
+            "hostname": "192.168.146.123",
+            "port": 4533,
+            "rig_number": 2,
+            "rig_name": "SDRPP",
+            "vfo_name": "VFO"
+        },
+        {
+            "hostname": "localhost",
+            "port": 4535,
+            "rig_number": 3,
+            "rig_name": "IC705-REMOTE",
+            "vfo_name": "VFOA"
+        }
+    ],
+    "observer_conf": {
+        "lat": "45.3291",
+        "lon": "8.0634",
+        "ele": 344
+    },
+    "sat_url": "http://celestrak.com/NORAD/elements/active.txt"
+}
