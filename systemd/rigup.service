@@ -3,11 +3,10 @@ Description=rigctld FT-818ND
 After=syslog.target network.target
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/rigctld -t 4533 -m 1041 --serial-speed=9600 -r /dev/ttyUSB0 -vvv
+ExecStart=sudo /usr/local/bin/rigctld -t 4533 -m 1041 --serial-speed=38400 -r /dev/ttyUSB-818 -vvvv
 ExecReload=/bin/kill -HUP $MAINPID
 RestartSec=60
 Restart=always
-User=root
-Group=root
+User=pi
 [Install]
 WantedBy=multi-user.target

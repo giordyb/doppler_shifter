@@ -447,14 +447,6 @@ rotator_delay = pygame.time.get_ticks()
 while True:
     # print(f"rig_up: {RIG_UP.rig_name} - rig_down: {RIG_DOWN.rig_name}")
 
-    if RIG_UP.error_status != 0:
-        logger.warning(f"rigup error: {RIG_UP.error_status}")
-        # RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
-
-    if RIG_DOWN.error_status != 0:
-        logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
-        # RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
-
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
         sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
             ",", "."
@@ -496,11 +488,16 @@ while True:
     else:
         az_el_label.set_title(f"Az {az} El {ele} {lckstr}")  # TX {rf_level}%")
     if RUN:
-        if pygame.time.get_ticks() - radio_delay > 2000:
-            print("tick")
-            RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
-            RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
-            radio_delay = pygame.time.get_ticks()
+        if RIG_UP.error_status != 0:
+            logger.warning(f"rigup error: {RIG_UP.error_status}")
+            # RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
+
+        if RIG_DOWN.error_status != 0:
+            logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
+            # RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
+        print("setfreq")
+        RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
+        RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
 
         # RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
         # RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)

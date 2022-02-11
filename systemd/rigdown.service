@@ -1,9 +1,9 @@
 [Unit]
-Description=rigctld d74
+Description=rigctld ic-705
 After=syslog.target network.target
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/rigctld -t 4533 -m 2042 -r /dev/ttyUSB-d74 -vvv
+ExecStart=/usr/local/bin/rigctld -t 4532 -m 3085 -c 0xA4h -r /dev/ttyUSB-ic705-00 -vvv
 ExecReload=/bin/kill -HUP $MAINPID
 RestartSec=60
 Restart=always

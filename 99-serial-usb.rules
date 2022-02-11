@@ -1,2 +1,3 @@
 SUBSYSTEM=="tty",ATTRS{serial}=="IC-705 13002492",SYMLINK+="ttyUSB-ic705-%E{ID_USB_INTERFACE_NUM}"
 SUBSYSTEM=="tty",ATTRS{idVendor}=="2166",ATTRS{idProduct}=="600b", SYMLINK+="ttyUSB-d74"
+SUBSYSTEM=="tty", ATTRS{idProduct}=="2303",ATTRS{idVendor}=="067b",SYMLINK+="ttyUSB-818",MODE="0666",OWNER="pi"
