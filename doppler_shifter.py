@@ -495,13 +495,8 @@ while True:
         if RIG_DOWN.error_status != 0:
             logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
             # RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
-        print("setfreq")
         RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
         RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
-
-        # RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
-        # RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
-        # rf_level = 100  # int(RIG_UP.get_level_f(Hamlib.RIG_LEVEL_RFPOWER) * 100)
 
         up_label1.set_title(
             f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
@@ -531,8 +526,6 @@ while True:
         ):
 
             RANGE_SLIDER_DOWN.set_value(CURRENT_DOWN_FREQ)
-
-        # down_range.set_value(CURRENT_DOWN_FREQ)
 
         # Application events
     events = pygame.event.get()
@@ -571,6 +564,7 @@ while True:
                 print(event.flipped)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(f"pressed mouse button {event.button}")
+            print(f"mouse event {event}")
 
     main_menu.update(events)
     main_menu.draw(surface)

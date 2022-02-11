@@ -3,5 +3,5 @@ pytz
 python-dateutil
 smbus2
 gps3
-pygame
+pygame==2.1.2
 pygame-menu
