@@ -334,7 +334,6 @@ radio_menu = pygame_menu.Menu(
     theme=common_theme,
     title="Radio",
     width=W_SIZE,
-    touchscreen=True,  # Fullscreen
 )
 
 radio_menu.add.dropselect(
@@ -374,7 +373,6 @@ main_menu = pygame_menu.Menu(
     theme=common_theme,
     title="Main Menu",
     width=W_SIZE,
-    touchscreen=True,
 )
 az_el_label = main_menu.add.label(
     title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
@@ -459,7 +457,8 @@ pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
 pygame.display.set_icon(pygame_icon)
 radio_delay = pygame.time.get_ticks()
 rotator_delay = pygame.time.get_ticks()
-
+az_rangelist1 = CONFIG["observer_conf"]["range1"].split("-")
+az_rangelist2 = CONFIG["observer_conf"]["range2"].split("-")
 while True:
     # print(f"rig_up: {RIG_UP.rig_name} - rig_down: {RIG_DOWN.rig_name}")
 
@@ -482,13 +481,18 @@ while True:
     )
 
     if ROTATOR:
-        rot_ele = float(ele)
         rot_azi = float(az)
-        if float(ele) > -4:
-            rot_ele = 0.0
+
+        if float(ele) > -4 and (
+            rot_azi in range(int(az_rangelist1[0]), int(az_rangelist1[1]))
+            or rot_azi in range(int(az_rangelist2[0]), int(az_rangelist2[1]))
+        ):
             if float(ele) >= 0:
                 rot_ele = float(ele)
+            else:
+                rot_ele = 0.0
             if pygame.time.get_ticks() - rotator_delay > 1000:
+                logger.warning(f"tracking az {rot_azi} ele {rot_ele}")
                 ROT.set_position(rot_azi, rot_ele)
                 rotator_delay = pygame.time.get_ticks()
         curr_rot_azi, curr_rot_ele = ROT.get_position()

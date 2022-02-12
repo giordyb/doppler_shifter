@@ -10,7 +10,8 @@
     },
     "rotator": {
         "hostname": "localhost",
-        "port": 4555
+        "port": 4555,
+        "min": 2
     },
     "rigs": [
         {
@@ -45,7 +46,9 @@
     "observer_conf": {
         "lat": "45.3014",
         "lon": "9.1360",
-        "ele": 130
+        "ele": 130,
+        "range1": "350-360",
+        "range2": "0-160"
     },
     "sat_url": "http://celestrak.com/NORAD/elements/active.txt"
 }
