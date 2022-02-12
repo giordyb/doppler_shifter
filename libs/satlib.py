@@ -18,8 +18,9 @@ def get_satellite(selected_sat):
     return ephem.readtle(sat[0], sat[1], sat[2])
 
 
-def load_conf():
-    with open("config/config.json", "r") as f:
+def load_conf(configpath):
+    print(f"loding config {configpath}")
+    with open(configpath, "r") as f:
         return json.load(f)
 
 

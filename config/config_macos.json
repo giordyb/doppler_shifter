@@ -4,9 +4,9 @@
     "mouse_buttons": {
         "freq_up": 5,
         "freq_down": 4,
-        "lock_vfo": 6,
-        "tune_center": 1,
-        "tune_beacon": 7
+        "lock_vfo": 3,
+        "tune_center": 0,
+        "tune_beacon": 0
     },
     "rotator": {
         "hostname": "localhost",

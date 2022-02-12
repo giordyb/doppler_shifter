@@ -13,6 +13,18 @@ def shutdown():
     subprocess.run(["sudo", "shutdown", "-h", "now"])
 
 
+def configure_rot(rot, CONFIG):
+    rot.set_conf("retry", "5")
+
+    rot_pathname = f"{CONFIG['rotator']['hostname']}:{CONFIG['rotator']['port']}"
+    rot.set_conf(
+        "rot_pathname",
+        rot_pathname,
+    )
+    rot.open()
+    return rot
+
+
 def configure_rig(rig, rignum, CONFIG):
     rig.set_conf("retry", "5")
 
@@ -26,6 +38,7 @@ def configure_rig(rig, rignum, CONFIG):
     rig.rig_name = CONFIG["rigs"][rignum]["rig_name"]
     rig.vfo_name = CONFIG["rigs"][rignum]["vfo_name"]
     rig.rig_num = rignum
+    rig.tone = 0
 
     rig.open()
     if rig.rig_name == "SDRPP":
