@@ -128,13 +128,13 @@ def change_rig_down(rigtuple, rigidx, RIG):
 
 def set_slider(type="center"):
     if CURRENT_SAT_CONFIG["up_mode"] == "FM":
-        RANGE_SLIDER_UP._visible = False
-        RANGE_SLIDER_DOWN._visible = False
-        # RANGE_SLIDER_UP._range_values = (
+        RANGE_SLIDER_UP._visible = True
+        RANGE_SLIDER_DOWN._visible = True
+        RANGE_SLIDER_UP._range_values = (0, 1)
         #    CURRENT_SAT_CONFIG["up_start"] - 1,
         #    CURRENT_SAT_CONFIG["up_end"] + 1,
         # )
-        # RANGE_SLIDER_DOWN._range_values = (
+        RANGE_SLIDER_DOWN._range_values = (0, 1)
         #    CURRENT_SAT_CONFIG["down_start"] - 1,
         #    CURRENT_SAT_CONFIG["down_end"] + 1,
         # )
@@ -171,17 +171,20 @@ def change_sat(title, newsat) -> None:
             RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 5000)
         if CURRENT_SAT_CONFIG["tone"] == "0.0":
             RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
+            RIG_UP.tone = False
         else:
             RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 1)
             RIG_UP.set_ctcss_tone(
                 RIG_VFOS[RIG_UP.vfo_name],
                 int(CURRENT_SAT_CONFIG["tone"].replace(".", "")),
             )
+            RIG_UP.tone = int(CURRENT_SAT_CONFIG["tone"].replace(".", ""))
     else:
         if "TH-D74" in RIG_DOWN.rig_name:
             RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
             RIG_DOWN.set_ts(RIG_VFOS[RIG_DOWN.vfo_name], 100)
         RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 0)
+        RIG_UP.tone = False
 
     RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
 
@@ -264,6 +267,14 @@ def swap_rig():
     RIG_UP = RIG_TEMP
     RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
     RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
+    if RIG_UP.tone:
+        RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 1)
+        RIG_UP.set_ctcss_tone(
+            RIG_VFOS[RIG_UP.vfo_name],
+            RIG_UP.tone,
+        )
+    else:
+        RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 1)
 
 
 async def set_freq_async(RIG, freq):
@@ -472,8 +483,7 @@ while True:
             rot_ele = 0.0
             if float(ele) >= 0:
                 rot_ele = float(ele)
-            if pygame.time.get_ticks() - rotator_delay > 2000:
-                print("tock")
+            if pygame.time.get_ticks() - rotator_delay > 1000:
                 ROT.set_position(rot_azi, rot_ele)
                 rotator_delay = pygame.time.get_ticks()
         curr_rot_azi, curr_rot_ele = ROT.get_position()
@@ -559,12 +569,12 @@ while True:
             tune_beacon()
         if DEBUG:
             if event.type == pygame.MOUSEWHEEL:
-                print(event)
-                print(event.x, event.y)
-                print(event.flipped)
+                logger.warning(event)
+                logger.warning(event.x, event.y)
+                logger.warning(event.flipped)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(f"pressed mouse button {event.button}")
-            print(f"mouse event {event}")
+            logger.warning(f"mouse event {event}")
 
     main_menu.update(events)
     main_menu.draw(surface)
