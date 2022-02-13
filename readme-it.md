@@ -3,15 +3,13 @@
 ![Raspberry Pi 4 con LCD montato ](./images/doppler_shifter_raspberry.jpg?raw=true)
 
 
-Ho conseguito la patente di Radioamatore nel Febbraio 2021 (Grazie a Mauro IK1WUQ e i suoi video) e quando ho scoperto che c'erano dei satelliti radioamatoriali in orbita mi ha subito affascinato l'idea di poterli contattare e completare un QSO tramite essi.
-Questo mi ha fatto entrare in un "tunnel" durato qualche mese che mi ha portato all ottenere tutto il necessario per una stazione portatile per contattare i satellit (FM o Lineari).
-Uno dei componenti principali della stazione è quello che io ho nominato "doppler shifter" perchè permette di semplificare la gestione delle frequenze tenendo conto dell'effetto doppler (in inglese "Doppler Shift").
-Doppler Shifter è uno strumento studiato per semplificare l'utilizzo dei satelliti radioamatoriali (sia lineari che FM) in modalità full-duplex.
+Ho conseguito la patente di Radioamatore nel febbraio 2021 (Grazie a Mauro IK1WUQ e i suoi video) e quando ho scoperto che c'erano dei satelliti radioamatoriali in orbita mi ha subito affascinato l'idea di poterli contattare e completare un QSO tramite essi. 
+Nell’arco di qualche mese sono riuscito ad ottenere tutto il necessario per avere una stazione portatile in grado di contattare i satelliti radioamatoriali (FM o Lineari). Uno dei componenti principali della stazione è quello che io ho nominato "doppler shifter" perché permette di semplificare la gestione delle frequenze tenendo conto dell'effetto doppler (in inglese "Doppler Shift"). Doppler Shifter è uno strumento studiato per semplificare l'utilizzo dei satelliti radioamatoriali (sia lineari che FM) in modalità full-duplex.
 
 
 ## FUNZIONALITA'
 
-- sincronizza il VFO di due radio (tramite controllo CAT) in base per l'utilizzo su i satelliti lineari invertenti (dove aumentando la frequenza di downlink la frequenza di uplink scende e viceversa) e gestisce in automatico il cambio di frequenza
+- sincronizza il VFO di due radio (tramite controllo CAT) in base per l'utilizzo sui satelliti lineari invertenti (dove aumentando la frequenza di downlink la frequenza di uplink scende e viceversa) e gestisce in automatico il cambio di frequenza
 - corregge automaticamente la frequenza in base all'effetto doppler
 - imposta automaticamente la banda, il modo ed eventuali toni sub-audio (per i satelliti con transponder FM)
 - data l'orario, la posizione e i TLE (two line element sets) di un satellite permette di visualizzare in tempo reale azimuth e elevazione
@@ -84,23 +82,23 @@ una volta eseguito il software vi troverete davanti una schermata con diverse ri
 
 bottoni:
 - Sats: porta al menù di selezione dei satelliti
-- Radio: porta al menù di selezione delle readio
+- Radio: porta al menù di selezione delle radio
 - Beacon: sintonizza la radio in rx sul beacon del satellite (di solito una trasmissione CW o telemetria digitale)
 - Center: se si è spostati di frequenza con la rotella riporta al centro della banda passante del satellite
 - Track: permette di attivare il tracking del rotore
-- On/Off: permette di attivare o disabilitare il controllo della frequenza (è utile disattivarlo quando si vogliono cambiare delle impostazini sulla radio)
+- On/Off: permette di attivare o disabilitare il controllo della frequenza (è utile disattivarlo quando si vogliono cambiare delle impostazioni sulla radio)
 - Swap: scambia il ruolo delle radio (da tx->rx e viceversa)
 
 ### Nel caso venga selezionato un satellite FM la schermata cambia leggermente:
 
 
-- le informazioni sul beacon vengono sostituite con quelle del tono CTCSS
+- le informazioni sul beacon vengono sostituite con quelle del tono subaudio
 - gli slider della banda passante vengono disattivati
 
 ![satellite FM](./images/fm-sat.png?raw=true)
 
 ### Blocco / Sblocco dei VFO
-E' possibile assegnare un bottone al mouse per permettere lo sblocco dei VFO e poter spostare la frequenza di downlink independentemente. Quando viene attivata questa funzione lo sfondo della seconda riga diventa rosso.
+E' possibile assegnare un bottone al mouse per permettere lo sblocco dei VFO e poter spostare la frequenza di downlink indipendentemente. Quando viene attivata questa funzione lo sfondo della seconda riga diventa rosso.
 
 Questa differenza viene poi salvata nel file satlist.json e ricaricata ogni volta che viene selezionato il satellite.
 
@@ -115,8 +113,8 @@ Oltre alla scelta dei satelliti sono presenti:
 
 - un orologio digitale per verificare che l'orario sia giusto
 - il bottone "Return to Menu" per tornare alla schermata principale
-- il bottone "Shutdown" uno per effettuare lo spegnimento del Raspberry Pi in modalità sicura(lancierà il comando "sudo shutdown -h now") 
-- il bottone "Quit" per per chiudere il programma.
+- il bottone "Shutdown" uno per effettuare lo spegnimento del Raspberry Pi in modalità sicura(verrà eseguito il comando "sudo shutdown -h now") 
+- il bottone "Quit" per chiudere il programma.
 
 ![sat_menu](./images/sat_menu.png?raw=true)
 ### Menu Radio
