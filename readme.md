@@ -1,4 +1,4 @@
-# doppler_shifter 
+# doppler_shifter by IU2OZH
 
 
 doppler_shifter is a tool to adjust the frequencies of two radios via cat control based on the satellite's doppler shift in a portable setting.
