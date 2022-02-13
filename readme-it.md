@@ -1,4 +1,7 @@
-# Doppler Shifter
+# DOPPLER SHIFTER
+
+![Raspberry Pi 4 con LCD montato ](./images/doppler_shifter_raspberry.jpg?raw=true)
+
 
 Ho conseguito la patente di Radioamatore nel Febbraio 2021 (Grazie a Mauro IK1WUQ e i suoi video) e quando ho scoperto che c'erano dei satelliti radioamatoriali in orbita mi ha subito affascinato l'idea di poterli contattare e completare un QSO tramite essi.
 Questo mi ha fatto entrare in un "tunnel" durato qualche mese che mi ha portato all ottenere tutto il necessario per una stazione portatile per contattare i satellit (FM o Lineari).
@@ -6,7 +9,7 @@ Uno dei componenti principali della stazione è quello che io ho nominato "doppl
 Doppler Shifter è uno strumento studiato per semplificare l'utilizzo dei satelliti radioamatoriali (sia lineari che FM) in modalità full-duplex.
 
 
-## Funzionalità
+## FUNZIONALITA'
 
 - sincronizza il VFO di due radio (tramite controllo CAT) in base per l'utilizzo su i satelliti lineari invertenti (dove aumentando la frequenza di downlink la frequenza di uplink scende e viceversa) e gestisce in automatico il cambio di frequenza
 - corregge automaticamente la frequenza in base all'effetto doppler
@@ -21,7 +24,7 @@ Doppler Shifter è uno strumento studiato per semplificare l'utilizzo dei satell
 Nonostante (quasi) tutte queste funzionalità siano già presenti in numerosi software per PC (come gpredict, satpc32, ecc) ho voluto costruire qualcosa che sia innanzitutto molto portatile (per questo un Raspberry Pi) e di facile utilizzo. 
 Il software è scritto nel linguaggio di programmazione Python il che lo rende semplice da modificare e personalizzare e allo stesso tempo compatibile con quasi tutti i sistemi operativi e tipi di hardware.
 
-## Requisiti
+## REQUISITI
 
 per poter funzionare sono necessari:
 
@@ -32,13 +35,12 @@ per poter funzionare sono necessari:
 - un rotore per antenne compatibile con Hamlib (opzionale) 
 
 
-![Raspberry Pi 4 con LCD montato ](./images/doppler_shifter_raspberry.jpg?raw=true)
 
-## Installazione
+## INSTALLAZIONE
 
 per l'installazione seguire i passaggi elencati nel file [install-it.md](./install-it.md)
 
-## Configurazione
+## CONFIGURAZIONE
 
 E' necessario configurare alcune impostazioni nei seguenti file json presenti nella cartella **./config/**:
 
@@ -65,12 +67,12 @@ il file satlist.json contiene la lista dei satelliti. Ogni satellite dovrà cont
 
 
 
-## utilizzo
+## UTILIZZO
 
 una volta eseguito il software vi troverete davanti una schermata con diverse righe di informazioni e alcuni bottoni che abilitano delle funzionalità e aprono dei menù.
 
 ![schermata principale](./images/main_screen_istruzioni.png?raw=true)
-La schermata principale permette di visualizzare le seguenti informazioni:
+### La schermata principale permette di visualizzare le seguenti informazioni:
 
 - riga 1: nome del satellite selezionato e frequenza del beacon
 - riga 2: Azimuth e elevazione corrente - se i VFO sono bloccati
@@ -81,7 +83,6 @@ La schermata principale permette di visualizzare le seguenti informazioni:
 - riga 7 e 8: i due slider corrispondono alla posizione della frequenza rispetto alla banda passante del satellite (se lineare). Nel caso dei satelliti FM questo slider è disattivato e lo potete ignorare.
 
 bottoni:
-
 - Sats: porta al menù di selezione dei satelliti
 - Radio: porta al menù di selezione delle readio
 - Beacon: sintonizza la radio in rx sul beacon del satellite (di solito una trasmissione CW o telemetria digitale)
@@ -90,11 +91,17 @@ bottoni:
 - On/Off: permette di attivare o disabilitare il controllo della frequenza (è utile disattivarlo quando si vogliono cambiare delle impostazini sulla radio)
 - Swap: scambia il ruolo delle radio (da tx->rx e viceversa)
 
-Nel caso venga selezionato un satellite FM la schermata cambia leggermente:
+### Nel caso venga selezionato un satellite FM la schermata cambia leggermente:
+
+
+- le informazioni sul beacon vengono sostituite con quelle del tono CTCSS
+- gli slider della banda passante vengono disattivati
 
 ![satellite FM](./images/fm-sat.png?raw=true)
+
+
+## DESCRIZIONE MENU
 ### Menu Sats:
-![sat_menu](./images/sat_menu.png?raw=true)
 
 Premendo il bottone "Sats" nella schermata principale apparirà un menù che permetterà di cambiare satellite premendo sulle frecce a destra e a sinistra del nome. La lista dei satelliti è configurabile dal file satlist.json
 
@@ -105,8 +112,8 @@ Oltre alla scelta dei satelliti sono presenti:
 - il bottone "Shutdown" uno per effettuare lo spegnimento del Raspberry Pi in modalità sicura(lancierà il comando "sudo shutdown -h now") 
 - il bottone "Quit" per per chiudere il programma.
 
+![sat_menu](./images/sat_menu.png?raw=true)
 ### Menu Radio
-![radio_menu](./images/radio_menu.png?raw=true)
 
 Nel menu radio è possibile selezionare le radio impostate nel file config.json (sotto la voce "rigs"). In automatico viene selezionata la prima radio presente nella lista come uplink e la seconda come downlink.
 
@@ -114,3 +121,4 @@ Sono anche presenti due bottoni ("restart downlink rig" e "restart uplink rig") 
 
 il bottone start kappanhang lancia un comando per avviare [kappanhang](https://github.com/nonoo/kappanhang), un servizio che permette di creare una porta seriale "virtuale" tramite WiFi per il Icom IC-705.
 
+![radio_menu](./images/radio_menu.png?raw=true)
