@@ -1,4 +1,4 @@
-# DOPPLER SHIFTER
+# DOPPLER SHIFTER BY IU2OZH
 
 ![Raspberry Pi 4 con LCD montato ](./images/doppler_shifter_raspberry.jpg?raw=true)
 
