@@ -1,8 +1,12 @@
 # Doppler Shifter
 
+Ho conseguito la patente di Radioamatore nel Febbraio 2021 (Grazie a Mauro IK1WUQ e i suoi video) e quando ho scoperto che c'erano dei satelliti radioamatoriali in orbita mi ha subito affascinato l'idea di poterli contattare e completare un QSO tramite essi.
+Questo mi ha fatto entrare in un "tunnel" durato qualche mese che mi ha portato all ottenere tutto il necessario per una stazione portatile per contattare i satellit (FM o Lineari).
+Uno dei componenti principali della stazione è quello che io ho nominato "doppler shifter" perchè permette di semplificare la gestione delle frequenze tenendo conto dell'effetto doppler (in inglese "Doppler Shift").
+Doppler Shifter è uno strumento studiato per semplificare l'utilizzo dei satelliti radioamatoriali (sia lineari che FM) in modalità full-duplex.
 
-## funzionalità
-Doppler Shifter è uno strumento studiato per semplificare l'utilizzo dei satelliti radioamatoriali (sia lineari che FM) in modalità full-duplex e possiede le seguenti funzionalità:
+
+## Funzionalità
 
 - sincronizza il VFO di due radio (tramite controllo CAT) in base per l'utilizzo su i satelliti lineari invertenti (dove aumentando la frequenza di downlink la frequenza di uplink scende e viceversa) e gestisce in automatico il cambio di frequenza
 - corregge automaticamente la frequenza in base all'effetto doppler
@@ -11,10 +15,13 @@ Doppler Shifter è uno strumento studiato per semplificare l'utilizzo dei satell
 - invia la posizione del satellite ad un rotore per antenne per poterlo tracciare
 - aggiorna automaticamente i TLE dal sito celestrak
 - permette di avere una lista personalizzata dei satelliti e delle relative impostazioni e frequenze
+- permette di salvare eventuali correzioni tra la frequenza di uplink e di downlink da utilizzare al prossimo passaggio
+- utilizza il collegamento GPS (se è presente) per stabilire l'orario estatto e la posizione GPS. In caso non fosse disponibile viene utilizzata la posizione specificata nel file di configurazione.
 
-Nonostante (quasi) tutte queste funzionalità siano già presenti in numerosi software per pc (come gpredict, satpc32, ecc) ho voluto costruire qualcosa che sia portatile e di facile utilizzo. Il software utilizza il linguaggio di programmazione Python il che lo rende semplice da modificare e personalizzare e compatibile con molti sistemi operativi e tipi di hardware.
+Nonostante (quasi) tutte queste funzionalità siano già presenti in numerosi software per PC (come gpredict, satpc32, ecc) ho voluto costruire qualcosa che sia innanzitutto molto portatile (per questo un Raspberry Pi) e di facile utilizzo. 
+Il software è scritto nel linguaggio di programmazione Python il che lo rende semplice da modificare e personalizzare e allo stesso tempo compatibile con quasi tutti i sistemi operativi e tipi di hardware.
 
-## requisiti
+## Requisiti
 
 per poter funzionare sono necessari:
 
@@ -24,13 +31,16 @@ per poter funzionare sono necessari:
 - un mouse con rotella e almeno 4 pulsanti (io utilizzo un [Logitech MX Anywhere 3](https://www.logitech.com/it-it/products/mice/mx-anywhere-3.html))
 - un rotore per antenne compatibile con Hamlib (opzionale) 
 
-## installazione
 
-per l'installazione seguire i passaggi elencati nel file install.md
+![Raspberry Pi 4 con LCD montato ](./images/doppler_shifter_raspberry.jpg?raw=true)
 
-## configurazione
+## Installazione
 
-configurare le vostre impostazioni nei seguenti file json presenti nella cartella *config*:
+per l'installazione seguire i passaggi elencati nel file [install-it.md](./install-it.md)
+
+## Configurazione
+
+E' necessario configurare alcune impostazioni nei seguenti file json presenti nella cartella **./config/**:
 
  ### config.json:
  - frequency_step: permette di impostare lo step utilizzato durante il cambio di frequenza della rotella del mouse
@@ -59,7 +69,7 @@ il file satlist.json contiene la lista dei satelliti. Ogni satellite dovrà cont
 
 una volta eseguito il software vi troverete davanti una schermata con diverse righe di informazioni e alcuni bottoni che abilitano delle funzionalità e aprono dei menù.
 
-![main_screen](./images/main-screen.png?raw=true)
+![schermata principale](./images/main_screen_istruzioni.png?raw=true)
 
 La schermata principale permette di visualizzare le seguenti informazioni:
 
@@ -86,7 +96,19 @@ bottoni:
 
 Premendo il bottone "Sats" nella schermata principale apparirà un menù che permetterà di cambiare satellite premendo sulle frecce a destra e a sinistra del nome. La lista dei satelliti è configurabile dal file satlist.json
 
-Oltre alla scelta dei satelliti è presente un orologio per verificare che l'orario sia giusto, un bottone per tornare alla schermata principale, uno per effettuare lo spegnimento del Raspberry Pi (lancierà il comando "sudo shutdown -h now") e uno per chiudere il programma.
+Oltre alla scelta dei satelliti sono presenti:
+
+- un orologio digitale per verificare che l'orario sia giusto
+- il bottone "Return to Menu" per tornare alla schermata principale
+- il bottone "Shutdown" uno per effettuare lo spegnimento del Raspberry Pi in modalità sicura(lancierà il comando "sudo shutdown -h now") 
+- il bottone "Quit" per per chiudere il programma.
 
 ### Menu Radio
 ![radio_menu](./images/radio_menu.png?raw=true)
+
+Nel menu radio è possibile selezionare le radio impostate nel file config.json (sotto la voce "rigs"). In automatico viene selezionata la prima radio presente nella lista come uplink e la seconda come downlink.
+
+sono anche presenti due bottoni ("restart downlink rig" e "restart uplink rig") per riavviare rispettivamente i servizi rigctld di downlink e uplink. Quest è utile nel caso le radio vengano accese dopo il raspberry pi o se durante il funzionamento venisse staccato e riattacato il cavo USB.
+
+il bottone start kappanhang lancia un comando per avviare [kappanhang](https://github.com/nonoo/kappanhang), un servizio che permette di creare una porta seriale "virtuale" tramite WiFi per il Icom IC-705.
+
