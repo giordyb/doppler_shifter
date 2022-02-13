@@ -14,6 +14,7 @@ import logging
 import subprocess
 import argparse
 import asyncio
+import json
 
 logger = logging.getLogger(__name__)
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
@@ -85,7 +86,7 @@ RIG_DOWN = configure_rig(
 ROT = configure_rot(Hamlib.Rot(Hamlib.ROT_MODEL_NETROTCTL), CONFIG)
 SAVED_UP_FREQ = 0
 SAVED_DOWN_FREQ = 0
-
+DIFF_FREQ = 0
 
 LOCKED = True
 
@@ -151,17 +152,21 @@ def set_slider(type="center"):
         )
 
 
-def change_sat(title, newsat) -> None:
+def change_sat(args, newsat):
     global CURRENT_SAT_CONFIG
     global CURRENT_SAT_OBJECT
     global CURRENT_UP_FREQ
     global CURRENT_DOWN_FREQ
     global RANGE_SLIDER_UP
     global RANGE_SLIDER_DOWN
+    global DIFF_FREQ
+    satinfo, satindex = args
     CURRENT_SAT_CONFIG = newsat
+    CURRENT_SAT_CONFIG["index"] = satindex
     CURRENT_SAT_OBJECT = get_satellite(newsat)
     CURRENT_UP_FREQ = CURRENT_SAT_CONFIG["up_center"]
     CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG["down_center"]
+    DIFF_FREQ = CURRENT_SAT_CONFIG["saved_diff_freq"]
     RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
     RIG_UP.set_vfo(RIG_VFOS[RIG_UP.vfo_name])
     RIG_DOWN.set_vfo(RIG_VFOS[RIG_DOWN.vfo_name])
@@ -190,6 +195,7 @@ def change_sat(title, newsat) -> None:
 
 def tune_beacon():
     global SAVED_UP_FREQ
+    global DIFF_FREQ
     global SAVED_DOWN_FREQ
     global CURRENT_UP_FREQ
     global CURRENT_DOWN_FREQ
@@ -198,7 +204,7 @@ def tune_beacon():
     global ON_BEACON
     if ON_BEACON:
         # CURRENT_UP_FREQ = SAVED_UP_FREQ
-        CURRENT_DOWN_FREQ = SAVED_DOWN_FREQ
+        CURRENT_DOWN_FREQ = SAVED_DOWN_FREQ + DIFF_FREQ
         bcnbt._background_color = None
         ON_BEACON = False
         set_slider()
@@ -251,7 +257,7 @@ def tune_center():
     global RANGE_SLIDER_UP
     global RANGE_SLIDER_DOWN
     CURRENT_UP_FREQ = CURRENT_SAT_CONFIG["up_center"]
-    CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG["down_center"]
+    CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG["down_center"] + DIFF_FREQ
     set_slider()
     bcnbt._background_color = None
 
@@ -272,6 +278,13 @@ def swap_rig():
         )
     else:
         RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 1)
+
+
+def save_satlist():
+    global DIFF_FREQ
+    SAT_LIST[CURRENT_SAT_CONFIG["index"]]["saved_diff_freq"] = DIFF_FREQ
+    with open("config/satlist.json", "w") as f:
+        json.dump(SAT_LIST, f, indent=4)
 
 
 async def set_freq_async(RIG, freq):
@@ -448,7 +461,7 @@ sliderup._font_readonly_color = WHITE
 sliderdown = main_menu.add.generic_widget(RANGE_SLIDER_DOWN, configure_defaults=True)
 sliderdown.readonly = True
 sliderdown._font_readonly_color = WHITE
-change_sat("", CURRENT_SAT_CONFIG)
+change_sat(("", 0), CURRENT_SAT_CONFIG)
 # -------------------------------------------------------------------------
 # Main loop
 # -------------------------------------------------------------------------
@@ -501,11 +514,13 @@ while True:
             curr_rot_azi, curr_rot_ele = 99, 99
 
         az_el_label.set_title(
-            f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {lckstr}"
+            f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {lckstr} {DIFF_FREQ}"
         )  # TXPWR {rf_level}%"
 
     else:
-        az_el_label.set_title(f"Az {az} El {ele} {lckstr}")  # TX {rf_level}%")
+        az_el_label.set_title(
+            f"Az {az} El {ele} {lckstr} {DIFF_FREQ}"
+        )  # TX {rf_level}%")
     if RUN:
         if RIG_UP.error_status != 0:
             logger.warning(f"rigup error: {RIG_UP.error_status}")
@@ -555,16 +570,23 @@ while True:
             CURRENT_DOWN_FREQ -= 1 * CONFIG["frequency_step"]
             if LOCKED:
                 CURRENT_UP_FREQ += 1 * CONFIG["frequency_step"]
+            else:
+                DIFF_FREQ -= 1 * CONFIG["frequency_step"]
+
         elif event.type == pygame.MOUSEWHEEL and event.y < 0:
             CURRENT_DOWN_FREQ += 1 * CONFIG["frequency_step"]
             if LOCKED:
                 CURRENT_UP_FREQ -= 1 * CONFIG["frequency_step"]
+            else:
+                DIFF_FREQ += 1 * CONFIG["frequency_step"]
 
         elif (
             event.type == pygame.MOUSEBUTTONDOWN
             and event.button == CONFIG["mouse_buttons"]["lock_vfo"]
         ):
             LOCKED = not LOCKED
+            save_satlist()
+
         elif (
             event.type == pygame.MOUSEBUTTONDOWN
             and event.button == CONFIG["mouse_buttons"]["tune_center"]

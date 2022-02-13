@@ -12,7 +12,8 @@
         "down_mode": "USB",
         "inverting": true,
         "beacon": 435605000,
-        "saved_uplink_diff": 0
+        "saved_diff_freq": 0,
+        "index": 0
     },
     {
         "name": "JY1SAT (JO-97)",
@@ -27,7 +28,7 @@
         "down_end": 145875000,
         "inverting": true,
         "beacon": 145840000,
-        "saved_uplink_diff": 500
+        "saved_diff_freq": 500
     },
     {
         "name": "ZHUHAI-1 01 (CAS-4A)",
@@ -42,7 +43,7 @@
         "down_end": 145880000,
         "inverting": true,
         "beacon": 145855000,
-        "saved_uplink_diff": 500
+        "saved_diff_freq": 500
     },
     {
         "name": "ZHUHAI-1 02 (CAS-4B)",
@@ -57,7 +58,7 @@
         "down_end": 145935000,
         "inverting": true,
         "beacon": 145910000,
-        "saved_uplink_diff": 0
+        "saved_diff_freq": 0
     },
     {
         "name": "CAS-6 (TIANQIN 1)",
@@ -71,7 +72,7 @@
         "down_center": 145925000,
         "down_end": 145935000,
         "inverting": true,
-        "saved_uplink_diff": 0,
+        "saved_diff_freq": 0,
         "beacon": 145910000
     },
     {
@@ -86,7 +87,7 @@
         "down_center": 145950000,
         "down_end": 145975000,
         "inverting": true,
-        "saved_uplink_diff": 200,
+        "saved_diff_freq": 200,
         "beacon": 145977500
     },
     {
@@ -116,7 +117,7 @@
         "down_end": 145685000,
         "inverting": true,
         "beacon": 145660000,
-        "saved_uplink_diff": -700
+        "saved_diff_freq": -700
     },
     {
         "name": "XW-3 (CAS-9)",
@@ -131,7 +132,7 @@
         "down_end": 435195000,
         "inverting": true,
         "beacon": 435675000,
-        "saved_uplink_diff": 0
+        "saved_diff_freq": 0
     },
     {
         "name": "FUNCUBE-1 (AO-73)",
@@ -146,7 +147,7 @@
         "down_end": 145970000,
         "inverting": true,
         "beacon": 145935000,
-        "saved_uplink_diff": 0
+        "saved_diff_freq": 0
     },
     {
         "name": "ISS (ZARYA)",
@@ -206,7 +207,7 @@
         "down_end": 145900000,
         "inverting": false,
         "tone": "141.3",
-        "saved_uplink_diff": 0,
+        "saved_diff_freq": 0,
         "beacon": 145900000
     },
     {
@@ -223,6 +224,6 @@
         "inverting": false,
         "tone": "67.0",
         "beacon": 146960000,
-        "saved_uplink_diff": 0
+        "saved_diff_freq": 0
     }
 ]
