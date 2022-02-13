@@ -166,7 +166,7 @@ def change_sat(args, newsat):
     CURRENT_SAT_OBJECT = get_satellite(newsat)
     CURRENT_UP_FREQ = CURRENT_SAT_CONFIG["up_center"]
     CURRENT_DOWN_FREQ = CURRENT_SAT_CONFIG["down_center"]
-    DIFF_FREQ = CURRENT_SAT_CONFIG["saved_diff_freq"]
+    DIFF_FREQ = CURRENT_SAT_CONFIG.get("saved_diff_freq", 0)
     RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
     RIG_UP.set_vfo(RIG_VFOS[RIG_UP.vfo_name])
     RIG_DOWN.set_vfo(RIG_VFOS[RIG_DOWN.vfo_name])

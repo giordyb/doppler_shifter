@@ -102,7 +102,8 @@
         "down_center": 145975000,
         "down_end": 145990000,
         "inverting": true,
-        "beacon": 145940000
+        "beacon": 145940000,
+        "saved_diff_freq": 0
     },
     {
         "name": "XW-2A",
@@ -162,7 +163,8 @@
         "down_end": 437800000,
         "inverting": false,
         "tone": "67.0",
-        "beacon": "145825000"
+        "beacon": "145825000",
+        "saved_diff_freq": 0
     },
     {
         "name": "SAUDISAT 1C (SO-50)",
@@ -177,7 +179,8 @@
         "down_end": 436795000,
         "inverting": false,
         "tone": "67.0",
-        "beacon": 436795000
+        "beacon": 436795000,
+        "saved_diff_freq": 0
     },
     {
         "name": "EYESAT A (AO-27)",
@@ -192,7 +195,8 @@
         "down_end": 145850000,
         "inverting": false,
         "tone": "67.0",
-        "beacon": 436795000
+        "beacon": 436795000,
+        "saved_diff_freq": 0
     },
     {
         "name": "DIWATA-2B",
