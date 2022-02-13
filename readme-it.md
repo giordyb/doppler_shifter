@@ -42,11 +42,24 @@ configurare le vostre impostazioni nei seguenti file json presenti nella cartell
  - range1 e range2: qui potete impostare due fasce di gradi utilizzate dal controllo del rotore. Nel mio caso il mio rotore è posizionato sul balcone e posso solo tracciare satelliti che passano da i 350 a i 160 gradi della bussola.
  - sat_url: qui potete configurare la sorgente dei TLE. Ho usato celestrak perchè è quello più aggiornato.
 
+### satlist.json
+il file satlist.json contiene la lista dei satelliti. Ogni satellite dovrà contenere le seguenti informazioni:
+
+- name: nome del satellite (dovrà combaciare con uno dei satelliti provenienti dal file contenente i TLE
+- display_name: nome che sarà visualizzato nel programma
+- up_start/center/end: inizio/centro/fine della banda passante del uplink del satellite
+- down_start/center/end: inizio/centro/fine della banda passante del downlink del satellite
+- inverting: se il satellite è invertente (non penso esistano più satelliti lineari non-invertenti)
+- beacon: frequenza del beacon (se presente)
+- saved_uplink_diff: sarà utilizzato nel futuro per salvare un eventuale differenza di shift tra l'uplink e il downlink
+
+
+
 ## utilizzo
 
 una volta eseguito il software vi troverete davanti una schermata con diverse righe di informazioni e alcuni bottoni che abilitano delle funzionalità e aprono dei menù.
 
-![main_screen](./images/main_screen.png?raw=true)
+![main_screen](./images/main-screen.png?raw=true)
 
 La schermata principale permette di visualizzare le seguenti informazioni:
 
@@ -67,3 +80,13 @@ bottoni:
 - Track: permette di attivare il tracking del rotore
 - On/Off: permette di attivare o disabilitare il controllo della frequenza (è utile disattivarlo quando si vogliono cambiare delle impostazini sulla radio)
 - Swap: scambia il ruolo delle radio (da tx->rx e viceversa)
+
+### Menu Sats:
+![sat_menu](./images/sat_menu.png?raw=true)
+
+Premendo il bottone "Sats" nella schermata principale apparirà un menù che permetterà di cambiare satellite premendo sulle frecce a destra e a sinistra del nome. La lista dei satelliti è configurabile dal file satlist.json
+
+Oltre alla scelta dei satelliti è presente un orologio per verificare che l'orario sia giusto, un bottone per tornare alla schermata principale, uno per effettuare lo spegnimento del Raspberry Pi (lancierà il comando "sudo shutdown -h now") e uno per chiudere il programma.
+
+### Menu Radio
+![radio_menu](./images/radio_menu.png?raw=true)
