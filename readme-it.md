@@ -70,7 +70,6 @@ il file satlist.json contiene la lista dei satelliti. Ogni satellite dovrà cont
 una volta eseguito il software vi troverete davanti una schermata con diverse righe di informazioni e alcuni bottoni che abilitano delle funzionalità e aprono dei menù.
 
 ![schermata principale](./images/main_screen_istruzioni.png?raw=true)
-
 La schermata principale permette di visualizzare le seguenti informazioni:
 
 - riga 1: nome del satellite selezionato e frequenza del beacon
@@ -91,6 +90,9 @@ bottoni:
 - On/Off: permette di attivare o disabilitare il controllo della frequenza (è utile disattivarlo quando si vogliono cambiare delle impostazini sulla radio)
 - Swap: scambia il ruolo delle radio (da tx->rx e viceversa)
 
+Nel caso venga selezionato un satellite FM la schermata cambia leggermente:
+
+![satellite FM](./images/fm-sat.png?raw=true)
 ### Menu Sats:
 ![sat_menu](./images/sat_menu.png?raw=true)
 
@@ -108,7 +110,7 @@ Oltre alla scelta dei satelliti sono presenti:
 
 Nel menu radio è possibile selezionare le radio impostate nel file config.json (sotto la voce "rigs"). In automatico viene selezionata la prima radio presente nella lista come uplink e la seconda come downlink.
 
-sono anche presenti due bottoni ("restart downlink rig" e "restart uplink rig") per riavviare rispettivamente i servizi rigctld di downlink e uplink. Quest è utile nel caso le radio vengano accese dopo il raspberry pi o se durante il funzionamento venisse staccato e riattacato il cavo USB.
+Sono anche presenti due bottoni ("restart downlink rig" e "restart uplink rig") per riavviare rispettivamente i servizi rigctld di downlink e uplink. Quest è utile nel caso le radio vengano accese dopo il raspberry pi o se durante il funzionamento venisse staccato e riattacato il cavo USB.
 
 il bottone start kappanhang lancia un comando per avviare [kappanhang](https://github.com/nonoo/kappanhang), un servizio che permette di creare una porta seriale "virtuale" tramite WiFi per il Icom IC-705.
 
