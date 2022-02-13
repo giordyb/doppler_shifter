@@ -28,7 +28,8 @@
         "down_end": 145875000,
         "inverting": true,
         "beacon": 145840000,
-        "saved_diff_freq": 500
+        "saved_diff_freq": 500,
+        "index": 1
     },
     {
         "name": "ZHUHAI-1 01 (CAS-4A)",
@@ -43,7 +44,8 @@
         "down_end": 145880000,
         "inverting": true,
         "beacon": 145855000,
-        "saved_diff_freq": 500
+        "saved_diff_freq": 500,
+        "index": 2
     },
     {
         "name": "ZHUHAI-1 02 (CAS-4B)",
@@ -58,7 +60,8 @@
         "down_end": 145935000,
         "inverting": true,
         "beacon": 145910000,
-        "saved_diff_freq": 0
+        "saved_diff_freq": 0,
+        "index": 3
     },
     {
         "name": "CAS-6 (TIANQIN 1)",
@@ -73,7 +76,8 @@
         "down_end": 145935000,
         "inverting": true,
         "saved_diff_freq": 0,
-        "beacon": 145910000
+        "beacon": 145910000,
+        "index": 4
     },
     {
         "name": "OSCAR 7 (AO-7)",
@@ -88,7 +92,8 @@
         "down_end": 145975000,
         "inverting": true,
         "saved_diff_freq": 200,
-        "beacon": 145977500
+        "beacon": 145977500,
+        "index": 5
     },
     {
         "name": "NAYIF-1 (EO-88)",
@@ -103,7 +108,8 @@
         "down_end": 145990000,
         "inverting": true,
         "beacon": 145940000,
-        "saved_diff_freq": 0
+        "saved_diff_freq": 0,
+        "index": 6
     },
     {
         "name": "XW-2A",
@@ -118,7 +124,8 @@
         "down_end": 145685000,
         "inverting": true,
         "beacon": 145660000,
-        "saved_diff_freq": -700
+        "saved_diff_freq": -700,
+        "index": 7
     },
     {
         "name": "XW-3 (CAS-9)",
@@ -133,7 +140,8 @@
         "down_end": 435195000,
         "inverting": true,
         "beacon": 435675000,
-        "saved_diff_freq": 0
+        "saved_diff_freq": 0,
+        "index": 8
     },
     {
         "name": "FUNCUBE-1 (AO-73)",
@@ -148,7 +156,8 @@
         "down_end": 145970000,
         "inverting": true,
         "beacon": 145935000,
-        "saved_diff_freq": 0
+        "saved_diff_freq": 0,
+        "index": 9
     },
     {
         "name": "ISS (ZARYA)",
@@ -164,7 +173,8 @@
         "inverting": false,
         "tone": "67.0",
         "beacon": "145825000",
-        "saved_diff_freq": 0
+        "saved_diff_freq": 0,
+        "index": 10
     },
     {
         "name": "SAUDISAT 1C (SO-50)",
@@ -180,7 +190,8 @@
         "inverting": false,
         "tone": "67.0",
         "beacon": 436795000,
-        "saved_diff_freq": 0
+        "saved_diff_freq": 0,
+        "index": 11
     },
     {
         "name": "EYESAT A (AO-27)",
@@ -196,7 +207,8 @@
         "inverting": false,
         "tone": "67.0",
         "beacon": 436795000,
-        "saved_diff_freq": 0
+        "saved_diff_freq": 0,
+        "index": 12
     },
     {
         "name": "DIWATA-2B",
