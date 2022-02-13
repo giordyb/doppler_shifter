@@ -99,6 +99,12 @@ bottoni:
 
 ![satellite FM](./images/fm-sat.png?raw=true)
 
+### Blocco / Sblocco dei VFO
+E' possibile assegnare un bottone al mouse per permettere lo sblocco dei VFO e poter spostare la frequenza di downlink independentemente. Quando viene attivata questa funzione lo sfondo della seconda riga diventa rosso.
+
+Questa differenza viene poi salvata nel file satlist.json e ricaricata ogni volta che viene selezionato il satellite.
+
+![sblocco VFO](./images/unlock.png?raw=true)
 
 ## DESCRIZIONE MENU
 ### Menu Sats:
@@ -122,3 +128,7 @@ Sono anche presenti due bottoni ("restart downlink rig" e "restart uplink rig") 
 il bottone start kappanhang lancia un comando per avviare [kappanhang](https://github.com/nonoo/kappanhang), un servizio che permette di creare una porta seriale "virtuale" tramite WiFi per il Icom IC-705.
 
 ![radio_menu](./images/radio_menu.png?raw=true)
+
+
+## DIMOSTRAZIONE UTILIZZO
+![utilizzo](./images/usage.gif)
