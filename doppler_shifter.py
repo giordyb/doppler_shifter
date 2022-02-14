@@ -13,8 +13,9 @@ import os
 import logging
 import subprocess
 import argparse
-import asyncio
 import json
+from queue import Queue
+from threading import Thread
 
 logger = logging.getLogger(__name__)
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
@@ -287,8 +288,24 @@ def save_satlist():
         json.dump(SAT_LIST, f, indent=4)
 
 
-async def set_freq_async(RIG, freq):
-    RIG.set_freq(RIG_VFOS[RIG.vfo_name], freq)
+def change_freq(q, rig):
+    global RIG_VFOS
+    while True:
+        if rig.error_status != 0:
+            rig.open()
+            logger.warning(f"rig {rig.rig_name}: {rig.error_status}")
+
+        freq = q.get()
+        rig.set_freq(RIG_VFOS[rig.vfo_name], freq)
+        q.task_done()
+
+
+def update_rotator(q, rot):
+    while True:
+        position = q.get()
+        rot_azi, rot_ele = position
+        rot.set_position(rot_azi, rot_ele)
+        q.task_done()
 
 
 """
@@ -297,6 +314,19 @@ Main program.
 :param test: Indicate function is being tested
 :return: None
 """
+q_up = Queue(maxsize=0)
+q_down = Queue(maxsize=0)
+q_rot = Queue(maxsize=0)
+
+rig_up_thread = Thread(target=change_freq, args=(q_up, RIG_UP))
+rig_up_thread.setDaemon(True)
+rig_up_thread.start()
+rig_down_thread = Thread(target=change_freq, args=(q_down, RIG_DOWN))
+rig_down_thread.setDaemon(True)
+rig_down_thread.start()
+rotator_thread = Thread(target=update_rotator, args=(q_rot, ROT))
+rotator_thread.setDaemon(True)
+rotator_thread.start()
 
 # Create window
 
@@ -472,8 +502,8 @@ radio_delay = pygame.time.get_ticks()
 rotator_delay = pygame.time.get_ticks()
 az_rangelist1 = CONFIG["observer_conf"]["range1"].split("-")
 az_rangelist2 = CONFIG["observer_conf"]["range2"].split("-")
+curr_rot_azi, curr_rot_ele = 0, 0
 while True:
-    # print(f"rig_up: {RIG_UP.rig_name} - rig_down: {RIG_DOWN.rig_name}")
 
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
         sidestring = f"BCN {CURRENT_SAT_CONFIG.get('beacon',CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
@@ -505,13 +535,15 @@ while True:
             else:
                 rot_ele = 0.0
             if pygame.time.get_ticks() - rotator_delay > 1000:
+                curr_rot_azi, curr_rot_ele = ROT.get_position()
                 logger.warning(f"tracking az {rot_azi} ele {rot_ele}")
-                ROT.set_position(rot_azi, rot_ele)
+                # ROT.set_position(rot_azi, rot_ele)
                 rotator_delay = pygame.time.get_ticks()
-        curr_rot_azi, curr_rot_ele = ROT.get_position()
-        if ROT.error_status != 0:
-            ROT.open()
-            curr_rot_azi, curr_rot_ele = 99, 99
+                if ROT.error_status != 0:
+                    ROT.open()
+                    curr_rot_azi, curr_rot_ele = 99, 99
+
+            q_rot.put((rot_azi, rot_ele))
 
         az_el_label.set_title(
             f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {lckstr} {DIFF_FREQ}"
@@ -522,43 +554,50 @@ while True:
             f"Az {az} El {ele} {lckstr} {DIFF_FREQ}"
         )  # TX {rf_level}%")
     if RUN:
-        if RIG_UP.error_status != 0:
+
+        """if RIG_UP.error_status != 0:
             logger.warning(f"rigup error: {RIG_UP.error_status}")
             # RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
 
         if RIG_DOWN.error_status != 0:
             logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
             # RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
-        RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
-        RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
-        up_label1.set_title(
-            f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
-                ",", "."
-            ),
-        )
-        up_label2.set_title(
-            f"UP: {shifted_up:,.0f} SHIFT: {abs(shift_up)}".replace(",", ".")
-        )
+        """
+        if pygame.time.get_ticks() - radio_delay > 1000:
+            q_up.put(shifted_up)
+            # RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
+            q_down.put(shifted_down)
+            radio_delay = pygame.time.get_ticks()
 
-        down_label1.set_title(
-            f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {RIG_STATUS[RIG_DOWN.error_status]}".replace(
-                ",", "."
-            )
+        # RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
+    up_label1.set_title(
+        f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
+            ",", "."
+        ),
+    )
+    up_label2.set_title(
+        f"UP: {shifted_up:,.0f} SHIFT: {abs(shift_up)}".replace(",", ".")
+    )
+
+    down_label1.set_title(
+        f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {RIG_STATUS[RIG_DOWN.error_status]}".replace(
+            ",", "."
         )
+    )
 
-        down_label2.set_title(
-            f"DN: {shifted_down:,.0f} SHIFT: {abs(shift_down)}".replace(",", ".")
-        )
-        if CURRENT_UP_FREQ in range(
-            CURRENT_SAT_CONFIG["up_start"], CURRENT_SAT_CONFIG["up_end"]
-        ):
-            RANGE_SLIDER_UP.set_value(CURRENT_UP_FREQ)
+    down_label2.set_title(
+        f"DN: {shifted_down:,.0f} SHIFT: {abs(shift_down)}".replace(",", ".")
+    )
+    if CURRENT_UP_FREQ in range(
+        CURRENT_SAT_CONFIG["up_start"], CURRENT_SAT_CONFIG["up_end"]
+    ):
+        RANGE_SLIDER_UP.set_value(CURRENT_UP_FREQ)
 
-        if CURRENT_DOWN_FREQ in range(
-            CURRENT_SAT_CONFIG["down_start"], CURRENT_SAT_CONFIG["down_end"]
-        ):
+    if CURRENT_DOWN_FREQ in range(
+        CURRENT_SAT_CONFIG["down_start"], CURRENT_SAT_CONFIG["down_end"]
+    ):
 
-            RANGE_SLIDER_DOWN.set_value(CURRENT_DOWN_FREQ)
+        RANGE_SLIDER_DOWN.set_value(CURRENT_DOWN_FREQ)
 
         # Application events
     events = pygame.event.get()
@@ -599,12 +638,12 @@ while True:
             tune_beacon()
         if DEBUG:
             if event.type == pygame.MOUSEWHEEL:
-                logger.warning(event)
-                logger.warning(event.x, event.y)
+                #   logger.warning(event)
+                # logger.warning(event.x, event.y)
                 logger.warning(event.flipped)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 print(f"pressed mouse button {event.button}")
-            logger.warning(f"mouse event {event}")
+            # logger.warning(f"mouse event {event}")
 
     main_menu.update(events)
     main_menu.draw(surface)
