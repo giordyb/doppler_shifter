@@ -1,12 +1,3 @@
-"""
-pygame-menu
-https://github.com/ppizarror/pygame-menu
-
-EXAMPLE - TIMER CLOCK
-Example file, timer clock with in-menu options.
-"""
-
-
 __all__ = ["main"]
 import sys
 import os
