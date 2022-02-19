@@ -308,6 +308,16 @@ def update_rotator(q, rot):
         q.task_done()
 
 
+def lock_unlock_vfos():
+    global LOCKED
+    LOCKED = not LOCKED
+    if LOCKED:
+        lock_bt._background_color = None
+        save_satlist()
+    else:
+        lock_bt._background_color = RED
+
+
 """
 Main program.
 
@@ -337,8 +347,8 @@ common_theme.title_font_size = 30
 common_theme.font = pygame_menu.font.FONT_FIRACODE
 common_theme.widget_font_size = 25
 common_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
-common_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
-
+# common_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
+common_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY
 # -------------------------------------------------------------------------
 # Create SAT MENU
 # -------------------------------------------------------------------------
@@ -417,9 +427,13 @@ main_menu = pygame_menu.Menu(
     title="Main Menu",
     width=W_SIZE,
 )
-az_el_label = main_menu.add.label(
-    title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+lock_bt = main_menu.add.button(
+    "test",
+    lock_unlock_vfos,
+    align=pygame_menu.locals.ALIGN_LEFT,
 )
+lock_bt.set_border = 0
+lock_bt.set_padding = 0
 up_label1 = main_menu.add.label(
     title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
 )
@@ -483,7 +497,7 @@ swapbt = main_menu.add.button(
     float=True,
     align=pygame_menu.locals.ALIGN_RIGHT,
 )
-swapbt.translate(-0, 90)
+swapbt.translate(-0, 80)
 
 sliderup = main_menu.add.generic_widget(RANGE_SLIDER_UP, configure_defaults=True)
 sliderup.readonly = True
@@ -512,12 +526,6 @@ while True:
     else:
         sidestring = f"TONE {CURRENT_SAT_CONFIG.get('tone', None)}"
     main_menu.set_title(f"{CURRENT_SAT_CONFIG['display_name']} - {sidestring}")
-    if LOCKED:
-        lckstr = "Lock"
-        az_el_label.set_background_color(None)
-    else:
-        lckstr = "UnLock"
-        az_el_label.set_background_color((255, 0, 0))
 
     az, ele, shift_down, shift_up, shifted_down, shifted_up = recalc_shift_and_pos(
         observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
@@ -545,14 +553,12 @@ while True:
 
             q_rot.put((rot_azi, rot_ele))
 
-        az_el_label.set_title(
-            f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {lckstr} {DIFF_FREQ}"
+        lock_bt.set_title(
+            f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {DIFF_FREQ}"
         )  # TXPWR {rf_level}%"
 
     else:
-        az_el_label.set_title(
-            f"Az {az} El {ele} {lckstr} {DIFF_FREQ}"
-        )  # TX {rf_level}%")
+        lock_bt.set_title(f"Az {az} El {ele} {DIFF_FREQ}")  # TX {rf_level}%")
     if RUN:
 
         """if RIG_UP.error_status != 0:
@@ -623,8 +629,7 @@ while True:
             event.type == pygame.MOUSEBUTTONDOWN
             and event.button == CONFIG["mouse_buttons"]["lock_vfo"]
         ):
-            LOCKED = not LOCKED
-            save_satlist()
+            lock_unlock_vfos()
 
         elif (
             event.type == pygame.MOUSEBUTTONDOWN
