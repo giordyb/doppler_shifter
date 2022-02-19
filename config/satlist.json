@@ -12,7 +12,7 @@
         "down_mode": "USB",
         "inverting": true,
         "beacon": 435605000,
-        "saved_diff_freq": 600,
+        "saved_diff_freq": 1700,
         "index": 0
     },
     {

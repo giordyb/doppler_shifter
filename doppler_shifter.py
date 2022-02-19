@@ -334,12 +334,12 @@ rotator_thread.start()
 surface = create_example_window("Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN)
 
 common_theme = pygame_menu.themes.THEME_DEFAULT.copy()
-common_theme.title_font_size = 30
+common_theme.title_font_size = 26
 common_theme.font = pygame_menu.font.FONT_FIRACODE
-common_theme.widget_font_size = 25
+common_theme.widget_font_size = 24
 common_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
-# common_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
-common_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY
+common_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
+# common_theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY
 # -------------------------------------------------------------------------
 # Create SAT MENU
 # -------------------------------------------------------------------------
@@ -417,14 +417,15 @@ main_menu = pygame_menu.Menu(
     theme=common_theme,
     title="Main Menu",
     width=W_SIZE,
+    columns=2,
+    rows=7,
 )
 lock_bt = main_menu.add.button(
     "test",
     lock_unlock_vfos,
     align=pygame_menu.locals.ALIGN_LEFT,
 )
-lock_bt.set_border = 0
-lock_bt.set_padding = 0
+
 up_label1 = main_menu.add.label(
     title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
 )
@@ -437,65 +438,59 @@ down_label1 = main_menu.add.label(
 down_label2 = main_menu.add.label(
     title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
 )
-sat_bt = main_menu.add.button(
-    sat_menu.get_title(),
-    sat_menu,
-    float=True,
-    align=pygame_menu.locals.ALIGN_RIGHT,
-)
-sat_bt.translate(-0, -160)
-
-radiobt = main_menu.add.button(
-    radio_menu.get_title(),
-    radio_menu,
-    float=True,
-    align=pygame_menu.locals.ALIGN_RIGHT,
-)  #
-radiobt.translate(-0, -120)
-bcnbt = main_menu.add.button(
-    "Beacon",
-    tune_beacon,
-    float=True,
-    align=pygame_menu.locals.ALIGN_RIGHT,
-)
-bcnbt.translate(-0, -80)
-centerbt = main_menu.add.button(
-    "Center",
-    tune_center,
-    float=True,
-    align=pygame_menu.locals.ALIGN_RIGHT,
-)
-centerbt.translate(-0, -40)
-
-enablerot = main_menu.add.button(
-    "Track",
-    enable_rotator,
-    float=True,
-    align=pygame_menu.locals.ALIGN_RIGHT,
-)
-enablerot.translate(-0, 0)
-runbt = main_menu.add.button(
-    "On/Off",
-    stop_start,
-    float=True,
-    align=pygame_menu.locals.ALIGN_RIGHT,
-)
-runbt.translate(-0, 40)
-runbt._background_color = RED
-swapbt = main_menu.add.button(
-    "swap",
-    swap_rig,
-    float=True,
-    align=pygame_menu.locals.ALIGN_RIGHT,
-)
-swapbt.translate(-0, 80)
-
 sliderup = main_menu.add.generic_widget(RANGE_SLIDER_UP, configure_defaults=True)
 sliderup.readonly = True
 sliderup._font_readonly_color = WHITE
 sliderdown = main_menu.add.generic_widget(RANGE_SLIDER_DOWN, configure_defaults=True)
 sliderdown.readonly = True
 sliderdown._font_readonly_color = WHITE
+
+sat_bt = main_menu.add.button(
+    sat_menu.get_title(),
+    sat_menu,
+    align=pygame_menu.locals.ALIGN_LEFT,
+    font_size=22,
+)
+
+radiobt = main_menu.add.button(
+    radio_menu.get_title(),
+    radio_menu,
+    align=pygame_menu.locals.ALIGN_LEFT,
+    font_size=22,
+)
+bcnbt = main_menu.add.button(
+    "Beacon",
+    tune_beacon,
+    align=pygame_menu.locals.ALIGN_LEFT,
+    font_size=22,
+)
+centerbt = main_menu.add.button(
+    "Center",
+    tune_center,
+    align=pygame_menu.locals.ALIGN_LEFT,
+    font_size=22,
+)
+
+enablerot = main_menu.add.button(
+    "Track",
+    enable_rotator,
+    align=pygame_menu.locals.ALIGN_LEFT,
+    font_size=22,
+)
+runbt = main_menu.add.button(
+    "On/Off",
+    stop_start,
+    align=pygame_menu.locals.ALIGN_LEFT,
+    font_size=22,
+)
+runbt._background_color = RED
+swapbt = main_menu.add.button(
+    "swap",
+    swap_rig,
+    align=pygame_menu.locals.ALIGN_LEFT,
+    font_size=22,
+)
+
 change_sat(("", 0), CURRENT_SAT_CONFIG)
 # -------------------------------------------------------------------------
 # Main loop
