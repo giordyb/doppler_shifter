@@ -12,7 +12,7 @@
         "down_mode": "USB",
         "inverting": true,
         "beacon": 435605000,
-        "saved_diff_freq": 1700,
+        "saved_diff_freq": -600,
         "index": 0
     },
     {
@@ -224,7 +224,8 @@
         "inverting": false,
         "tone": "141.3",
         "saved_diff_freq": 0,
-        "beacon": 145900000
+        "beacon": 145900000,
+        "index": 13
     },
     {
         "name": "RADFXSAT (FOX-1B)",
@@ -240,6 +241,7 @@
         "inverting": false,
         "tone": "67.0",
         "beacon": 146960000,
-        "saved_diff_freq": 0
+        "saved_diff_freq": 0,
+        "index": 14
     }
 ]

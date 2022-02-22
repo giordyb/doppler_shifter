@@ -391,8 +391,8 @@ radio_menu.add.dropselect(
 radio_menu.add.button("restart downlink rig", lambda: restart_rig("down"))
 radio_menu.add.button("restart uplink rig", lambda: restart_rig("up"))
 radio_menu.add.button(
-    "start kappanhang",
-    lambda: subprocess.run(["systemctl", "--user", "start", "kappanhang"]),
+    "restart rotator",
+    lambda: subprocess.run(["sudo", "systemctl", "restart", "rotator"]),
 )
 radio_menu.add.dropselect(
     "Downlink",

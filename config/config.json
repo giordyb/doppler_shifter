@@ -1,5 +1,5 @@
 {
-    "frequency_step": 100,
+    "frequency_step": 200,
     "timezone": "Europe/Rome",
     "mouse_buttons": {
         "freq_up": 5,
