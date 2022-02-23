@@ -499,10 +499,13 @@ observer = get_observer(CONFIG)
 pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
 pygame.display.set_icon(pygame_icon)
 radio_delay = pygame.time.get_ticks()
+radio_status_delay = pygame.time.get_ticks()
 rotator_delay = pygame.time.get_ticks()
 az_rangelist1 = CONFIG["observer_conf"]["range1"].split("-")
 az_rangelist2 = CONFIG["observer_conf"]["range2"].split("-")
 curr_rot_azi, curr_rot_ele = 0, 0
+rigupstatus = "??"
+rigdownstatus = "??"
 while True:
 
     if CURRENT_SAT_CONFIG["up_mode"] != "FM":
@@ -518,24 +521,22 @@ while True:
     )
 
     if ROTATOR:
-        rot_azi = float(az)
-
-        if float(ele) > -4 and (
-            rot_azi in range(int(az_rangelist1[0]), int(az_rangelist1[1]))
-            or rot_azi in range(int(az_rangelist2[0]), int(az_rangelist2[1]))
-        ):
-            if float(ele) >= 0:
-                rot_ele = float(ele)
-            else:
-                rot_ele = 0.0
-            if pygame.time.get_ticks() - rotator_delay > 1000:
-                curr_rot_azi, curr_rot_ele = ROT.get_position()
-                logger.warning(f"tracking az {rot_azi} ele {rot_ele}")
-                # ROT.set_position(rot_azi, rot_ele)
-                rotator_delay = pygame.time.get_ticks()
-                if ROT.error_status != 0:
-                    ROT.open()
-                    curr_rot_azi, curr_rot_ele = 99, 99
+        if pygame.time.get_ticks() - rotator_delay > 1000:
+            rot_azi = float(az)
+            rot_ele = 0.0
+            if float(ele) > -4 and (
+                rot_azi in range(int(az_rangelist1[0]), int(az_rangelist1[1]))
+                or rot_azi in range(int(az_rangelist2[0]), int(az_rangelist2[1]))
+            ):
+                if float(ele) >= 0:
+                    rot_ele = float(ele)
+            curr_rot_azi, curr_rot_ele = ROT.get_position()
+            logger.warning(f"tracking az {rot_azi} ele {rot_ele}")
+            # ROT.set_position(rot_azi, rot_ele)
+            rotator_delay = pygame.time.get_ticks()
+            if ROT.error_status != 0:
+                ROT.open()
+                curr_rot_azi, curr_rot_ele = 99, 99
 
             q_rot.put((rot_azi, rot_ele))
 
@@ -546,7 +547,7 @@ while True:
     else:
         lock_bt.set_title(f"Az {az} El {ele} {DIFF_FREQ}")  # TX {rf_level}%")
     if RUN:
-
+        q_down.put(shifted_down)
         """if RIG_UP.error_status != 0:
             logger.warning(f"rigup error: {RIG_UP.error_status}")
             # RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
@@ -555,15 +556,16 @@ while True:
             logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
             # RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
         """
-        if pygame.time.get_ticks() - radio_delay > 1000:
+        if pygame.time.get_ticks() - radio_status_delay > 1500:
+            rigupstatus = RIG_STATUS[RIG_UP.error_status]
+            rigdownstatus = RIG_STATUS[RIG_DOWN.error_status]
+            radio_status_delay = pygame.time.get_ticks()
+        if pygame.time.get_ticks() - radio_delay > 1500:
             q_up.put(shifted_up)
-            # RIG_UP.set_freq(RIG_VFOS[RIG_UP.vfo_name], shifted_up)
-            q_down.put(shifted_down)
             radio_delay = pygame.time.get_ticks()
 
-        # RIG_DOWN.set_freq(RIG_VFOS[RIG_DOWN.vfo_name], shifted_down)
     up_label1.set_title(
-        f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_STATUS[RIG_UP.error_status]}".replace(
+        f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {rigupstatus}".replace(
             ",", "."
         ),
     )
@@ -572,7 +574,7 @@ while True:
     )
 
     down_label1.set_title(
-        f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {RIG_STATUS[RIG_DOWN.error_status]}".replace(
+        f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {rigdownstatus}".replace(
             ",", "."
         )
     )
