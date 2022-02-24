@@ -38,8 +38,13 @@ It supports any rig compatible with Hamlib
 
 # features
 
-* tracks the satellite using available TLEs and shows Azimuth and Elevation data on the display
-* controls the VFOs of 2 radios and synchronize them during frequency change (for inverting linear satellites)
-* adjusts the frequencies of the radios by calculating the doppler shift
-* can set the gps coordinates and time using the IC-705 GPS (if configured)
-* 
+- synchronizes the VFOs of 2 radios in inverting mode (when the rx frequency is increased the tx frequency is decreased) and can manage the frequency changes via a mouse wheel
+- auto corrects for doppler shifts
+- can automatically configure the PL tone for FM satellites
+- based on the time, position and the downloaded TLEs can display the real time azimuth and elevation of the satellite
+- can send the posizione of the satellite to an antenna rotor (compatible with hamlib) in order to track it
+- automatically downloads TLEs from celestrak
+- can manage a customized list of satellite and keep track of passband frequencies and configurations 
+- lets you save the frequency corrections between uplink and downlink for each satellite
+- if GPS is present can configure the position and time automatically
+
