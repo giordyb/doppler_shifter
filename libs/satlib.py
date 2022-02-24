@@ -24,6 +24,12 @@ def load_conf(configpath):
         return json.load(f)
 
 
+def save_conf(configpath, CONFIG):
+    print(f"saving config {configpath}")
+    with open(configpath, "w") as f:
+        json.dump(CONFIG, f, indent=4)
+
+
 def get_sat_list():
     with open("config/satlist.json", "r") as f:
         return json.load(f)

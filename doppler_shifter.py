@@ -7,17 +7,21 @@ import argparse
 import json
 from queue import Queue
 from threading import Thread
+import os
 
 logger = logging.getLogger(__name__)
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
 sys.path.append("/usr/local/lib/python3.9/site-packages/")
+os.putenv("SDL_FBDEV", "/dev/fb1")
+os.putenv("SDL_MOUSEDRV", "TSLIB")
+os.putenv("SDL_MOUSEDEV", "/dev/input/touchscreen")
 
 import Hamlib
 
 import pygame
 import pygame_menu
 from pygame_menu.examples import create_example_window
-from libs.satlib import get_satellite, update_tles, get_observer, load_conf
+from libs.satlib import get_satellite, save_conf, update_tles, get_observer, load_conf
 from libs.commonlib import (
     configure_rig,
     configure_rot,
@@ -59,7 +63,7 @@ args = vars(all_args.parse_args())
 CONFIG = load_conf(args["configpath"])
 
 
-CURRENT_SAT_CONFIG = SAT_LIST[0]
+CURRENT_SAT_CONFIG = SAT_LIST[CONFIG["loaded_sat"]]
 update_tles(CONFIG["sat_url"])
 
 surface: Optional["pygame.Surface"] = None
@@ -67,7 +71,8 @@ surface: Optional["pygame.Surface"] = None
 Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
 CURRENT_SAT_OBJECT = get_satellite(CURRENT_SAT_CONFIG)
-
+CURRENT_UP_FREQ = 0
+CURRENT_DOWN_FREQ = 0
 ON_BEACON = False
 RIG_UP = configure_rig(Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL), DEFAULT_RIG_UP, CONFIG)
 RIG_DOWN = configure_rig(
@@ -144,7 +149,7 @@ def set_slider(type="center"):
         )
 
 
-def change_sat(args, newsat):
+def change_sat(satargs, newsat):
     global CURRENT_SAT_CONFIG
     global CURRENT_SAT_OBJECT
     global CURRENT_UP_FREQ
@@ -152,7 +157,9 @@ def change_sat(args, newsat):
     global RANGE_SLIDER_UP
     global RANGE_SLIDER_DOWN
     global DIFF_FREQ
-    satinfo, satindex = args
+    global CONFIG
+    global args
+    satinfo, satindex = satargs
     CURRENT_SAT_CONFIG = newsat
     CURRENT_SAT_CONFIG["index"] = satindex
     CURRENT_SAT_OBJECT = get_satellite(newsat)
@@ -183,6 +190,8 @@ def change_sat(args, newsat):
     RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
 
     set_slider()
+    CONFIG["loaded_sat"] = CURRENT_SAT_CONFIG["index"]
+    save_conf(args["configpath"], CONFIG)
 
 
 def tune_beacon():
@@ -218,6 +227,7 @@ def stop_start():
     global RUN
     global RIG_UP
     global RIG_DOWN
+    global CURRENT_UP_FREQ
     if RUN:
         RUN = False
         runbt._background_color = RED
@@ -378,6 +388,7 @@ radio_menu = pygame_menu.Menu(
     theme=common_theme,
     title="Radio",
     width=W_SIZE,
+    touchscreen=True,
 )
 
 radio_menu.add.dropselect(
@@ -419,6 +430,7 @@ main_menu = pygame_menu.Menu(
     width=W_SIZE,
     columns=2,
     rows=7,
+    touchscreen=True,
 )
 lock_bt = main_menu.add.button(
     "test",
@@ -491,7 +503,7 @@ swapbt = main_menu.add.button(
     font_size=22,
 )
 
-change_sat(("", 0), CURRENT_SAT_CONFIG)
+change_sat(("", CONFIG["loaded_sat"]), CURRENT_SAT_CONFIG)
 # -------------------------------------------------------------------------
 # Main loop
 # -------------------------------------------------------------------------
@@ -599,14 +611,14 @@ while True:
     for event in events:
         if event.type == pygame.QUIT:
             exit()
-        elif event.type == pygame.MOUSEWHEEL and event.y > 0:
+        elif event.type == pygame.MOUSEWHEEL and event.y < 0:
             CURRENT_DOWN_FREQ -= 1 * CONFIG["frequency_step"]
             if LOCKED:
                 CURRENT_UP_FREQ += 1 * CONFIG["frequency_step"]
             else:
                 DIFF_FREQ -= 1 * CONFIG["frequency_step"]
 
-        elif event.type == pygame.MOUSEWHEEL and event.y < 0:
+        elif event.type == pygame.MOUSEWHEEL and event.y > 0:
             CURRENT_DOWN_FREQ += 1 * CONFIG["frequency_step"]
             if LOCKED:
                 CURRENT_UP_FREQ -= 1 * CONFIG["frequency_step"]
