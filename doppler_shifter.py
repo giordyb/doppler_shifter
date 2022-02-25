@@ -63,7 +63,7 @@ args = vars(all_args.parse_args())
 CONFIG = load_conf(args["configpath"])
 
 
-CURRENT_SAT_CONFIG = SAT_LIST[CONFIG["loaded_sat"]]
+CURRENT_SAT_CONFIG = SAT_LIST[CONFIG.get("loaded_sat", 0)]
 update_tles(CONFIG["sat_url"])
 
 surface: Optional["pygame.Surface"] = None
@@ -195,7 +195,6 @@ def change_sat(satargs, newsat):
 
 
 def tune_beacon():
-    global SAVED_UP_FREQ
     global DIFF_FREQ
     global SAVED_DOWN_FREQ
     global CURRENT_UP_FREQ
@@ -205,7 +204,7 @@ def tune_beacon():
     global ON_BEACON
     if ON_BEACON:
         # CURRENT_UP_FREQ = SAVED_UP_FREQ
-        CURRENT_DOWN_FREQ = SAVED_DOWN_FREQ + DIFF_FREQ
+        CURRENT_DOWN_FREQ = SAVED_DOWN_FREQ
         bcnbt._background_color = None
         ON_BEACON = False
         set_slider()
@@ -267,9 +266,14 @@ def tune_center():
 def swap_rig():
     global RIG_DOWN
     global RIG_UP
+    global q_up
+    global q_down
     RIG_TEMP = RIG_DOWN
+    q_temp = q_down
     RIG_DOWN = RIG_UP
+    q_down = q_up
     RIG_UP = RIG_TEMP
+    q_up = q_temp
     RIG_UP.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["up_mode"]])
     RIG_DOWN.set_mode(RIG_MODES[CURRENT_SAT_CONFIG["down_mode"]])
     if RIG_UP.tone:
@@ -503,7 +507,7 @@ swapbt = main_menu.add.button(
     font_size=22,
 )
 
-change_sat(("", CONFIG["loaded_sat"]), CURRENT_SAT_CONFIG)
+change_sat(("", CONFIG.get("loaded_sat", 0)), CURRENT_SAT_CONFIG)
 # -------------------------------------------------------------------------
 # Main loop
 # -------------------------------------------------------------------------
@@ -577,7 +581,7 @@ while True:
             radio_delay = pygame.time.get_ticks()
 
     up_label1.set_title(
-        f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {rigupstatus}".replace(
+        f"UP: {CURRENT_UP_FREQ:,.0f} - {CURRENT_SAT_CONFIG['up_mode']} - {RIG_UP.rig_name}:{rigupstatus}".replace(
             ",", "."
         ),
     )
@@ -586,7 +590,7 @@ while True:
     )
 
     down_label1.set_title(
-        f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {rigdownstatus}".replace(
+        f"DN: {CURRENT_DOWN_FREQ:,.0f} - {CURRENT_SAT_CONFIG['down_mode']} - {RIG_DOWN.rig_name}:{rigdownstatus}".replace(
             ",", "."
         )
     )
