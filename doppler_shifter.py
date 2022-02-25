@@ -465,46 +465,46 @@ sat_bt = main_menu.add.button(
     sat_menu.get_title(),
     sat_menu,
     align=pygame_menu.locals.ALIGN_LEFT,
-    font_size=22,
+    font_size=23,
 )
 
 radiobt = main_menu.add.button(
     radio_menu.get_title(),
     radio_menu,
     align=pygame_menu.locals.ALIGN_LEFT,
-    font_size=22,
+    font_size=23,
 )
 bcnbt = main_menu.add.button(
     "Beacon",
     tune_beacon,
     align=pygame_menu.locals.ALIGN_LEFT,
-    font_size=22,
+    font_size=23,
 )
 centerbt = main_menu.add.button(
     "Center",
     tune_center,
     align=pygame_menu.locals.ALIGN_LEFT,
-    font_size=22,
+    font_size=23,
 )
 
 enablerot = main_menu.add.button(
     "Track",
     enable_rotator,
     align=pygame_menu.locals.ALIGN_LEFT,
-    font_size=22,
+    font_size=23,
 )
 runbt = main_menu.add.button(
     "On/Off",
     stop_start,
     align=pygame_menu.locals.ALIGN_LEFT,
-    font_size=22,
+    font_size=23,
 )
 runbt._background_color = RED
 swapbt = main_menu.add.button(
     "swap",
     swap_rig,
     align=pygame_menu.locals.ALIGN_LEFT,
-    font_size=22,
+    font_size=23,
 )
 
 change_sat(("", CONFIG.get("loaded_sat", 0)), CURRENT_SAT_CONFIG)
