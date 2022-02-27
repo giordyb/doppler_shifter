@@ -38,7 +38,7 @@
             "hostname": "localhost",
             "port": 4535,
             "rig_number": 3,
-            "rig_name": "IC705-REMOTE",
+            "rig_name": "IC705-WIFI",
             "vfo_name": "VFOA"
         }
     ],

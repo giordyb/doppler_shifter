@@ -222,11 +222,10 @@ def tune_beacon():
         set_slider(type="beacon")
 
 
-def stop_start():
+def start_stop(runbt):
     global RUN
     global RIG_UP
     global RIG_DOWN
-    global CURRENT_UP_FREQ
     if RUN:
         RUN = False
         runbt._background_color = RED
@@ -495,7 +494,7 @@ enablerot = main_menu.add.button(
 )
 runbt = main_menu.add.button(
     "On/Off",
-    stop_start,
+    lambda: start_stop(runbt),
     align=pygame_menu.locals.ALIGN_LEFT,
     font_size=23,
 )
