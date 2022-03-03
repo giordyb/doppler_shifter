@@ -2,7 +2,7 @@
 [Desktop Entry]
 Name=Doppler Shifter
 Icon=/usr/share/pixmaps/openbox.xpm
-Exec=bash -c 'cd /home/pi/doppler_shifter/ && /usr/bin/python3 /home/pi/doppler_shifter/doppler_shifter.py'
+Exec=bash -c 'cd /home/pi/doppler_shifter/ && /usr/bin/python3 /home/pi/doppler_shifter/doppler_shifter_objective.py'
 Type=Application
 Encoding=UTF-8
 Terminal=true

@@ -28,7 +28,7 @@
         "down_end": 145875000,
         "inverting": true,
         "beacon": 145840000,
-        "saved_diff_freq": -1350,
+        "saved_diff_freq": -1450,
         "index": 1
     },
     {
@@ -140,7 +140,7 @@
         "down_end": 435195000,
         "inverting": true,
         "beacon": 435675000,
-        "saved_diff_freq": 0,
+        "saved_diff_freq": 1100,
         "index": 8
     },
     {
