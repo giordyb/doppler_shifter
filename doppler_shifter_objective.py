@@ -89,17 +89,17 @@ class App(object):
         self.RANGE_SLIDER_UP = create_slider(self.CURRENT_SAT_CONFIG, "up")
         self.RANGE_SLIDER_DOWN = create_slider(self.CURRENT_SAT_CONFIG, "down")
         self.q_up = Queue(maxsize=0)
-        self.q_down = Queue(maxsize=0)
+        # self.q_down = Queue(maxsize=0)
         self.q_rot = Queue(maxsize=0)
 
         rig_up_thread = Thread(target=self.change_freq, args=(self.q_up, self.RIG_UP))
         rig_up_thread.setDaemon(True)
         rig_up_thread.start()
-        rig_down_thread = Thread(
-            target=self.change_freq, args=(self.q_down, self.RIG_DOWN)
-        )
-        rig_down_thread.setDaemon(True)
-        rig_down_thread.start()
+        # rig_down_thread = Thread(
+        #    target=self.change_freq, args=(self.q_down, self.RIG_DOWN)
+        # )
+        # rig_down_thread.setDaemon(True)
+        # rig_down_thread.start()
         rotator_thread = Thread(target=self.update_rotator, args=(self.q_rot, self.ROT))
         rotator_thread.setDaemon(True)
         rotator_thread.start()
@@ -533,13 +533,23 @@ class App(object):
                 temp_diff = self.CURRENT_DOWN_FREQ - (down_freq - shift_down)
                 if abs(temp_diff) > 5 and first_run < 0:
                     # self.q_down.put(shifted_down - temp_diff)
-                    # self.RIG_DOWN.set_freq(
-                    #    RIG_VFOS[self.RIG_DOWN.vfo_name], shifted_down - temp_diff
-                    # )
                     self.CURRENT_DOWN_FREQ = self.CURRENT_DOWN_FREQ - temp_diff
-                    if self.LOCKED:
-                        self.CURRENT_UP_FREQ = self.CURRENT_UP_FREQ + temp_diff
-                        self.q_up.put(shifted_up - temp_diff)
+                    (
+                        az,
+                        ele,
+                        shift_down,
+                        shift_up,
+                        shifted_down,
+                        shifted_up,
+                    ) = recalc_shift_and_pos(
+                        observer,
+                        self.CURRENT_SAT_OBJECT,
+                        self.CURRENT_UP_FREQ,
+                        self.CURRENT_DOWN_FREQ,
+                    )
+                    self.RIG_DOWN.set_freq(
+                        RIG_VFOS[self.RIG_DOWN.vfo_name], shifted_down
+                    )
 
                     print(temp_diff)
                 else:
@@ -561,7 +571,12 @@ class App(object):
                     rigdownstatus = RIG_STATUS[self.RIG_DOWN.error_status]
                     radio_status_delay = pygame.time.get_ticks()
                 if pygame.time.get_ticks() - radio_delay > 500:
-                    self.q_up.put(shifted_up)
+                    if self.LOCKED:
+                        self.CURRENT_UP_FREQ = self.CURRENT_UP_FREQ + temp_diff
+                        self.q_up.put(shifted_up - temp_diff)
+                    else:
+                        self.q_up.put(shifted_up)
+                    # self.q_up.put(shifted_up)
                     radio_delay = pygame.time.get_ticks()
 
             self.up_label1.set_title(
