@@ -47,13 +47,19 @@ def configure_rig(rig, rignum, CONFIG):
 
 
 def create_slider(CURRENT_SAT_CONFIG, side):
-    slider = pygame_menu.widgets.RangeSlider(
-        title="",
-        default_value=CURRENT_SAT_CONFIG[f"{side}_center"],
-        range_values=(
+    if CURRENT_SAT_CONFIG["up_mode"] == "FM":
+        range_vals = (0, 1)
+        default = 0
+    else:
+        range_vals = (
             CURRENT_SAT_CONFIG[f"{side}_start"],
             CURRENT_SAT_CONFIG[f"{side}_end"],
-        ),
+        )
+        default = CURRENT_SAT_CONFIG[f"{side}_center"]
+    slider = pygame_menu.widgets.RangeSlider(
+        title="",
+        default_value=default,
+        range_values=range_vals,
         increment=1,
         value_format=lambda x: f"{x:,.0f}".replace(",", "."),
         cursor=None,
