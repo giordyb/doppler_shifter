@@ -471,8 +471,8 @@ class App(object):
         curr_rot_azi, curr_rot_ele = 0, 0
         rigupstatus = "??"
         rigdownstatus = "??"
+        first_run = 5
         while True:
-
             if self.CURRENT_SAT_CONFIG["up_mode"] != "FM":
                 sidestring = f"BCN {self.CURRENT_SAT_CONFIG.get('beacon',self.CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
                     ",", "."
@@ -529,7 +529,25 @@ class App(object):
                     f"Az {az} El {ele} {self.DIFF_FREQ}"
                 )  # TX {rf_level}%")
             if self.RUN:
-                self.q_down.put(shifted_down)
+                down_freq = self.RIG_DOWN.get_freq(RIG_VFOS[self.RIG_DOWN.vfo_name])
+                temp_diff = self.CURRENT_DOWN_FREQ - (down_freq - shift_down)
+                if abs(temp_diff) > 5 and first_run < 0:
+                    # self.q_down.put(shifted_down - temp_diff)
+                    # self.RIG_DOWN.set_freq(
+                    #    RIG_VFOS[self.RIG_DOWN.vfo_name], shifted_down - temp_diff
+                    # )
+                    self.CURRENT_DOWN_FREQ = self.CURRENT_DOWN_FREQ - temp_diff
+                    if self.LOCKED:
+                        self.CURRENT_UP_FREQ = self.CURRENT_UP_FREQ + temp_diff
+                        self.q_up.put(shifted_up - temp_diff)
+
+                    print(temp_diff)
+                else:
+                    first_run -= 1
+                    self.RIG_DOWN.set_freq(
+                        RIG_VFOS[self.RIG_DOWN.vfo_name], shifted_down
+                    )
+
                 """if RIG_UP.error_status != 0:
                     logger.warning(f"rigup error: {RIG_UP.error_status}")
                     # RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
