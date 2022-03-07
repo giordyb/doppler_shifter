@@ -3,20 +3,6 @@ import Hamlib
 import pygame_menu
 
 
-RIG_MODES = {
-    "FM": Hamlib.RIG_MODE_FM,
-    "AM": Hamlib.RIG_MODE_AM,
-    "USB": Hamlib.RIG_MODE_USB,
-    "LSB": Hamlib.RIG_MODE_LSB,
-}
-
-RIG_VFOS = {
-    "VFOA": Hamlib.RIG_VFO_A,
-    "VFOB": Hamlib.RIG_VFO_B,
-    "VFO": Hamlib.RIG_VFO_CURR,
-}
-
-
 STEP = 50
 H_SIZE = 320
 W_SIZE = 480
