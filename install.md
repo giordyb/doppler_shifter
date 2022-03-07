@@ -62,7 +62,10 @@ After you installed the LCD TouchScreen configure it to start at boot (using ras
     add 
     server 127.127.28.0 minpoll 4 prefer
     fudge 127.127.28.0 time1 0.0 refid NEMA
+    fudge 127.127.28.0 flag1 1 refid GPS
     tinker panic 0
+
+
     to /etc/ntp.conf
     + sudo systemctl start ntp
     + sudo systemctl enable ntp
