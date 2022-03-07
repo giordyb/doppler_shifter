@@ -78,7 +78,7 @@ class App(object):
         update_tles(self.CONFIG["sat_url"])
         self.surface: Optional["pygame.Surface"] = None
         Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
-        self.CURRENT_SAT_OBJECT = get_satellite(self.CURRENT_SAT_CONFIG)
+        # self.CURRENT_SAT_OBJECT = get_satellite(self.CURRENT_SAT_CONFIG)
         self.RIG_UP = configure_rig(
             Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL), DEFAULT_RIG_UP, self.CONFIG
         )
@@ -86,6 +86,7 @@ class App(object):
             Hamlib.Rig(Hamlib.RIG_MODEL_NETRIGCTL), DEFAULT_RIG_DOWN, self.CONFIG
         )
         self.ROT = configure_rot(Hamlib.Rot(Hamlib.ROT_MODEL_NETROTCTL), self.CONFIG)
+
         self.RANGE_SLIDER_UP = create_slider(self.CURRENT_SAT_CONFIG, "up")
         self.RANGE_SLIDER_DOWN = create_slider(self.CURRENT_SAT_CONFIG, "down")
         self.q_up = Queue(maxsize=0)
@@ -140,7 +141,7 @@ class App(object):
         self.sat_menu.add.clock(font_size=25, font_name=pygame_menu.font.FONT_DIGITAL)
         self.sat_menu.add.button("Return to Menu", pygame_menu.events.BACK)
         self.sat_menu.add.button("Shutdown", shutdown)
-        self.sat_menu.add.button("Quit", pygame.QUIT)
+        self.sat_menu.add.button("Quit", self.quit)
 
         # -------------------------------------------------------------------------
         # Create Radio MENU
@@ -323,6 +324,11 @@ class App(object):
                 self.CURRENT_SAT_CONFIG["down_end"],
             )
 
+    def quit(self):
+        self.CONFIG["loaded_sat"] = self.CURRENT_SAT_CONFIG["index"]
+        save_conf(args["configpath"], self.CONFIG)
+        pygame.quit()
+
     def change_sat(self, satargs, newsat):
         global args
         satinfo, satindex = satargs
@@ -357,7 +363,6 @@ class App(object):
 
         self.set_slider()
         self.CONFIG["loaded_sat"] = self.CURRENT_SAT_CONFIG["index"]
-        save_conf(args["configpath"], self.CONFIG)
 
     def tune_beacon(self):
         if self.ON_BEACON:
@@ -581,6 +586,8 @@ class App(object):
 
             for event in events:
                 if event.type == pygame.QUIT:
+                    self.CONFIG["loaded_sat"] = self.CURRENT_SAT_CONFIG["index"]
+                    save_conf(args["configpath"], self.CONFIG)
                     exit()
                 elif event.type == pygame.MOUSEWHEEL and event.y < 0:
                     self.CURRENT_DOWN_FREQ -= 1 * self.CONFIG["frequency_step"]
