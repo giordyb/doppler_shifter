@@ -5,7 +5,11 @@ import logging
 import subprocess
 import argparse
 import json
-from queue import Queue
+
+# from queue import Queue
+
+from multiprocessing import Process, Queue
+
 from threading import Thread
 import os
 
@@ -21,6 +25,7 @@ import pygame
 import pygame_menu
 from pygame_menu.examples import create_example_window
 from libs.rigcontrol import rig_loop
+from libs.rotcontrol import rot_loop
 from libs.satlib import get_satellite, save_conf, update_tles, get_observer, load_conf
 from libs.commonlib import (
     configure_rot,
@@ -40,6 +45,7 @@ from libs.constants import (
     DEFAULT_RIG_UP,
     DEFAULT_RIG_DOWN,
 )
+
 from libs.gpslib import poll_gps
 from pygame.locals import Color
 from pygame_menu.widgets.core.widget import Widget
@@ -65,12 +71,27 @@ class Rig(object):
         self.rig_name = name
         self.q = Queue(maxsize=0)
         self.status_q = Queue(maxsize=0)
-        self.thread = Thread(
+        """self.thread = Thread(
             target=rig_loop, args=(self.q, self.status_q, CONFIG, name)
         )
         self.thread.setDaemon(True)
-        self.thread.start()
+        self.thread.start()"""
+        self.process = Process(
+            target=rig_loop, args=(self.q, self.status_q, CONFIG, name)
+        )
+        self.process.daemon = True
+        self.process.start()
 
+class Rot(object):
+
+    def __init__(self, CONFIG) -> None:
+        self.q = Queue(maxsize=0)
+        self.status_q = Queue(maxsize=0)
+        self.process = Process(
+            target=rot_loop, args=(self.q, self.status_q, CONFIG)
+        )
+        self.process.daemon = True
+        self.process.start()
 
 class App(object):
     SAVED_UP_FREQ = 0
@@ -98,11 +119,18 @@ class App(object):
         self.RANGE_SLIDER_UP = create_slider(self.CURRENT_SAT_CONFIG, "up")
         self.RANGE_SLIDER_DOWN = create_slider(self.CURRENT_SAT_CONFIG, "down")
 
-        self.ROT = configure_rot(Hamlib.Rot(Hamlib.ROT_MODEL_NETROTCTL), self.CONFIG)
+        # Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
+
+        self.ROT = Rot(self.CONFIG)
         self.q_rot = Queue(maxsize=0)
-        rotator_thread = Thread(target=self.update_rotator, args=(self.q_rot, self.ROT))
-        rotator_thread.setDaemon(True)
-        rotator_thread.start()
+        # rotator_thread = Thread(target=self.update_rotator, args=(self.q_rot, self.ROT))
+        # rotator_thread.setDaemon(True)
+        # rotator_thread.start()
+        rotator_process = Process(
+            target=self.update_rotator, args=(self.q_rot, self.ROT)
+        )
+        rotator_process.daemon = True
+        rotator_process.start()
 
         self.surface = create_example_window(
             "Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN
@@ -278,10 +306,6 @@ class App(object):
     def change_rig(self, rigtuple, rigidx, RIG, side):
         rigdata, rigidx = rigtuple
         self.change_sat(("", self.CONFIG.get("loaded_sat", 0)), self.CURRENT_SAT_CONFIG)
-        # if side == "up":
-        #    self.RIG_UP = RIG
-        # elif side == "down":
-        #    self.RIG_DOWN = RIG
 
     def set_slider(self, type="center"):
         if self.CURRENT_SAT_CONFIG["up_mode"] == "FM":
@@ -398,7 +422,7 @@ class App(object):
             position = q.get()
             rot_azi, rot_ele = position
             rot.set_position(rot_azi, rot_ele)
-            q.task_done()
+            # q.task_done()
 
     def lock_unlock_vfos(self):
         self.LOCKED = not self.LOCKED
@@ -412,10 +436,9 @@ class App(object):
         observer = get_observer(self.CONFIG)
         pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
         pygame.display.set_icon(pygame_icon)
-        radio_status_delay = pygame.time.get_ticks()
-        rotator_delay = pygame.time.get_ticks()
         az_rangelist1 = self.CONFIG["observer_conf"]["range1"].split("-")
         az_rangelist2 = self.CONFIG["observer_conf"]["range2"].split("-")
+        rotator_delay = pygame.time.get_ticks()
         curr_rot_azi, curr_rot_ele = 0, 0
         rigupstatus = "??"
         rigdownstatus = "??"
@@ -460,13 +483,11 @@ class App(object):
                             rot_ele = float(ele)
                         curr_rot_azi, curr_rot_ele = self.ROT.get_position()
                         logger.warning(f"tracking az {rot_azi} ele {rot_ele}")
-                        # ROT.set_position(rot_azi, rot_ele)
-                        rotator_delay = pygame.time.get_ticks()
                         if self.ROT.error_status != 0:
                             self.ROT.open()
                             curr_rot_azi, curr_rot_ele = 99, 99
-
                         self.q_rot.put((rot_azi, rot_ele))
+                    rotator_delay = pygame.time.get_ticks()
 
                 self.lock_bt.set_title(
                     f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {self.DIFF_FREQ}"
@@ -477,16 +498,14 @@ class App(object):
                     f"Az {az} El {ele} {self.DIFF_FREQ}"
                 )  # TX {rf_level}%")
             if self.RUN:
-                if pygame.time.get_ticks() - radio_status_delay > 500:
-                    self.RIG_DOWN.q.put(("freq", shifted_down))
-                    self.RIG_UP.q.put(("freq", shifted_up))
-                    if not self.RIG_UP.status_q.empty():
-                        rigupstatus = RIG_STATUS.get(self.RIG_UP.status_q.get())
-                        self.RIG_UP.status_q.task_done()
-                    if not self.RIG_DOWN.status_q.empty():
-                        rigdownstatus = RIG_STATUS.get(self.RIG_DOWN.status_q.get())
-                        self.RIG_DOWN.status_q.task_done()
-                    radio_status_delay = pygame.time.get_ticks()
+                self.RIG_DOWN.q.put(("freq", shifted_down))
+                self.RIG_UP.q.put(("freq", shifted_up))
+                if not self.RIG_UP.status_q.empty():
+                    rigupstatus = RIG_STATUS.get(self.RIG_UP.status_q.get())
+                    # self.RIG_UP.status_q.task_done()
+                if not self.RIG_DOWN.status_q.empty():
+                    rigdownstatus = RIG_STATUS.get(self.RIG_DOWN.status_q.get())
+                    # self.RIG_DOWN.status_q.task_done()
 
             self.up_label1.set_title(
                 f"UP: {self.CURRENT_UP_FREQ:,.0f} - {self.CURRENT_SAT_CONFIG['up_mode']} - {self.RIG_UP.rig_name}:{rigupstatus}".replace(

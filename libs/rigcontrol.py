@@ -1,6 +1,6 @@
 import Hamlib
 
-from queue import Queue
+from multiprocessing import Queue
 import time
 import os
 
@@ -84,4 +84,4 @@ def rig_loop(q, status_q, CONFIG, name):
                     RIG.set_mode(value)
                 if command == "tone":
                     RIG.set_tone(value)
-            q.task_done()
+            # q.task_done()
