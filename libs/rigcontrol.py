@@ -2,6 +2,7 @@ import Hamlib
 
 from queue import Queue
 import time
+import os
 
 RIG_MODES = {
     "FM": Hamlib.RIG_MODE_FM,
@@ -15,6 +16,7 @@ RIG_VFOS = {
     "VFOB": Hamlib.RIG_VFO_B,
     "VFO": Hamlib.RIG_VFO_CURR,
 }
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
 
 
 class RigWrapper:
@@ -39,7 +41,7 @@ class RigWrapper:
         self.rig.open()
 
     def set_freq(self, freq):
-        if abs(self.lastfreq - freq) > 20:
+        if abs(self.lastfreq - freq) >= 10:
             self.rig.set_freq(RIG_VFOS[self.rig.vfo_name], freq)
             self.lastfreq = freq
 
@@ -65,7 +67,8 @@ def rig_loop(q, status_q, CONFIG, name):
     while True:
         if not q.empty():
             queue_values = q.get()
-            print(queue_values, name)
+            # if DEBUG:
+            #    print(queue_values, name)
             try:
                 status_q.put(RIG.rig.error_status)
             except:

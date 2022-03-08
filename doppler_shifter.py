@@ -90,16 +90,19 @@ class App(object):
         self.surface: Optional["pygame.Surface"] = None
         # self.CURRENT_SAT_OBJECT = get_satellite(self.CURRENT_SAT_CONFIG)
 
-        self.ROT = configure_rot(Hamlib.Rot(Hamlib.ROT_MODEL_NETROTCTL), self.CONFIG)
-
-        self.RANGE_SLIDER_UP = create_slider(self.CURRENT_SAT_CONFIG, "up")
-        self.RANGE_SLIDER_DOWN = create_slider(self.CURRENT_SAT_CONFIG, "down")
-        self.q_rot = Queue(maxsize=0)
-
         self.RIG_UP = Rig("FT-818", self.CONFIG)
         self.RIG_UP.q.put(("config", 0))
         self.RIG_DOWN = Rig("IC-705", self.CONFIG)
         self.RIG_DOWN.q.put(("config", 1))
+
+        self.RANGE_SLIDER_UP = create_slider(self.CURRENT_SAT_CONFIG, "up")
+        self.RANGE_SLIDER_DOWN = create_slider(self.CURRENT_SAT_CONFIG, "down")
+
+        self.ROT = configure_rot(Hamlib.Rot(Hamlib.ROT_MODEL_NETROTCTL), self.CONFIG)
+        self.q_rot = Queue(maxsize=0)
+        rotator_thread = Thread(target=self.update_rotator, args=(self.q_rot, self.ROT))
+        rotator_thread.setDaemon(True)
+        rotator_thread.start()
 
         self.surface = create_example_window(
             "Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN
@@ -272,32 +275,13 @@ class App(object):
 
         self.change_sat(("", self.CONFIG.get("loaded_sat", 0)), self.CURRENT_SAT_CONFIG)
 
-    # def changefreq(self, value=0):
-    #    self.CURRENT_DOWN_FREQ = self.CURRENT_DOWN_FREQ + value
-
     def change_rig(self, rigtuple, rigidx, RIG, side):
         rigdata, rigidx = rigtuple
-        rigname, _, _, _ = rigdata
-        # if side == "up":
-        #    config_rig = self.RIG_UP
-        # elif side == "down":
-        #    config_rig = self.RIG_DOWN
-        ## RIG = configure_rig(config_rig, rigidx, self.CONFIG)
-        # RIG.open()
         self.change_sat(("", self.CONFIG.get("loaded_sat", 0)), self.CURRENT_SAT_CONFIG)
         # if side == "up":
         #    self.RIG_UP = RIG
         # elif side == "down":
         #    self.RIG_DOWN = RIG
-
-    """def change_rig_down(self, rigtuple, rigidx, RIG):
-        rigdata, rigidx = rigtuple
-        rigname, _, _ = rigdata
-        print(f"rigname: {rigname}, rigidx {rigidx}, {RIG.rig_name}")
-        RIG.close()
-        RIG = configure_rig(self.RIG_DOWN, rigidx, self.CONFIG)
-        RIG.open()
-        self.change_sat(None, self.CURRENT_SAT_CONFIG)"""
 
     def set_slider(self, type="center"):
         if self.CURRENT_SAT_CONFIG["up_mode"] == "FM":
@@ -350,11 +334,12 @@ class App(object):
         self.CONFIG["loaded_sat"] = self.CURRENT_SAT_CONFIG["index"]
 
     def tune_beacon(self):
+        print("beacon")
         if self.ON_BEACON:
             # CURRENT_UP_FREQ = SAVED_UP_FREQ
             self.CURRENT_DOWN_FREQ = self.SAVED_DOWN_FREQ
             self.bcnbt._background_color = None
-            ON_BEACON = False
+            self.ON_BEACON = False
             self.set_slider()
         else:
             # SAVED_UP_FREQ = CURRENT_UP_FREQ
@@ -370,13 +355,11 @@ class App(object):
             self.set_slider(type="beacon")
 
     def start_stop(self):
-
         if self.RUN:
             self.RUN = False
             self.runbt._background_color = RED
         else:
             self.RUN = True
-
             self.runbt._background_color = GREEN
 
     def enable_rotator(self):
@@ -397,23 +380,13 @@ class App(object):
         self.bcnbt._background_color = None
 
     def swap_rig(self):
-        pass
-        # RIG_TEMP = self.RIG_DOWN
-        # q_temp = self.q_down
-        # self.RIG_DOWN = self.RIG_UP
-        # self.q_down = self.q_up
-        # self.RIG_UP = RIG_TEMP
-        # self.q_up = q_temp
-        # self.RIG_UP.set_mode(RIG_MODES[self.CURRENT_SAT_CONFIG["up_mode"]])
-        # self.RIG_DOWN.set_mode(RIG_MODES[self.CURRENT_SAT_CONFIG["down_mode"]])
-        # if self.RIG_UP.tone:
-        #    self.RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 1)
-        #    self.RIG_UP.set_ctcss_tone(
-        #        RIG_VFOS[self.RIG_UP.vfo_name],
-        #        self.RIG_UP.tone,
-        #    )
-        # else:
-        #    self.RIG_UP.set_func(Hamlib.RIG_FUNC_TONE, 1)
+        RIG_TEMP = self.RIG_DOWN
+        self.RIG_DOWN = self.RIG_UP
+        self.RIG_UP = RIG_TEMP
+        self.RIG_UP.q.put(("mode", self.CURRENT_SAT_CONFIG["up_mode"]))
+        self.RIG_DOWN.q.put(("mode", self.CURRENT_SAT_CONFIG["down_mode"]))
+        if self.RIG_DOWN.tone:
+            self.RIG_UP.q.put(("tone", self.CURRENT_SAT_CONFIG["tone"]))
 
     def save_satlist(self):
         SAT_LIST[self.CURRENT_SAT_CONFIG["index"]]["saved_diff_freq"] = self.DIFF_FREQ
@@ -439,7 +412,6 @@ class App(object):
         observer = get_observer(self.CONFIG)
         pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
         pygame.display.set_icon(pygame_icon)
-        radio_delay = pygame.time.get_ticks()
         radio_status_delay = pygame.time.get_ticks()
         rotator_delay = pygame.time.get_ticks()
         az_rangelist1 = self.CONFIG["observer_conf"]["range1"].split("-")
@@ -505,31 +477,16 @@ class App(object):
                     f"Az {az} El {ele} {self.DIFF_FREQ}"
                 )  # TX {rf_level}%")
             if self.RUN:
-                self.RIG_DOWN.q.put(("freq", shifted_down))
-                """if RIG_UP.error_status != 0:
-                    logger.warning(f"rigup error: {RIG_UP.error_status}")
-                    # RIG_UP = configure_rig(RIG_UP, RIG_UP.rig_num, CONFIG)
-
-                if RIG_DOWN.error_status != 0:
-                    logger.warning(f"rigdown error: {RIG_DOWN.error_status}")
-                    # RIG_DOWN = configure_rig(RIG_DOWN, RIG_DOWN.rig_num, CONFIG)
-                """
-                if pygame.time.get_ticks() - radio_status_delay > 10:
+                if pygame.time.get_ticks() - radio_status_delay > 500:
+                    self.RIG_DOWN.q.put(("freq", shifted_down))
+                    self.RIG_UP.q.put(("freq", shifted_up))
                     if not self.RIG_UP.status_q.empty():
-                        rigupstatus = self.RIG_UP.status_q.get()
+                        rigupstatus = RIG_STATUS.get(self.RIG_UP.status_q.get())
                         self.RIG_UP.status_q.task_done()
                     if not self.RIG_DOWN.status_q.empty():
-                        rigdownstatus = self.RIG_DOWN.status_q.get()
+                        rigdownstatus = RIG_STATUS.get(self.RIG_DOWN.status_q.get())
                         self.RIG_DOWN.status_q.task_done()
-                    # self.RIG_UP.status_q.task_done()
-                    # RIG_STATUS[self.RIG_UP.error_status]
-                    # rigdownstatus = self.RIG_DOWN.status_q.get()
-                    # self.RIG_DOWN.status_q.task_done()
-                    # RIG_STATUS[self.RIG_DOWN.error_status]
                     radio_status_delay = pygame.time.get_ticks()
-                if pygame.time.get_ticks() - radio_delay > 2000:
-                    radio_delay = pygame.time.get_ticks()
-                self.RIG_UP.q.put(("freq", shifted_up))
 
             self.up_label1.set_title(
                 f"UP: {self.CURRENT_UP_FREQ:,.0f} - {self.CURRENT_SAT_CONFIG['up_mode']} - {self.RIG_UP.rig_name}:{rigupstatus}".replace(
