@@ -45,7 +45,10 @@
     "observer_conf": {
         "lat": "45.3291",
         "lon": "8.0634",
-        "ele": 344
+        "ele": 344,
+        "range1": "0-180",
+        "range2": "180-360"
     },
-    "sat_url": "http://celestrak.com/NORAD/elements/active.txt"
+    "sat_url": "http://celestrak.com/NORAD/elements/active.txt",
+    "loaded_sat": 0
 }
