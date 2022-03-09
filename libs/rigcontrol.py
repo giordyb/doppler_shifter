@@ -3,6 +3,7 @@ import Hamlib
 from multiprocessing import Queue
 import time
 import os
+import logging
 
 RIG_MODES = {
     "FM": Hamlib.RIG_MODE_FM,
@@ -17,6 +18,7 @@ RIG_VFOS = {
     "VFO": Hamlib.RIG_VFO_CURR,
 }
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")
+logger = logging.getLogger(__name__)
 
 
 class RigWrapper:
@@ -65,23 +67,23 @@ class RigWrapper:
 
 def rig_loop(q, status_q, CONFIG, name):
     while True:
-        if not q.empty():
-            queue_values = q.get()
-            # if DEBUG:
-            #    print(queue_values, name)
-            try:
-                status_q.put(RIG.rig.error_status)
-            except:
-                status_q.put(99)
-            if tuple(queue_values):
-                command, value = queue_values
-                if command == "config":
-                    RIG = RigWrapper(CONFIG, value)
-                    print(RIG.rig.error_status)
-                if command == "freq":
-                    RIG.set_freq(value)
-                if command == "mode":
-                    RIG.set_mode(value)
-                if command == "tone":
-                    RIG.set_tone(value)
-            # q.task_done()
+        try:
+            status_q.put(RIG.rig.error_status)
+        except:
+            status_q.put(99)
+        # if not q.empty():
+        queue_values = q.get()
+        # if DEBUG:
+        #    print(queue_values, name)
+
+        if isinstance(queue_values, tuple):
+            command, value = queue_values
+            if command == "config":
+                RIG = RigWrapper(CONFIG, value)
+                print(RIG.rig.error_status)
+            elif command == "freq":
+                RIG.set_freq(value)
+            elif command == "mode":
+                RIG.set_mode(value)
+            elif command == "tone":
+                RIG.set_tone(value)

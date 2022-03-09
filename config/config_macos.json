@@ -46,9 +46,9 @@
         "lat": "45.3014",
         "lon": "9.1360",
         "ele": 130,
-        "range1": "350-360",
-        "range2": "0-160"
+        "range1": "0-180",
+        "range2": "180-360"
     },
     "sat_url": "http://celestrak.com/NORAD/elements/active.txt",
-    "loaded_sat": 0
+    "loaded_sat": 2
 }

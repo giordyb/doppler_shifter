@@ -1,11 +1,16 @@
 from multiprocessing import Queue
 import Hamlib
+import logging
+
+logger = logging.getLogger(__name__)
+
+import time
 
 
 class RotWrapper:
     def __init__(self, CONFIG) -> None:
 
-        Hamlib.rot_set_debug(Hamlib.RIG_DEBUG_NONE)
+        Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
         self.rot = Hamlib.Rot(Hamlib.ROT_MODEL_NETROTCTL)
 
         self.rot.set_conf("retry", "1")
@@ -13,29 +18,34 @@ class RotWrapper:
         self.rot.set_conf("rot_pathname", rot_pathname)
         self.rot.open()
 
-    def set_freq(self, freq):
-        if abs(self.lastfreq - freq) >= 10:
-            self.rot.set_freq(rot_VFOS[self.rig.vfo_name], freq)
-            self.lastfreq = freq
+    def set_position(self, position):
+        logger.warning(f"setting position {position}")
+        azi, ele = position
+        try:
+            self.rot.set_position(azi, ele)
+        except:
+            logger.warning("crash")
+        logger.warning(f"got position {self.rot.get_position()}")
 
 
-def rot_loop(q, status_q, CONFIG):
+def rot_loop(q, position_q, CONFIG):
     while True:
-        if not q.empty():
-            queue_values = q.get()
-            try:
-                status_q.put(ROT.rig.error_status)
-            except:
-                status_q.put(99)
-            if tuple(queue_values):
-                command, value = queue_values
-                if command == "config":
-                    RIG = RotWrapper(CONFIG, value)
-                    print(RIG.rig.error_status)
-                if command == "position":
-                    RIG.set_freq(value)
-                if command == "mode":
-                    RIG.set_mode(value)
-                if command == "tone":
-                    RIG.set_tone(value)
-            # q.task_done()
+        # if not q.empty():
+        queue_values = q.get()
+        print(queue_values)
+        if isinstance(queue_values, tuple):
+            command, value = queue_values
+            if command == "config":
+                ROT = RotWrapper(CONFIG)
+                logger.warning(ROT.rot.error_status)
+            elif command == "position":
+                ROT.set_position(value)
+        try:
+            status = ROT.rot.error_status
+            if status != 0:
+                raise
+            else:
+                position_q.put(ROT.rot.get_position())
+
+        except:
+            position_q.put((99, 99))

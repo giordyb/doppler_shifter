@@ -28,7 +28,6 @@ from libs.rigcontrol import rig_loop
 from libs.rotcontrol import rot_loop
 from libs.satlib import get_satellite, save_conf, update_tles, get_observer, load_conf
 from libs.commonlib import (
-    configure_rot,
     create_slider,
     recalc_shift_and_pos,
     restart_rig,
@@ -82,16 +81,15 @@ class Rig(object):
         self.process.daemon = True
         self.process.start()
 
-class Rot(object):
 
+class Rot(object):
     def __init__(self, CONFIG) -> None:
         self.q = Queue(maxsize=0)
-        self.status_q = Queue(maxsize=0)
-        self.process = Process(
-            target=rot_loop, args=(self.q, self.status_q, CONFIG)
-        )
+        self.position_q = Queue(maxsize=0)
+        self.process = Process(target=rot_loop, args=(self.q, self.position_q, CONFIG))
         self.process.daemon = True
         self.process.start()
+
 
 class App(object):
     SAVED_UP_FREQ = 0
@@ -115,22 +113,17 @@ class App(object):
         self.RIG_UP.q.put(("config", 0))
         self.RIG_DOWN = Rig("IC-705", self.CONFIG)
         self.RIG_DOWN.q.put(("config", 1))
+        self.ROT = Rot(self.CONFIG)
+        self.ROT.q.put(("config", None))
 
         self.RANGE_SLIDER_UP = create_slider(self.CURRENT_SAT_CONFIG, "up")
         self.RANGE_SLIDER_DOWN = create_slider(self.CURRENT_SAT_CONFIG, "down")
 
         # Hamlib.rig_set_debug(Hamlib.RIG_DEBUG_NONE)
 
-        self.ROT = Rot(self.CONFIG)
-        self.q_rot = Queue(maxsize=0)
         # rotator_thread = Thread(target=self.update_rotator, args=(self.q_rot, self.ROT))
         # rotator_thread.setDaemon(True)
         # rotator_thread.start()
-        rotator_process = Process(
-            target=self.update_rotator, args=(self.q_rot, self.ROT)
-        )
-        rotator_process.daemon = True
-        rotator_process.start()
 
         self.surface = create_example_window(
             "Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN
@@ -389,12 +382,10 @@ class App(object):
     def enable_rotator(self):
         if self.ROTATOR:
             self.ROTATOR = False
-            self.ROT.set_position(0, 0)
-            self.ROT.close()
+            self.ROT.q.put(("position", (0, 0)))
             self.enablerot._background_color = None
         else:
             self.ROTATOR = True
-            self.ROT.open()
             self.enablerot._background_color = GREEN
 
     def tune_center(self):
@@ -416,13 +407,6 @@ class App(object):
         SAT_LIST[self.CURRENT_SAT_CONFIG["index"]]["saved_diff_freq"] = self.DIFF_FREQ
         with open("config/satlist.json", "w") as f:
             json.dump(SAT_LIST, f, indent=4)
-
-    def update_rotator(self, q, rot):
-        while True:
-            position = q.get()
-            rot_azi, rot_ele = position
-            rot.set_position(rot_azi, rot_ele)
-            # q.task_done()
 
     def lock_unlock_vfos(self):
         self.LOCKED = not self.LOCKED
@@ -470,9 +454,11 @@ class App(object):
 
             if self.ROTATOR:
                 if pygame.time.get_ticks() - rotator_delay > 1000:
+                    if not self.ROT.position_q.empty():
+                        curr_rot_azi, curr_rot_ele = self.ROT.position_q.get()
                     rot_azi = float(az)
                     rot_ele = 0.0
-                    if float(ele) > -4 and (
+                    if float(ele) > -90 and (
                         rot_azi in range(int(az_rangelist1[0]), int(az_rangelist1[1]))
                         or (
                             rot_azi
@@ -481,12 +467,9 @@ class App(object):
                     ):
                         if float(ele) >= 0:
                             rot_ele = float(ele)
-                        curr_rot_azi, curr_rot_ele = self.ROT.get_position()
+
                         logger.warning(f"tracking az {rot_azi} ele {rot_ele}")
-                        if self.ROT.error_status != 0:
-                            self.ROT.open()
-                            curr_rot_azi, curr_rot_ele = 99, 99
-                        self.q_rot.put((rot_azi, rot_ele))
+                        self.ROT.q.put(("position", (rot_azi, rot_ele)), block=True)
                     rotator_delay = pygame.time.get_ticks()
 
                 self.lock_bt.set_title(
