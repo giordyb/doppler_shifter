@@ -43,6 +43,7 @@ from libs.constants import (
     GREEN,
     DEFAULT_RIG_UP,
     DEFAULT_RIG_DOWN,
+    MIN_ELE,
 )
 
 from libs.gpslib import poll_gps
@@ -110,9 +111,9 @@ class App(object):
         # self.CURRENT_SAT_OBJECT = get_satellite(self.CURRENT_SAT_CONFIG)
 
         self.RIG_UP = Rig("FT-818", self.CONFIG)
-        self.RIG_UP.q.put(("config", 0))
+        self.RIG_UP.q.put(("config", DEFAULT_RIG_UP))
         self.RIG_DOWN = Rig("IC-705", self.CONFIG)
-        self.RIG_DOWN.q.put(("config", 1))
+        self.RIG_DOWN.q.put(("config", DEFAULT_RIG_DOWN))
         self.ROT = Rot(self.CONFIG)
         self.ROT.q.put(("config", None))
 
@@ -458,7 +459,7 @@ class App(object):
                         curr_rot_azi, curr_rot_ele = self.ROT.position_q.get()
                     rot_azi = float(az)
                     rot_ele = 0.0
-                    if float(ele) > -90 and (
+                    if float(ele) > MIN_ELE and (
                         rot_azi in range(int(az_rangelist1[0]), int(az_rangelist1[1]))
                         or (
                             rot_azi
