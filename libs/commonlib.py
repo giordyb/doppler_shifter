@@ -25,27 +25,6 @@ def configure_rot(rot, CONFIG):
     return rot
 
 
-def configure_rig(rig, rignum, CONFIG):
-    rig.set_conf("retry", "5")
-
-    rig_pathname = (
-        f"{CONFIG['rigs'][rignum]['hostname']}:{CONFIG['rigs'][rignum]['port']}"
-    )
-    rig.set_conf(
-        "rig_pathname",
-        rig_pathname,
-    )
-    rig.rig_name = CONFIG["rigs"][rignum]["rig_name"]
-    rig.vfo_name = CONFIG["rigs"][rignum]["vfo_name"]
-    rig.rig_num = rignum
-    rig.tone = 0
-
-    rig.open()
-    if rig.rig_name == "SDRPP":
-        rig.state.vfo_opt = 0
-    return rig
-
-
 def create_slider(CURRENT_SAT_CONFIG, side):
     if CURRENT_SAT_CONFIG["up_mode"] == "FM":
         range_vals = (0, 1)
