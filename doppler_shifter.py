@@ -44,6 +44,7 @@ from libs.constants import (
     DEFAULT_RIG_UP,
     DEFAULT_RIG_DOWN,
     MIN_ELE,
+    QUEUE_MAXSIZE,
 )
 
 from libs.gpslib import poll_gps
@@ -69,8 +70,8 @@ class Rig(object):
 
     def __init__(self, name, CONFIG) -> None:
         self.rig_name = name
-        self.q = Queue(maxsize=0)
-        self.status_q = Queue(maxsize=0)
+        self.q = Queue(maxsize=QUEUE_MAXSIZE)
+        self.status_q = Queue(maxsize=QUEUE_MAXSIZE)
         """self.thread = Thread(
             target=rig_loop, args=(self.q, self.status_q, CONFIG, name)
         )
@@ -85,8 +86,8 @@ class Rig(object):
 
 class Rot(object):
     def __init__(self, CONFIG) -> None:
-        self.q = Queue(maxsize=0)
-        self.position_q = Queue(maxsize=0)
+        self.q = Queue(maxsize=QUEUE_MAXSIZE)
+        self.position_q = Queue(maxsize=QUEUE_MAXSIZE)
         self.process = Process(target=rot_loop, args=(self.q, self.position_q, CONFIG))
         self.process.daemon = True
         self.process.start()
