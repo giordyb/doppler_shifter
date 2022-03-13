@@ -49,6 +49,6 @@
         "range1": "0-180",
         "range2": "180-360"
     },
-    "sat_url": "http://celestrak.com/NORAD/elements/active.txt",
-    "loaded_sat": 2
+    "sat_url": "https://www.amsat.org/tle/current/nasabare.txt",
+    "loaded_sat": 16
 }

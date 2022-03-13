@@ -1,6 +1,6 @@
 [
     {
-        "name": "RS-44 & BREEZE-KM R/B",
+        "name": "RS-44",
         "display_name": "RS-44",
         "up_start": 145935000,
         "up_center": 145965000,
@@ -16,7 +16,7 @@
         "index": 0
     },
     {
-        "name": "JY1SAT (JO-97)",
+        "name": "JO-97",
         "display_name": "JY1SAT (JO-97)",
         "up_mode": "LSB",
         "up_start": 435100000,
@@ -32,7 +32,7 @@
         "index": 1
     },
     {
-        "name": "ZHUHAI-1 01 (CAS-4A)",
+        "name": "CAS-4A",
         "display_name": "CAS-4A",
         "up_mode": "LSB",
         "up_start": 435210000,
@@ -48,7 +48,7 @@
         "index": 2
     },
     {
-        "name": "ZHUHAI-1 02 (CAS-4B)",
+        "name": "CAS-4B",
         "display_name": "CAS-4B",
         "up_mode": "LSB",
         "up_start": 435270000,
@@ -64,7 +64,7 @@
         "index": 3
     },
     {
-        "name": "CAS-6 (TIANQIN 1)",
+        "name": "TO-108",
         "display_name": "TO-108/CAS-6",
         "up_mode": "LSB",
         "up_start": 435270000,
@@ -80,7 +80,7 @@
         "index": 4
     },
     {
-        "name": "OSCAR 7 (AO-7)",
+        "name": "AO-07",
         "display_name": "OSCAR 7 (AO-7)",
         "up_mode": "LSB",
         "up_start": 432125000,
@@ -96,7 +96,7 @@
         "index": 5
     },
     {
-        "name": "NAYIF-1 (EO-88)",
+        "name": "EO-88",
         "display_name": "NAYIF-1 (EO-88)",
         "up_mode": "LSB",
         "up_start": 435015000,
@@ -128,8 +128,8 @@
         "index": 7
     },
     {
-        "name": "XW-3 (CAS-9)",
-        "display_name": "XW-3 (CAS-9)",
+        "name": "HO-113",
+        "display_name": "XW-3 (HO-113)",
         "up_mode": "LSB",
         "up_start": 145855000,
         "up_center": 145870000,
@@ -144,7 +144,7 @@
         "index": 8
     },
     {
-        "name": "FUNCUBE-1 (AO-73)",
+        "name": "AO-73",
         "display_name": "AO-73",
         "up_mode": "LSB",
         "up_start": 435130000,
@@ -160,7 +160,7 @@
         "index": 9
     },
     {
-        "name": "ISS (ZARYA)",
+        "name": "ISS",
         "display_name": "ISS FM",
         "up_mode": "FM",
         "up_start": 145990000,
@@ -177,7 +177,7 @@
         "index": 10
     },
     {
-        "name": "SAUDISAT 1C (SO-50)",
+        "name": "SO-50",
         "display_name": "SO-50 FM",
         "up_mode": "FM",
         "up_start": 145850000,
@@ -194,7 +194,7 @@
         "index": 11
     },
     {
-        "name": "EYESAT A (AO-27)",
+        "name": "AO-27",
         "display_name": "AO-27 FM",
         "up_mode": "FM",
         "up_start": 436795000,
@@ -211,7 +211,7 @@
         "index": 12
     },
     {
-        "name": "DIWATA-2B",
+        "name": "PO-101",
         "display_name": "PO-101 DIWATA FM",
         "up_mode": "FM",
         "up_start": 437500000,
@@ -228,7 +228,7 @@
         "index": 13
     },
     {
-        "name": "RADFXSAT (FOX-1B)",
+        "name": "AO-91",
         "display_name": "AO-91(FOX-1B)FM",
         "up_mode": "FM",
         "up_start": 435250000,
@@ -243,5 +243,39 @@
         "beacon": 146960000,
         "saved_diff_freq": 0,
         "index": 14
+    },
+    {
+        "name": "SO-114",
+        "display_name": "EASAT-2",
+        "up_mode": "FM",
+        "up_start": 145875000,
+        "up_center": 145875000,
+        "up_end": 145875000,
+        "down_mode": "FM",
+        "down_start": 436666000,
+        "down_center": 436666000,
+        "down_end": 436666000,
+        "inverting": false,
+        "tone": "0.0",
+        "beacon": 145875000,
+        "saved_diff_freq": 0,
+        "index": 15
+    },
+    {
+        "name": "SO-115",
+        "display_name": "HADES",
+        "up_mode": "FM",
+        "up_start": 145925000,
+        "up_center": 145925000,
+        "up_end": 145925000,
+        "down_mode": "FM",
+        "down_start": 436888000,
+        "down_center": 436888000,
+        "down_end": 436888000,
+        "inverting": false,
+        "tone": "0.0",
+        "beacon": 145925000,
+        "saved_diff_freq": 0,
+        "index": 16
     }
 ]
