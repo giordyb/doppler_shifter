@@ -69,8 +69,8 @@ class Rig(object):
 
     def __init__(self, name, CONFIG) -> None:
         self.rig_name = name
-        self.q = Queue(maxsize=0)
-        self.status_q = Queue(maxsize=0)
+        self.q = Queue(maxsize=3)
+        self.status_q = Queue(maxsize=3)
         """self.thread = Thread(
             target=rig_loop, args=(self.q, self.status_q, CONFIG, name)
         )
