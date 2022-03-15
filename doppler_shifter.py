@@ -45,6 +45,7 @@ from libs.constants import (
     DEFAULT_RIG_DOWN,
     MIN_ELE,
     QUEUE_MAXSIZE,
+    BUTTON_FONT_SIZE
 )
 
 from libs.gpslib import poll_gps
@@ -150,9 +151,9 @@ class App(object):
         )
 
         common_theme = pygame_menu.themes.THEME_DEFAULT.copy()
-        common_theme.title_font_size = 26
+        common_theme.title_font_size = 35
         common_theme.font = pygame_menu.font.FONT_FIRACODE
-        common_theme.widget_font_size = 23
+        common_theme.widget_font_size = 30
         common_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
         common_theme.title_bar_style = (
             pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
@@ -178,7 +179,7 @@ class App(object):
         self.satselector.scale(1.4, 1.4)
 
         self.sat_menu.add.vertical_margin(30)
-        self.sat_menu.add.clock(font_size=25, font_name=pygame_menu.font.FONT_DIGITAL)
+        self.sat_menu.add.clock(font_size=30, font_name=pygame_menu.font.FONT_DIGITAL)
         self.sat_menu.add.button("Return to Menu", pygame_menu.events.BACK)
         self.sat_menu.add.button("Shutdown", shutdown)
         self.sat_menu.add.button("Quit", self.quit)
@@ -236,7 +237,7 @@ class App(object):
             title="Main Menu",
             width=W_SIZE,
             columns=2,
-            rows=7,
+            rows=8,
             touchscreen=True,
         )
         self.lock_bt = self.main_menu.add.button(
@@ -244,7 +245,9 @@ class App(object):
             self.lock_unlock_vfos,
             align=pygame_menu.locals.ALIGN_LEFT,
         )
-
+        self.aos_los_label = self.main_menu.add.label(
+            title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+        )
         self.up_label1 = self.main_menu.add.label(
             title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
         )
@@ -272,46 +275,46 @@ class App(object):
             self.sat_menu.get_title(),
             self.sat_menu,
             align=pygame_menu.locals.ALIGN_LEFT,
-            font_size=23,
+            font_size=BUTTON_FONT_SIZE,
         )
 
         self.radiobt = self.main_menu.add.button(
             self.radio_menu.get_title(),
             self.radio_menu,
             align=pygame_menu.locals.ALIGN_LEFT,
-            font_size=23,
+            font_size=BUTTON_FONT_SIZE,
         )
         self.bcnbt = self.main_menu.add.button(
             "Beacon",
             self.tune_beacon,
             align=pygame_menu.locals.ALIGN_LEFT,
-            font_size=23,
+            font_size=BUTTON_FONT_SIZE,
         )
         self.centerbt = self.main_menu.add.button(
             "Center",
             self.tune_center,
             align=pygame_menu.locals.ALIGN_LEFT,
-            font_size=23,
+            font_size=BUTTON_FONT_SIZE,
         )
 
         self.enablerot = self.main_menu.add.button(
             "Track",
             self.enable_rotator,
             align=pygame_menu.locals.ALIGN_LEFT,
-            font_size=23,
+            font_size=BUTTON_FONT_SIZE,
         )
         self.runbt = self.main_menu.add.button(
             "On/Off",
             lambda: self.start_stop(),
             align=pygame_menu.locals.ALIGN_LEFT,
-            font_size=23,
+            font_size=BUTTON_FONT_SIZE,
         )
         self.runbt._background_color = RED
         self.swapbt = self.main_menu.add.button(
             "swap",
             self.swap_rig,
             align=pygame_menu.locals.ALIGN_LEFT,
-            font_size=23,
+            font_size=BUTTON_FONT_SIZE,
         )
 
         self.change_sat(("", self.CONFIG.get("loaded_sat", 0)), self.CURRENT_SAT_CONFIG)
@@ -495,13 +498,15 @@ class App(object):
                     rotator_delay = pygame.time.get_ticks()
 
                 self.lock_bt.set_title(
-                    f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {self.DIFF_FREQ} AOS {strfdelta(aos,'%H:%M:%S')}"
-                )  # TXPWR {rf_level}%"
+                    f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {self.DIFF_FREQ}"
+                ) 
+                 # TXPWR {rf_level}%"
 
             else:
                 self.lock_bt.set_title(
-                    f"Az {az} El {ele} {self.DIFF_FREQ} AOS {strfdelta(aos,'%H:%M:%S')}"
+                    f"Az {az} El {ele} {self.DIFF_FREQ}"
                 )  # TX {rf_level}%")
+            self.aos_los_label.set_title(f"AOS {strfdelta(aos,'%H:%M:%S')} - LOS {strfdelta(los,'%H:%M:%S')}")
             if self.RUN:
                 self.RIG_DOWN.q.put(("freq", shifted_down))
                 self.RIG_UP.q.put(("freq", shifted_up))

@@ -3,9 +3,8 @@ import Hamlib
 import pygame_menu
 
 
-STEP = 50
-H_SIZE = 320
-W_SIZE = 480
+H_SIZE = 480
+W_SIZE = 800
 SAT_LIST = get_sat_list()
 RIG_STATUS = {
     -1: "ERR",
@@ -23,3 +22,4 @@ DEFAULT_RIG_UP = 0
 DEFAULT_RIG_DOWN = 1
 MIN_ELE = -3
 QUEUE_MAXSIZE = 3
+BUTTON_FONT_SIZE=35
