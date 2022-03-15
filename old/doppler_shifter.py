@@ -43,7 +43,6 @@ from libs.constants import (
     DEFAULT_RIG_UP,
     DEFAULT_RIG_DOWN,
 )
-from libs.gpslib import poll_gps
 from pygame.locals import Color
 from pygame_menu.widgets.core.widget import Widget
 

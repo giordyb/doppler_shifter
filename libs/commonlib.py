@@ -37,13 +37,13 @@ def create_slider(CURRENT_SAT_CONFIG, side):
         )
         default = CURRENT_SAT_CONFIG[f"{side}_center"]
     slider = pygame_menu.widgets.RangeSlider(
-        title="",
+        title=side.upper()[0],
         default_value=default,
         range_values=range_vals,
         increment=1,
         value_format=lambda x: f"{x:,.0f}".replace(",", "."),
         cursor=None,
-        range_width=300,
+        range_width=450,
     )
     slider.is_selectable = False
     slider.readonly = True

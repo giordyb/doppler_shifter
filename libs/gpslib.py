@@ -15,14 +15,14 @@ def poll_gps():
         for new_data in gps_socket:
             if new_data:
                 if counter > 10:
-                    return data_stream.lat, data_stream.lon, data_stream.alt
+                    return data_stream.lat, data_stream.lon, data_stream.alt, True
                 data_stream.unpack(new_data)
                 logging.warning(f"Altitude = {data_stream.alt}")
                 logging.warning(f"Latitude = {data_stream.lat}")
                 logging.warning(f"Longitude = { data_stream.lon}")
                 counter += 1
             else:
-                return "n/a", "n/a", "n/a"
+                return "n/a", "n/a", "n/a", False
     except:
         logging.warning("no gps")
-        return "n/a", "n/a", "n/a"
+        return "n/a", "n/a", "n/a", False
