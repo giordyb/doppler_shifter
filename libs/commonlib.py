@@ -5,6 +5,7 @@ import logging
 from .satlib import get_doppler_shift, get_shifted
 import datetime
 import time
+import ephem
 
 logger = logging.getLogger(__name__)
 
@@ -70,4 +71,6 @@ def recalc_shift_and_pos(
     shift_up = get_doppler_shift(CURRENT_UP_FREQ, CURRENT_SAT_OBJECT.range_velocity)
     shifted_down = get_shifted(CURRENT_DOWN_FREQ, shift_down, "down")
     shifted_up = get_shifted(CURRENT_UP_FREQ, shift_up, "up")
-    return az, ele, shift_down, shift_up, shifted_down, shifted_up
+    aos = ephem.localtime(CURRENT_SAT_OBJECT.rise_time) - datetime.datetime.now()
+    los = ephem.localtime(CURRENT_SAT_OBJECT.set_time) - datetime.datetime.now()
+    return az, ele, shift_down, shift_up, shifted_down, shifted_up, aos, los

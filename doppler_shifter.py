@@ -54,6 +54,24 @@ from pygame_menu.widgets.core.widget import Widget
 from random import randrange
 from typing import List, Tuple, Optional
 
+from string import Template
+
+
+class DeltaTemplate(Template):
+    delimiter = "%"
+
+
+def strfdelta(tdelta, fmt):
+    d = {"D": tdelta.days}
+    hours, rem = divmod(tdelta.seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    d["H"] = "{:02d}".format(hours)
+    d["M"] = "{:02d}".format(minutes)
+    d["S"] = "{:02d}".format(seconds)
+    t = DeltaTemplate(fmt)
+    return t.substitute(**d)
+
+
 all_args = argparse.ArgumentParser()
 all_args.add_argument(
     "-c",
@@ -447,6 +465,8 @@ class App(object):
                 shift_up,
                 shifted_down,
                 shifted_up,
+                aos,
+                los,
             ) = recalc_shift_and_pos(
                 observer,
                 self.CURRENT_SAT_OBJECT,
@@ -475,12 +495,12 @@ class App(object):
                     rotator_delay = pygame.time.get_ticks()
 
                 self.lock_bt.set_title(
-                    f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {self.DIFF_FREQ}"
+                    f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)} {self.DIFF_FREQ} AOS {strfdelta(aos,'%H:%M:%S')}"
                 )  # TXPWR {rf_level}%"
 
             else:
                 self.lock_bt.set_title(
-                    f"Az {az} El {ele} {self.DIFF_FREQ}"
+                    f"Az {az} El {ele} {self.DIFF_FREQ} AOS {strfdelta(aos,'%H:%M:%S')}"
                 )  # TX {rf_level}%")
             if self.RUN:
                 self.RIG_DOWN.q.put(("freq", shifted_down))
