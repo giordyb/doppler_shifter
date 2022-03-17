@@ -5,7 +5,12 @@ import logging
 import subprocess
 import argparse
 import json
-from ephem import degree
+import datetime
+import pandas as pd
+import ephem
+import matplotlib.pyplot as plt
+
+import numpy as np
 
 # from queue import Queue
 
@@ -282,6 +287,11 @@ class App(object):
         )
         self.sliderdown.readonly = True
         self.sliderdown._font_readonly_color = WHITE
+
+        # image_path = "./polar.png"
+        # polar_image = self.main_menu.add.image(image_path, scale=(0.3, 0.3), float=True)
+        # polar_image.translate(100, -300)
+
         self.sat_bt = self.main_menu.add.button(
             self.sat_menu.get_title(),
             self.sat_menu,
@@ -439,6 +449,37 @@ class App(object):
         self.set_slider()
         self.bcnbt._background_color = None
 
+    def plot_satellite(self, observer):
+        sat_alt, sat_az = [], []
+        observer.date = datetime.datetime.utcnow()
+        self.CURRENT_SAT_OBJECT.compute(observer)
+        next_pass = observer.next_pass(self.CURRENT_SAT_OBJECT)
+        sat_dates = pd.date_range(
+            str(next_pass[0]),
+            str(next_pass[4]),
+            periods=100,
+        ).tolist()
+        # sat_dates = [
+        #    datetime.datetime.now() + datetime.timedelta(minutes=1 * x)
+        #    for x in range(0, 30)
+        # ]
+
+        for date in sat_dates:
+            observer.date = date
+            self.CURRENT_SAT_OBJECT.compute(observer)
+            sat_alt.append(np.rad2deg(self.CURRENT_SAT_OBJECT.alt))
+            sat_az.append(self.CURRENT_SAT_OBJECT.az)
+            # sat_alt.append(int(str(self.CURRENT_SAT_OBJECT.alt).split(":")[0]))
+            # sat_az.append(int(str(self.CURRENT_SAT_OBJECT.az).split(":")[0]))
+        fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+        ax.plot(sat_az, 90 - np.array(sat_alt))
+        ax.set_theta_direction(-1)
+        ax.grid(True)
+        ax.set_theta_zero_location("N")
+        plt.ylim(0, 90)
+        plt.savefig("./polar.png", format="png")
+        plt.close()
+
     def swap_rig(self):
         RIG_TEMP = self.RIG_DOWN
         self.RIG_DOWN = self.RIG_UP
@@ -465,7 +506,7 @@ class App(object):
 
         observer, is_gps = get_observer(self.CONFIG)
         self.gpslabel.set_title(
-            f"GPS LOCK: {is_gps} LAT:{round(observer.lat/degree,4)} LON:{round(observer.lon/degree,4)}"
+            f"GPS LOCK: {is_gps} LAT:{round(observer.lat/ephem.degree,4)} LON:{round(observer.lon/ephem.degree,4)}"
         )
         pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
         pygame.display.set_icon(pygame_icon)
@@ -475,6 +516,7 @@ class App(object):
         curr_rot_azi, curr_rot_ele = 0, 0
         rigupstatus = "??"
         rigdownstatus = "??"
+
         while True:
 
             if self.CURRENT_SAT_CONFIG["up_mode"] != "FM":

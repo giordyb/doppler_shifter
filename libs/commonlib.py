@@ -71,6 +71,8 @@ def recalc_shift_and_pos(
     shift_up = get_doppler_shift(CURRENT_UP_FREQ, CURRENT_SAT_OBJECT.range_velocity)
     shifted_down = get_shifted(CURRENT_DOWN_FREQ, shift_down, "down")
     shifted_up = get_shifted(CURRENT_UP_FREQ, shift_up, "up")
-    aos = ephem.localtime(CURRENT_SAT_OBJECT.rise_time) - datetime.datetime.now()
-    los = ephem.localtime(CURRENT_SAT_OBJECT.set_time) - datetime.datetime.now()
+
+    next_pass = observer.next_pass(CURRENT_SAT_OBJECT)
+    aos = ephem.localtime(next_pass[0]) - datetime.datetime.now()
+    los = ephem.localtime(next_pass[4]) - datetime.datetime.now()
     return az, ele, shift_down, shift_up, shifted_down, shifted_up, aos, los
