@@ -101,6 +101,8 @@ def pygame2matplotlib(w, h):
 class PolarChart(object):
     dpi = 60
     inch = 4
+    previous_rotor_points = None
+    previous_current_points = None
 
     def __init__(self, main_menu) -> None:
         self.fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
@@ -111,7 +113,7 @@ class PolarChart(object):
         ax.set_theta_direction(-1)
         ax.set_rlim(bottom=90, top=-5)
         ax.set_yticks(np.arange(-1, 91, 15))
-        ax.set_yticklabels([])
+        # ax.set_yticklabels([])
         ax.grid(True)
         plt.ylim(0, 90)
         self.fig.patch.set_visible(False)
@@ -141,8 +143,9 @@ class PolarChart(object):
         observer, _ = get_observer(CONFIG)
         sat_alt, sat_az = [], []
         observer.date = datetime.datetime.utcnow()
+
         CURRENT_SAT_OBJECT.compute(observer)
-        next_pass = observer.next_pass(CURRENT_SAT_OBJECT)
+        next_pass = observer.next_pass(CURRENT_SAT_OBJECT, singlepass=True)
         sat_dates = pd.date_range(
             str(next_pass[0]),
             str(next_pass[4]),
@@ -158,13 +161,28 @@ class PolarChart(object):
             self.update_surface()
 
     def plot_current(self, curr_az, curr_el):
-        self.ax.plot(curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o")
-        plt.ylim(0, 90)
+        if isinstance(self.previous_current_points, List):
+            for point in self.previous_current_points:
+                point.remove()
+        self.ax.set_yticks(np.arange(-1, 91, 15))
+        self.ax.set_theta_zero_location("N")
+        self.ax.set_theta_direction(-1)
+        self.previous_current_points = self.ax.plot(
+            curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o"
+        )
         self.update_surface()
 
     def plot_rotor(self, rotor_az, rotor_el):
-        self.ax.plot(np.deg2rad(rotor_az), 90 - rotor_el, color="blue", marker="o")
-        plt.ylim(0, 90)
+        if isinstance(self.previous_rotor_points, List):
+            for point in self.previous_rotor_points:
+                point.remove()
+        self.ax.set_yticks(np.arange(-1, 91, 15))
+        self.ax.set_theta_zero_location("N")
+        self.ax.set_theta_direction(-1)
+        self.ax.set_rlim(bottom=90, top=-5)
+        self.previous_rotor_points = self.ax.plot(
+            np.deg2rad(rotor_az), 90 - rotor_el, color="green", marker="P"
+        )
         self.update_surface()
 
 
@@ -671,8 +689,8 @@ class App(object):
                 self.coordinates.set_title(
                     f"Az {az_deg} El {ele_deg}"
                 )  # TX {rf_level}%")
-            if ele_deg > 0:
-                self.polar.plot_current(az, ele)
+            # if ele_deg > 0:
+            self.polar.plot_current(az, ele)
             self.lockbutton.set_title(f"Lock {self.DIFF_FREQ}")
             self.aos_los_label.set_title(
                 f"AOS {strfdelta(aos,'%H:%M:%S')} - LOS {strfdelta(los,'%H:%M:%S')}"
