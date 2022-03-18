@@ -65,8 +65,10 @@ def recalc_shift_and_pos(
 ):
     observer.date = datetime.datetime.utcnow()
     CURRENT_SAT_OBJECT.compute(observer)
-    ele = str(CURRENT_SAT_OBJECT.alt).split(":")[0]
-    az = str(CURRENT_SAT_OBJECT.az).split(":")[0]
+    # ele = str(CURRENT_SAT_OBJECT.alt).split(":")[0]
+    ele = CURRENT_SAT_OBJECT.alt
+    # az = str(CURRENT_SAT_OBJECT.az).split(":")[0]
+    az = CURRENT_SAT_OBJECT.az
     shift_down = get_doppler_shift(CURRENT_DOWN_FREQ, CURRENT_SAT_OBJECT.range_velocity)
     shift_up = get_doppler_shift(CURRENT_UP_FREQ, CURRENT_SAT_OBJECT.range_velocity)
     shifted_down = get_shifted(CURRENT_DOWN_FREQ, shift_down, "down")

@@ -9,6 +9,10 @@ import datetime
 import pandas as pd
 import ephem
 import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.backends.backend_agg as agg
 
 import numpy as np
 
@@ -88,6 +92,80 @@ all_args.add_argument(
     default="config/config.json",
 )
 args = vars(all_args.parse_args())
+
+
+def pygame2matplotlib(w, h):
+    return {"figsize": (w, h), "dpi": 1}
+
+
+class PolarChart(object):
+    dpi = 60
+    inch = 4
+
+    def __init__(self, main_menu) -> None:
+        self.fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+        self.fig.set_dpi(self.dpi)
+        ax.set_xticklabels([])
+        self.fig.set_size_inches(self.inch, self.inch)
+        ax.set_theta_zero_location("N")
+        ax.set_theta_direction(-1)
+        ax.set_rlim(bottom=90, top=-5)
+        ax.set_yticks(np.arange(-1, 91, 15))
+        ax.set_yticklabels([])
+        ax.grid(True)
+        plt.ylim(0, 90)
+        self.fig.patch.set_visible(False)
+        self.canvas = agg.FigureCanvasAgg(self.fig)
+        self.canvas.draw()
+        renderer = self.canvas.get_renderer()
+        raw_data = renderer.buffer_rgba()
+        surf = pygame.image.frombuffer(
+            raw_data, (self.inch * self.dpi, self.inch * self.dpi), "RGBA"
+        )
+        sur = main_menu.add.surface(surf, float=True)
+        sur.translate(450, -430)
+        self.plt = plt
+        self.ax = ax
+
+    def update_surface(self):
+
+        self.canvas.draw()
+        renderer = self.canvas.get_renderer()
+        raw_data = renderer.buffer_rgba()
+        surf = pygame.image.frombuffer(
+            raw_data, (self.inch * self.dpi, self.inch * self.dpi), "RGBA"
+        )
+
+    def plot_next(self, CURRENT_SAT_OBJECT, CONFIG):
+        self.ax.cla()
+        observer, _ = get_observer(CONFIG)
+        sat_alt, sat_az = [], []
+        observer.date = datetime.datetime.utcnow()
+        CURRENT_SAT_OBJECT.compute(observer)
+        next_pass = observer.next_pass(CURRENT_SAT_OBJECT)
+        sat_dates = pd.date_range(
+            str(next_pass[0]),
+            str(next_pass[4]),
+            periods=30,
+        ).tolist()
+        for date in sat_dates:
+            observer.date = date
+            CURRENT_SAT_OBJECT.compute(observer)
+            sat_alt.append(np.rad2deg(CURRENT_SAT_OBJECT.alt))
+            sat_az.append(CURRENT_SAT_OBJECT.az)
+            self.ax.plot(sat_az, 90 - np.array(sat_alt), color="blue")
+            plt.ylim(0, 90)
+            self.update_surface()
+
+    def plot_current(self, curr_az, curr_el):
+        self.ax.plot(curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o")
+        plt.ylim(0, 90)
+        self.update_surface()
+
+    def plot_rotor(self, rotor_az, rotor_el):
+        self.ax.plot(np.deg2rad(rotor_az), 90 - rotor_el, color="blue", marker="o")
+        plt.ylim(0, 90)
+        self.update_surface()
 
 
 class Rig(object):
@@ -247,14 +325,15 @@ class App(object):
             columns=2,
             rows=9,
             touchscreen=True,
+            overflow=(False, False),
         )
 
         self.coordinates = self.main_menu.add.label(
             title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
         )
         self.main_menu.add.clock(
-            font_size=25,
-            font_name=pygame_menu.font.FONT_DIGITAL,
+            # font_size=30,
+            # font_name=pygame_menu.font.FONT_DIGITAL,
             padding=0,
         )
 
@@ -262,8 +341,8 @@ class App(object):
             title="",
             align=pygame_menu.locals.ALIGN_LEFT,
             padding=0,
-            font_name=pygame_menu.font.FONT_DIGITAL,
-            font_size=25,
+            # font_name=pygame_menu.font.FONT_DIGITAL,
+            # font_size=30,
         )
         self.up_label1 = self.main_menu.add.label(
             title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
@@ -287,61 +366,58 @@ class App(object):
         )
         self.sliderdown.readonly = True
         self.sliderdown._font_readonly_color = WHITE
-
-        # image_path = "./polar.png"
-        # polar_image = self.main_menu.add.image(image_path, scale=(0.3, 0.3), float=True)
-        # polar_image.translate(100, -300)
-
+        self.polar = PolarChart(self.main_menu)
         self.sat_bt = self.main_menu.add.button(
             self.sat_menu.get_title(),
             self.sat_menu,
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=pygame_menu.locals.ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
 
         self.radiobt = self.main_menu.add.button(
             self.radio_menu.get_title(),
             self.radio_menu,
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=pygame_menu.locals.ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
         self.bcnbt = self.main_menu.add.button(
             "Beacon",
             self.tune_beacon,
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=pygame_menu.locals.ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
         self.centerbt = self.main_menu.add.button(
             "Center",
             self.tune_center,
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=pygame_menu.locals.ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
 
         self.enablerot = self.main_menu.add.button(
             "Rotator Off",
             self.enable_rotator,
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=pygame_menu.locals.ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
         self.enablerot._background_color = RED
         self.runbt = self.main_menu.add.button(
             "Track Off",
             lambda: self.start_stop(),
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=pygame_menu.locals.ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
         self.runbt._background_color = RED
         self.lockbutton = self.main_menu.add.button(
             f"Lock {self.DIFF_FREQ}",
             self.lock_unlock_vfos,
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=pygame_menu.locals.ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
+
         self.swapbt = self.main_menu.add.button(
             "swap",
             self.swap_rig,
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=pygame_menu.locals.ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
 
@@ -400,6 +476,7 @@ class App(object):
 
         self.set_slider()
         self.CONFIG["loaded_sat"] = self.CURRENT_SAT_CONFIG["index"]
+        self.polar.plot_next(self.CURRENT_SAT_OBJECT, self.CONFIG)
 
     def tune_beacon(self):
         print("beacon")
@@ -449,36 +526,53 @@ class App(object):
         self.set_slider()
         self.bcnbt._background_color = None
 
-    def plot_satellite(self, observer):
-        sat_alt, sat_az = [], []
-        observer.date = datetime.datetime.utcnow()
-        self.CURRENT_SAT_OBJECT.compute(observer)
-        next_pass = observer.next_pass(self.CURRENT_SAT_OBJECT)
-        sat_dates = pd.date_range(
-            str(next_pass[0]),
-            str(next_pass[4]),
-            periods=100,
-        ).tolist()
-        # sat_dates = [
-        #    datetime.datetime.now() + datetime.timedelta(minutes=1 * x)
-        #    for x in range(0, 30)
-        # ]
-
-        for date in sat_dates:
-            observer.date = date
-            self.CURRENT_SAT_OBJECT.compute(observer)
-            sat_alt.append(np.rad2deg(self.CURRENT_SAT_OBJECT.alt))
-            sat_az.append(self.CURRENT_SAT_OBJECT.az)
-            # sat_alt.append(int(str(self.CURRENT_SAT_OBJECT.alt).split(":")[0]))
-            # sat_az.append(int(str(self.CURRENT_SAT_OBJECT.az).split(":")[0]))
+    """
+    def plot_satellite(self, observer, curr_az, curr_el):
         fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
-        ax.plot(sat_az, 90 - np.array(sat_alt))
-        ax.set_theta_direction(-1)
-        ax.grid(True)
+        fig.set_dpi(50)
+        inch = 3
+        ax.set_xticklabels([])
+        fig.set_size_inches(inch, inch)
         ax.set_theta_zero_location("N")
+        ax.set_theta_direction(-1)
+        ax.set_rlim(bottom=90, top=-5)
+        ax.set_yticks(np.arange(-1, 91, 15))
+        ax.set_yticklabels([])
+        ax.grid(True)
         plt.ylim(0, 90)
-        plt.savefig("./polar.png", format="png")
-        plt.close()
+        fig.patch.set_visible(False)
+
+        if np.rad2deg(curr_el) < 0:
+            sat_alt, sat_az = [], []
+            observer.date = datetime.datetime.utcnow()
+            self.CURRENT_SAT_OBJECT.compute(observer)
+            next_pass = observer.next_pass(self.CURRENT_SAT_OBJECT)
+            sat_dates = pd.date_range(
+                str(next_pass[0]),
+                str(next_pass[4]),
+                periods=30,
+            ).tolist()
+
+            for date in sat_dates:
+                observer.date = date
+                self.CURRENT_SAT_OBJECT.compute(observer)
+                sat_alt.append(np.rad2deg(self.CURRENT_SAT_OBJECT.alt))
+                sat_az.append(self.CURRENT_SAT_OBJECT.az)
+                ax.plot(sat_az, 90 - np.array(sat_alt), color="blue")
+        else:
+            ax.plot(curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o")
+
+        canvas = agg.FigureCanvasAgg(fig)
+
+        canvas.draw()
+        renderer = canvas.get_renderer()
+        raw_data = renderer.buffer_rgba()
+        surf = pygame.image.frombuffer(raw_data, (inch * 50, inch * 50), "RGBA")
+        sur = self.main_menu.add.surface(surf, float=True)
+        sur.translate(0, 0)
+        """
+    # plt.savefig("./polar.png", format="png")
+    # plt.close()
 
     def swap_rig(self):
         RIG_TEMP = self.RIG_DOWN
@@ -505,6 +599,7 @@ class App(object):
     def mainloop(self, test: bool) -> None:
 
         observer, is_gps = get_observer(self.CONFIG)
+        # self.polar.plot_next(observer, self.CURRENT_SAT_OBJECT)
         self.gpslabel.set_title(
             f"GPS LOCK: {is_gps} LAT:{round(observer.lat/ephem.degree,4)} LON:{round(observer.lon/ephem.degree,4)}"
         )
@@ -518,7 +613,6 @@ class App(object):
         rigdownstatus = "??"
 
         while True:
-
             if self.CURRENT_SAT_CONFIG["up_mode"] != "FM":
                 sidestring = f"BCN {self.CURRENT_SAT_CONFIG.get('beacon',self.CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
                     ",", "."
@@ -544,35 +638,41 @@ class App(object):
                 self.CURRENT_UP_FREQ,
                 self.CURRENT_DOWN_FREQ,
             )
-
+            # self.plot_satellite(observer, az, ele)
+            az_deg = round(np.rad2deg(az))
+            ele_deg = round(np.rad2deg(ele))
             if self.ROTATOR:
                 if pygame.time.get_ticks() - rotator_delay > 1000:
                     if not self.ROT.position_q.empty():
                         curr_rot_azi, curr_rot_ele = self.ROT.position_q.get()
-                    rot_azi = float(az)
+                    rot_azi = az_deg
                     rot_ele = 0.0
-                    if float(ele) > MIN_ELE and (
+                    if ele_deg > MIN_ELE and (
                         rot_azi in range(int(az_rangelist1[0]), int(az_rangelist1[1]))
                         or (
                             rot_azi
                             in range(int(az_rangelist2[0]), int(az_rangelist2[1]))
                         )
                     ):
-                        if float(ele) >= 0:
-                            rot_ele = float(ele)
+                        if ele_deg >= 0:
+                            rot_ele = ele_deg
 
                         logger.warning(f"tracking az {rot_azi} ele {rot_ele}")
                         self.ROT.q.put(("position", (rot_azi, rot_ele)), block=True)
                     rotator_delay = pygame.time.get_ticks()
 
                 self.coordinates.set_title(
-                    f"Az {az}/{int(curr_rot_azi)} El {ele}/{int(curr_rot_ele)}"
+                    f"Az {az_deg}/{int(curr_rot_azi)} El {ele_deg}/{int(curr_rot_ele)}"
                 )
+                self.polar.plot_rotor(curr_rot_azi, curr_rot_ele)
                 # TXPWR {rf_level}%"
 
             else:
-                self.coordinates.set_title(f"Az {az} El {ele}")  # TX {rf_level}%")
-
+                self.coordinates.set_title(
+                    f"Az {az_deg} El {ele_deg}"
+                )  # TX {rf_level}%")
+            if ele_deg > 0:
+                self.polar.plot_current(az, ele)
             self.lockbutton.set_title(f"Lock {self.DIFF_FREQ}")
             self.aos_los_label.set_title(
                 f"AOS {strfdelta(aos,'%H:%M:%S')} - LOS {strfdelta(los,'%H:%M:%S')}"
