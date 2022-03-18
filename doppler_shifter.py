@@ -101,7 +101,7 @@ def pygame2matplotlib(w, h):
 
 
 class PolarChart(object):
-    dpi = 60
+    dpi = 65
     inch = 4
     previous_rotor_points = None
     previous_current_points = None
@@ -123,22 +123,14 @@ class PolarChart(object):
             raw_data, (self.inch * self.dpi, self.inch * self.dpi), "RGBA"
         )
         sur = main_menu.add.surface(surf, float=True)
-        sur.translate(450, -430)
+        sur.translate(440, -425)
         self.plt = plt
-
-    def update_surface(self):
-        self.canvas.draw()
-        renderer = self.canvas.get_renderer()
-        raw_data = renderer.buffer_rgba()
-        surf = pygame.image.frombuffer(
-            raw_data, (self.inch * self.dpi, self.inch * self.dpi), "RGBA"
-        )
 
     def fix_axis(self):
         self.ax.set_theta_zero_location("N")
         self.ax.set_theta_direction(-1)
         self.ax.set_rlim(bottom=-5, top=90)
-        self.ax.set_yticks(np.arange(-1, 91, 15))
+        self.ax.set_yticks(np.arange(-5, 91, 15))
         self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
 
     def plot_next(self, CURRENT_SAT_OBJECT, observer, aos, los):
@@ -161,27 +153,25 @@ class PolarChart(object):
         self.ax.scatter(
             sat_az, 90 - np.array(sat_alt), cmap=colormap, c=range(0, len(sat_alt))
         )
-        self.update_surface()
+        self.canvas.draw()
 
     def plot_current(self, curr_az, curr_el):
         if isinstance(self.previous_current_points, List):
             for point in self.previous_current_points:
                 point.remove()
-        # self.fix_axis()
         self.previous_current_points = self.ax.plot(
             curr_az, 90 - np.rad2deg(curr_el), color="green", marker="o", markersize=10  # type: ignore
         )
-        self.update_surface()
+        self.canvas.draw()
 
     def plot_rotator(self, rotor_az, rotor_el):
         if isinstance(self.previous_rotor_points, List):
             for point in self.previous_rotor_points:
                 point.remove()
-        # self.fix_axis()
         self.previous_rotor_points = self.ax.plot(
             np.deg2rad(rotor_az), 90 - rotor_el, color="blue", marker="s", markersize=10  # type: ignore
         )
-        self.update_surface()
+        self.canvas.draw()
 
 
 class Rig(object):
