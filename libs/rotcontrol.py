@@ -28,7 +28,7 @@ class RotWrapper:
         # logger.warning(f"got position {self.rot.get_position()}")
 
     def get_position(self):
-        # logger.warning(f"got rotator position {self.rot.get_position()}")
+        # logger.warning(f"sending rotator position {self.rot.get_position()}")
         return self.rot.get_position()
 
 
@@ -43,13 +43,13 @@ def rot_loop(q, position_q, CONFIG):
             if command == "config":
                 ROT = RotWrapper(CONFIG)
                 logger.warning(ROT.rot.error_status)
-            elif command == "position":
+            elif command == "set_position":
                 ROT.set_position(value)
-        try:
-            status = ROT.rot.error_status
-            if status != 0:
-                raise
-            time.sleep(1)
-            position_q.put(ROT.get_position())
-        except:
-            position_q.put((99, 99))
+            elif command == "get_position":
+                try:
+                    status = ROT.rot.error_status
+                    if status != 0:
+                        raise
+                    position_q.put(ROT.get_position())
+                except:
+                    position_q.put((99, 99))

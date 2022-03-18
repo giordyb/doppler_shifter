@@ -141,36 +141,35 @@ class PolarChart(object):
         self.ax.set_yticks(np.arange(-1, 91, 15))
         self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
 
-    def plot_next(self, CURRENT_SAT_OBJECT, CONFIG):
+    def plot_next(self, CURRENT_SAT_OBJECT, observer, aos, los):
         self.ax.cla()
-        observer, _ = get_observer(CONFIG)
-
         sat_alt, sat_az = [], []
-        observer.date = datetime.datetime.utcnow()
-
-        CURRENT_SAT_OBJECT.compute(observer)
-        next_pass = observer.next_pass(CURRENT_SAT_OBJECT, singlepass=True)
         sat_dates = pd.date_range(
-            str(next_pass[0]),
-            str(next_pass[4]),
+            str(aos),
+            str(los),
             periods=30,
         ).tolist()
         for date in sat_dates:
             observer.date = date
             CURRENT_SAT_OBJECT.compute(observer)
+
             sat_az.append(CURRENT_SAT_OBJECT.az)
             sat_alt.append(np.rad2deg(CURRENT_SAT_OBJECT.alt))  # type: ignore
         self.fix_axis()
-        self.ax.plot(sat_az, 90 - np.array(sat_alt), color="blue")
+        colormap = plt.get_cmap("autumn")
+
+        self.ax.scatter(
+            sat_az, 90 - np.array(sat_alt), cmap=colormap, c=range(0, len(sat_alt))
+        )
         self.update_surface()
 
     def plot_current(self, curr_az, curr_el):
         if isinstance(self.previous_current_points, List):
             for point in self.previous_current_points:
                 point.remove()
-        self.fix_axis()
+        # self.fix_axis()
         self.previous_current_points = self.ax.plot(
-            curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o", markersize=10  # type: ignore
+            curr_az, 90 - np.rad2deg(curr_el), color="green", marker="o", markersize=10  # type: ignore
         )
         self.update_surface()
 
@@ -178,7 +177,7 @@ class PolarChart(object):
         if isinstance(self.previous_rotor_points, List):
             for point in self.previous_rotor_points:
                 point.remove()
-        self.fix_axis()
+        # self.fix_axis()
         self.previous_rotor_points = self.ax.plot(
             np.deg2rad(rotor_az), 90 - rotor_el, color="blue", marker="s", markersize=10  # type: ignore
         )
@@ -223,6 +222,8 @@ class App(object):
     RUN = False
     ROTATOR = False
     ON_BEACON = False
+    AOS = None
+    LOS = None
 
     def __init__(self, args) -> None:
         self.CONFIG = load_conf(args["configpath"])
@@ -252,7 +253,7 @@ class App(object):
         )
 
         common_theme = pygame_menu.themes.THEME_DEFAULT.copy()  # type: ignore
-        common_theme.title_font_size = 35
+        common_theme.title_font_size = 30
         common_theme.font = pygame_menu.font.FONT_FIRACODE  # type: ignore
         common_theme.widget_font_size = WIDGET_FONT_SIZE
         common_theme.widget_alignment = ALIGN_LEFT
@@ -493,7 +494,16 @@ class App(object):
 
         self.set_slider()
         self.CONFIG["loaded_sat"] = self.CURRENT_SAT_CONFIG["index"]
-        self.polar.plot_next(self.CURRENT_SAT_OBJECT, self.CONFIG)
+        observer, _ = get_observer(self.CONFIG)
+        observer.date = datetime.datetime.utcnow()
+        self.CURRENT_SAT_OBJECT.compute(observer)
+        next_pass = observer.next_pass(self.CURRENT_SAT_OBJECT, singlepass=True)
+        self.AOS = next_pass[0]
+        self.LOS = next_pass[4]
+
+        self.polar.plot_next(
+            self.CURRENT_SAT_OBJECT, observer, next_pass[0], next_pass[4]
+        )
 
     def tune_beacon(self):
         print("beacon")
@@ -529,7 +539,7 @@ class App(object):
     def enable_rotator(self):
         if self.ROTATOR:
             self.ROTATOR = False
-            self.ROT.q.put(("position", (0, 0)))
+            self.ROT.q.put(("set_position", (0, 0)))
             self.enablerot._background_color = RED
             self.enablerot.set_title("Rotator Off")
         else:
@@ -568,7 +578,6 @@ class App(object):
     def mainloop(self, test: bool) -> None:
 
         observer, is_gps = get_observer(self.CONFIG)
-        # self.polar.plot_next(observer, self.CURRENT_SAT_OBJECT)
         self.gpslabel.set_title(  # type: ignore
             f"GPS LOCK: {is_gps} LAT:{round(observer.lat/ephem.degree,4)} LON:{round(observer.lon/ephem.degree,4)}"
         )
@@ -599,22 +608,27 @@ class App(object):
                 shift_up,
                 shifted_down,
                 shifted_up,
-                aos,
-                los,
+                aos_remaining,
+                los_remaining,
             ) = recalc_shift_and_pos(
                 observer,
                 self.CURRENT_SAT_OBJECT,
                 self.CURRENT_UP_FREQ,
                 self.CURRENT_DOWN_FREQ,
+                self.AOS,
+                self.LOS,
             )
             # self.plot_satellite(observer, az, ele)
             az_deg = round(np.rad2deg(az))  # type: ignore
             ele_deg = round(np.rad2deg(ele))  # type: ignore
+
             if self.ROTATOR:
                 if pygame.time.get_ticks() - rotator_delay > 1000:
                     if not self.ROT.position_q.empty():
                         curr_rot_azi, curr_rot_ele = self.ROT.position_q.get()
                         self.polar.plot_rotator(curr_rot_azi, curr_rot_ele)
+                    else:
+                        self.ROT.q.put(("get_position", None), block=True)
                     rot_azi = az_deg
                     rot_ele = 0.0
                     if ele_deg > MIN_ELE and (
@@ -628,7 +642,7 @@ class App(object):
                             rot_ele = ele_deg
 
                         logger.warning(f"tracking az {rot_azi} ele {rot_ele}")
-                        self.ROT.q.put(("position", (rot_azi, rot_ele)), block=True)
+                        self.ROT.q.put(("set_position", (rot_azi, rot_ele)), block=True)
                     rotator_delay = pygame.time.get_ticks()
 
                 self.coordinates.set_title(  # type: ignore
@@ -643,7 +657,7 @@ class App(object):
                 self.polar.plot_current(az, ele)
             self.lockbutton.set_title(f"Lock {self.DIFF_FREQ}")
             self.aos_los_label.set_title(  # type: ignore
-                f"AOS {strfdelta(aos,'%H:%M:%S')} - LOS {strfdelta(los,'%H:%M:%S')}"
+                f"AOS {strfdelta(aos_remaining,'%H:%M:%S')} - LOS {strfdelta(los_remaining,'%H:%M:%S')}"
             )
             if self.RUN:
                 self.RIG_DOWN.q.put(("freq", shifted_down))

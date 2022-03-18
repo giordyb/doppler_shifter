@@ -61,7 +61,7 @@ def restart_rig(side):
 
 
 def recalc_shift_and_pos(
-    observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ
+    observer, CURRENT_SAT_OBJECT, CURRENT_UP_FREQ, CURRENT_DOWN_FREQ, AOS, LOS
 ):
     observer.date = datetime.datetime.utcnow()
     CURRENT_SAT_OBJECT.compute(observer)
@@ -74,7 +74,21 @@ def recalc_shift_and_pos(
     shifted_down = get_shifted(CURRENT_DOWN_FREQ, shift_down, "down")
     shifted_up = get_shifted(CURRENT_UP_FREQ, shift_up, "up")
 
-    next_pass = observer.next_pass(CURRENT_SAT_OBJECT)
-    aos = ephem.localtime(next_pass[0]) - datetime.datetime.now()
-    los = ephem.localtime(next_pass[4]) - datetime.datetime.now()
-    return az, ele, shift_down, shift_up, shifted_down, shifted_up, aos, los
+    if (ephem.localtime(AOS) - datetime.datetime.now()).days == 0:
+        aos_remaining = ephem.localtime(AOS) - datetime.datetime.now()
+    else:
+        aos_remaining = datetime.timedelta(0)
+    if (ephem.localtime(LOS) - datetime.datetime.now()).days == 0:
+        los_remaining = ephem.localtime(LOS) - datetime.datetime.now()
+    else:
+        los_remaining = datetime.timedelta(0)
+    return (
+        az,
+        ele,
+        shift_down,
+        shift_up,
+        shifted_down,
+        shifted_up,
+        aos_remaining,
+        los_remaining,
+    )
