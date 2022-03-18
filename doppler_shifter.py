@@ -105,17 +105,13 @@ class PolarChart(object):
     previous_current_points = None
 
     def __init__(self, main_menu) -> None:
-        self.fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
+        self.fig, self.ax = plt.subplots(subplot_kw={"projection": "polar"})
         self.fig.set_dpi(self.dpi)
-        ax.set_xticklabels([])
+        self.ax.set_xticklabels([])
         self.fig.set_size_inches(self.inch, self.inch)
-        ax.set_theta_zero_location("N")
-        ax.set_theta_direction(-1)
-        ax.set_rlim(bottom=90, top=-5)
-        ax.set_yticks(np.arange(-1, 91, 15))
-        # ax.set_yticklabels([])
-        ax.grid(True)
-        plt.ylim(0, 90)
+        self.ax.set_theta_zero_location("N")
+        self.ax.set_theta_direction(-1)
+        self.ax.grid(True)
         self.fig.patch.set_visible(False)
         self.canvas = agg.FigureCanvasAgg(self.fig)
         self.canvas.draw()
@@ -127,10 +123,8 @@ class PolarChart(object):
         sur = main_menu.add.surface(surf, float=True)
         sur.translate(450, -430)
         self.plt = plt
-        self.ax = ax
 
     def update_surface(self):
-
         self.canvas.draw()
         renderer = self.canvas.get_renderer()
         raw_data = renderer.buffer_rgba()
@@ -154,34 +148,44 @@ class PolarChart(object):
         for date in sat_dates:
             observer.date = date
             CURRENT_SAT_OBJECT.compute(observer)
-            sat_alt.append(np.rad2deg(CURRENT_SAT_OBJECT.alt))
             sat_az.append(CURRENT_SAT_OBJECT.az)
-            self.ax.plot(sat_az, 90 - np.array(sat_alt), color="blue")
-            plt.ylim(0, 90)
-            self.update_surface()
+            sat_alt.append(np.rad2deg(CURRENT_SAT_OBJECT.alt))
+
+        self.ax.set_theta_zero_location("N")
+        self.ax.set_theta_direction(-1)
+        self.ax.set_rlim(bottom=-5, top=90)
+        self.ax.set_yticks(np.arange(-1, 91, 15))
+        self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
+        self.ax.plot(sat_az, 90 - np.array(sat_alt), color="blue")
+        self.update_surface()
 
     def plot_current(self, curr_az, curr_el):
         if isinstance(self.previous_current_points, List):
             for point in self.previous_current_points:
                 point.remove()
-        self.ax.set_yticks(np.arange(-1, 91, 15))
         self.ax.set_theta_zero_location("N")
         self.ax.set_theta_direction(-1)
+        self.ax.set_rlim(bottom=-5, top=90)
+        self.ax.set_yticks(np.arange(-1, 91, 15))
+        self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
+        plt.ylim(0, 90)
         self.previous_current_points = self.ax.plot(
-            curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o"
+            curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o", markersize=10
         )
         self.update_surface()
 
-    def plot_rotor(self, rotor_az, rotor_el):
+    def plot_rotator(self, rotor_az, rotor_el):
         if isinstance(self.previous_rotor_points, List):
             for point in self.previous_rotor_points:
                 point.remove()
-        self.ax.set_yticks(np.arange(-1, 91, 15))
         self.ax.set_theta_zero_location("N")
         self.ax.set_theta_direction(-1)
-        self.ax.set_rlim(bottom=90, top=-5)
+        self.ax.set_rlim(bottom=-5, top=90)
+        self.ax.set_yticks(np.arange(-1, 91, 15))
+        self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
+        plt.ylim(0, 90)
         self.previous_rotor_points = self.ax.plot(
-            np.deg2rad(rotor_az), 90 - rotor_el, color="green", marker="P"
+            np.deg2rad(rotor_az), 90 - rotor_el, color="blue", marker="s", markersize=10
         )
         self.update_surface()
 
@@ -544,54 +548,6 @@ class App(object):
         self.set_slider()
         self.bcnbt._background_color = None
 
-    """
-    def plot_satellite(self, observer, curr_az, curr_el):
-        fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
-        fig.set_dpi(50)
-        inch = 3
-        ax.set_xticklabels([])
-        fig.set_size_inches(inch, inch)
-        ax.set_theta_zero_location("N")
-        ax.set_theta_direction(-1)
-        ax.set_rlim(bottom=90, top=-5)
-        ax.set_yticks(np.arange(-1, 91, 15))
-        ax.set_yticklabels([])
-        ax.grid(True)
-        plt.ylim(0, 90)
-        fig.patch.set_visible(False)
-
-        if np.rad2deg(curr_el) < 0:
-            sat_alt, sat_az = [], []
-            observer.date = datetime.datetime.utcnow()
-            self.CURRENT_SAT_OBJECT.compute(observer)
-            next_pass = observer.next_pass(self.CURRENT_SAT_OBJECT)
-            sat_dates = pd.date_range(
-                str(next_pass[0]),
-                str(next_pass[4]),
-                periods=30,
-            ).tolist()
-
-            for date in sat_dates:
-                observer.date = date
-                self.CURRENT_SAT_OBJECT.compute(observer)
-                sat_alt.append(np.rad2deg(self.CURRENT_SAT_OBJECT.alt))
-                sat_az.append(self.CURRENT_SAT_OBJECT.az)
-                ax.plot(sat_az, 90 - np.array(sat_alt), color="blue")
-        else:
-            ax.plot(curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o")
-
-        canvas = agg.FigureCanvasAgg(fig)
-
-        canvas.draw()
-        renderer = canvas.get_renderer()
-        raw_data = renderer.buffer_rgba()
-        surf = pygame.image.frombuffer(raw_data, (inch * 50, inch * 50), "RGBA")
-        sur = self.main_menu.add.surface(surf, float=True)
-        sur.translate(0, 0)
-        """
-    # plt.savefig("./polar.png", format="png")
-    # plt.close()
-
     def swap_rig(self):
         RIG_TEMP = self.RIG_DOWN
         self.RIG_DOWN = self.RIG_UP
@@ -663,6 +619,7 @@ class App(object):
                 if pygame.time.get_ticks() - rotator_delay > 1000:
                     if not self.ROT.position_q.empty():
                         curr_rot_azi, curr_rot_ele = self.ROT.position_q.get()
+                        self.polar.plot_rotator(curr_rot_azi, curr_rot_ele)
                     rot_azi = az_deg
                     rot_ele = 0.0
                     if ele_deg > MIN_ELE and (
@@ -682,15 +639,13 @@ class App(object):
                 self.coordinates.set_title(
                     f"Az {az_deg}/{int(curr_rot_azi)} El {ele_deg}/{int(curr_rot_ele)}"
                 )
-                self.polar.plot_rotor(curr_rot_azi, curr_rot_ele)
-                # TXPWR {rf_level}%"
 
             else:
                 self.coordinates.set_title(
                     f"Az {az_deg} El {ele_deg}"
                 )  # TX {rf_level}%")
-            # if ele_deg > 0:
-            self.polar.plot_current(az, ele)
+            if ele_deg > 0:
+                self.polar.plot_current(az, ele)
             self.lockbutton.set_title(f"Lock {self.DIFF_FREQ}")
             self.aos_los_label.set_title(
                 f"AOS {strfdelta(aos,'%H:%M:%S')} - LOS {strfdelta(los,'%H:%M:%S')}"
@@ -700,10 +655,8 @@ class App(object):
                 self.RIG_UP.q.put(("freq", shifted_up))
                 if not self.RIG_UP.status_q.empty():
                     rigupstatus = RIG_STATUS.get(self.RIG_UP.status_q.get())
-                    # self.RIG_UP.status_q.task_done()
                 if not self.RIG_DOWN.status_q.empty():
                     rigdownstatus = RIG_STATUS.get(self.RIG_DOWN.status_q.get())
-                    # self.RIG_DOWN.status_q.task_done()
 
             self.up_label1.set_title(
                 f"UP: {self.CURRENT_UP_FREQ:,.0f} - {self.CURRENT_SAT_CONFIG['up_mode']} - {self.RIG_UP.rig_name}:{rigupstatus}".replace(

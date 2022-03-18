@@ -51,5 +51,5 @@
         "range2": "0-180"
     },
     "sat_url": "https://www.amsat.org/tle/current/nasabare.txt",
-    "loaded_sat": 0
+    "loaded_sat": 10
 }

@@ -25,14 +25,19 @@ class RotWrapper:
             self.rot.set_position(azi, ele)
         except:
             logger.warning("crash")
-        logger.warning(f"got position {self.rot.get_position()}")
+        # logger.warning(f"got position {self.rot.get_position()}")
+
+    def get_position(self):
+        # logger.warning(f"got rotator position {self.rot.get_position()}")
+        return self.rot.get_position()
 
 
 def rot_loop(q, position_q, CONFIG):
     while True:
-        # if not q.empty():
-        queue_values = q.get()
-        print(queue_values)
+
+        queue_values = None
+        if not q.empty():
+            queue_values = q.get()
         if isinstance(queue_values, tuple):
             command, value = queue_values
             if command == "config":
@@ -44,8 +49,7 @@ def rot_loop(q, position_q, CONFIG):
             status = ROT.rot.error_status
             if status != 0:
                 raise
-            else:
-                position_q.put(ROT.rot.get_position())
-
+            time.sleep(1)
+            position_q.put(ROT.get_position())
         except:
             position_q.put((99, 99))
