@@ -132,6 +132,13 @@ class PolarChart(object):
             raw_data, (self.inch * self.dpi, self.inch * self.dpi), "RGBA"
         )
 
+    def fix_axis(self):
+        self.ax.set_theta_zero_location("N")
+        self.ax.set_theta_direction(-1)
+        self.ax.set_rlim(bottom=-5, top=90)
+        self.ax.set_yticks(np.arange(-1, 91, 15))
+        self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
+
     def plot_next(self, CURRENT_SAT_OBJECT, CONFIG):
         self.ax.cla()
         observer, _ = get_observer(CONFIG)
@@ -150,12 +157,7 @@ class PolarChart(object):
             CURRENT_SAT_OBJECT.compute(observer)
             sat_az.append(CURRENT_SAT_OBJECT.az)
             sat_alt.append(np.rad2deg(CURRENT_SAT_OBJECT.alt))
-
-        self.ax.set_theta_zero_location("N")
-        self.ax.set_theta_direction(-1)
-        self.ax.set_rlim(bottom=-5, top=90)
-        self.ax.set_yticks(np.arange(-1, 91, 15))
-        self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
+        self.fix_axis()
         self.ax.plot(sat_az, 90 - np.array(sat_alt), color="blue")
         self.update_surface()
 
@@ -163,12 +165,7 @@ class PolarChart(object):
         if isinstance(self.previous_current_points, List):
             for point in self.previous_current_points:
                 point.remove()
-        self.ax.set_theta_zero_location("N")
-        self.ax.set_theta_direction(-1)
-        self.ax.set_rlim(bottom=-5, top=90)
-        self.ax.set_yticks(np.arange(-1, 91, 15))
-        self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
-        plt.ylim(0, 90)
+        self.fix_axis()
         self.previous_current_points = self.ax.plot(
             curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o", markersize=10
         )
@@ -178,12 +175,7 @@ class PolarChart(object):
         if isinstance(self.previous_rotor_points, List):
             for point in self.previous_rotor_points:
                 point.remove()
-        self.ax.set_theta_zero_location("N")
-        self.ax.set_theta_direction(-1)
-        self.ax.set_rlim(bottom=-5, top=90)
-        self.ax.set_yticks(np.arange(-1, 91, 15))
-        self.ax.set_yticklabels(self.ax.get_yticks()[::-1])
-        plt.ylim(0, 90)
+        self.fix_axis()
         self.previous_rotor_points = self.ax.plot(
             np.deg2rad(rotor_az), 90 - rotor_el, color="blue", marker="s", markersize=10
         )
