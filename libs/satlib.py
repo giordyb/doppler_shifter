@@ -102,7 +102,7 @@ def get_shifted(freq, doppler, side):
 
 
 def get_observer(CONFIG):
-    lat, lon, ele, is_gps= poll_gps()
+    lat, lon, ele, is_gps = poll_gps()
     obs = ephem.Observer()  # recreate Oberserver with current time
     if lat != "n/a" and lon != "n/a" and ele != "n/a":
         obs.lon = lon

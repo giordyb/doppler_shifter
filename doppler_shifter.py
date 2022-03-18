@@ -10,6 +10,8 @@ import pandas as pd
 import ephem
 import matplotlib.pyplot as plt
 import matplotlib
+from pygame_menu.locals import ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT
+from pygame_menu.events import RESET, BACK
 
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
@@ -142,6 +144,7 @@ class PolarChart(object):
     def plot_next(self, CURRENT_SAT_OBJECT, CONFIG):
         self.ax.cla()
         observer, _ = get_observer(CONFIG)
+
         sat_alt, sat_az = [], []
         observer.date = datetime.datetime.utcnow()
 
@@ -156,7 +159,7 @@ class PolarChart(object):
             observer.date = date
             CURRENT_SAT_OBJECT.compute(observer)
             sat_az.append(CURRENT_SAT_OBJECT.az)
-            sat_alt.append(np.rad2deg(CURRENT_SAT_OBJECT.alt))
+            sat_alt.append(np.rad2deg(CURRENT_SAT_OBJECT.alt))  # type: ignore
         self.fix_axis()
         self.ax.plot(sat_az, 90 - np.array(sat_alt), color="blue")
         self.update_surface()
@@ -167,7 +170,7 @@ class PolarChart(object):
                 point.remove()
         self.fix_axis()
         self.previous_current_points = self.ax.plot(
-            curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o", markersize=10
+            curr_az, 90 - np.rad2deg(curr_el), color="red", marker="o", markersize=10  # type: ignore
         )
         self.update_surface()
 
@@ -177,7 +180,7 @@ class PolarChart(object):
                 point.remove()
         self.fix_axis()
         self.previous_rotor_points = self.ax.plot(
-            np.deg2rad(rotor_az), 90 - rotor_el, color="blue", marker="s", markersize=10
+            np.deg2rad(rotor_az), 90 - rotor_el, color="blue", marker="s", markersize=10  # type: ignore
         )
         self.update_surface()
 
@@ -248,18 +251,18 @@ class App(object):
             "Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN
         )
 
-        common_theme = pygame_menu.themes.THEME_DEFAULT.copy()
+        common_theme = pygame_menu.themes.THEME_DEFAULT.copy()  # type: ignore
         common_theme.title_font_size = 35
-        common_theme.font = pygame_menu.font.FONT_FIRACODE
+        common_theme.font = pygame_menu.font.FONT_FIRACODE  # type: ignore
         common_theme.widget_font_size = WIDGET_FONT_SIZE
-        common_theme.widget_alignment = pygame_menu.locals.ALIGN_LEFT
+        common_theme.widget_alignment = ALIGN_LEFT
         common_theme.title_bar_style = (
-            pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL
+            pygame_menu.widgets.MENUBAR_STYLE_TITLE_ONLY_DIAGONAL  # type: ignore
         )
 
         self.sat_menu = pygame_menu.Menu(
             height=H_SIZE,
-            onclose=pygame_menu.events.RESET,
+            onclose=RESET,
             title="Sats",
             width=W_SIZE,
             theme=common_theme,
@@ -280,7 +283,7 @@ class App(object):
 
         self.gpslabel = self.sat_menu.add.label("None")
         self.sat_menu.add.vertical_margin(30)
-        self.sat_menu.add.button("Return to Menu", pygame_menu.events.BACK)
+        self.sat_menu.add.button("Return to Menu", BACK)  # type: ignore
         self.sat_menu.add.button("Shutdown", shutdown)
         self.sat_menu.add.button("Quit", self.quit)
 
@@ -324,7 +327,7 @@ class App(object):
             default=1,
         )
         self.radio_menu.add.vertical_margin(25)
-        self.radio_menu.add.button("Return to Menu", pygame_menu.events.BACK)
+        self.radio_menu.add.button("Return to Menu", BACK)  # type: ignore
 
         # -------------------------------------------------------------------------
         # Create Main menu
@@ -343,7 +346,7 @@ class App(object):
         )
 
         self.coordinates = self.main_menu.add.label(
-            title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+            title="", align=ALIGN_LEFT, padding=0  # type: ignore
         )
         self.main_menu.add.clock(
             # font_size=30,
@@ -353,22 +356,22 @@ class App(object):
 
         self.aos_los_label = self.main_menu.add.label(
             title="",
-            align=pygame_menu.locals.ALIGN_LEFT,
+            align=ALIGN_LEFT,
             padding=0,
             # font_name=pygame_menu.font.FONT_DIGITAL,
             # font_size=30,
         )
         self.up_label1 = self.main_menu.add.label(
-            title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+            title="", align=ALIGN_LEFT, padding=0  # type: ignore
         )
         self.up_label2 = self.main_menu.add.label(
-            title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+            title="", align=ALIGN_LEFT, padding=0  # type: ignore
         )
         self.down_label1 = self.main_menu.add.label(
-            title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+            title="", align=ALIGN_LEFT, padding=0  # type: ignore
         )
         self.down_label2 = self.main_menu.add.label(
-            title="", align=pygame_menu.locals.ALIGN_LEFT, padding=0
+            title="", align=ALIGN_LEFT, padding=0  # type: ignore
         )
         self.sliderup = self.main_menu.add.generic_widget(
             self.RANGE_SLIDER_UP, configure_defaults=True
@@ -384,54 +387,54 @@ class App(object):
         self.sat_bt = self.main_menu.add.button(
             self.sat_menu.get_title(),
             self.sat_menu,
-            align=pygame_menu.locals.ALIGN_RIGHT,
+            align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
 
         self.radiobt = self.main_menu.add.button(
             self.radio_menu.get_title(),
             self.radio_menu,
-            align=pygame_menu.locals.ALIGN_RIGHT,
+            align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
         self.bcnbt = self.main_menu.add.button(
             "Beacon",
             self.tune_beacon,
-            align=pygame_menu.locals.ALIGN_RIGHT,
+            align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
         self.centerbt = self.main_menu.add.button(
             "Center",
             self.tune_center,
-            align=pygame_menu.locals.ALIGN_RIGHT,
+            align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
 
         self.enablerot = self.main_menu.add.button(
             "Rotator Off",
             self.enable_rotator,
-            align=pygame_menu.locals.ALIGN_RIGHT,
+            align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
         self.enablerot._background_color = RED
         self.runbt = self.main_menu.add.button(
             "Track Off",
             lambda: self.start_stop(),
-            align=pygame_menu.locals.ALIGN_RIGHT,
+            align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
         self.runbt._background_color = RED
         self.lockbutton = self.main_menu.add.button(
             f"Lock {self.DIFF_FREQ}",
             self.lock_unlock_vfos,
-            align=pygame_menu.locals.ALIGN_RIGHT,
+            align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
 
         self.swapbt = self.main_menu.add.button(
             "swap",
             self.swap_rig,
-            align=pygame_menu.locals.ALIGN_RIGHT,
+            align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
 
@@ -566,7 +569,7 @@ class App(object):
 
         observer, is_gps = get_observer(self.CONFIG)
         # self.polar.plot_next(observer, self.CURRENT_SAT_OBJECT)
-        self.gpslabel.set_title(
+        self.gpslabel.set_title(  # type: ignore
             f"GPS LOCK: {is_gps} LAT:{round(observer.lat/ephem.degree,4)} LON:{round(observer.lon/ephem.degree,4)}"
         )
         pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
@@ -605,8 +608,8 @@ class App(object):
                 self.CURRENT_DOWN_FREQ,
             )
             # self.plot_satellite(observer, az, ele)
-            az_deg = round(np.rad2deg(az))
-            ele_deg = round(np.rad2deg(ele))
+            az_deg = round(np.rad2deg(az))  # type: ignore
+            ele_deg = round(np.rad2deg(ele))  # type: ignore
             if self.ROTATOR:
                 if pygame.time.get_ticks() - rotator_delay > 1000:
                     if not self.ROT.position_q.empty():
@@ -628,18 +631,18 @@ class App(object):
                         self.ROT.q.put(("position", (rot_azi, rot_ele)), block=True)
                     rotator_delay = pygame.time.get_ticks()
 
-                self.coordinates.set_title(
+                self.coordinates.set_title(  # type: ignore
                     f"Az {az_deg}/{int(curr_rot_azi)} El {ele_deg}/{int(curr_rot_ele)}"
                 )
 
             else:
-                self.coordinates.set_title(
+                self.coordinates.set_title(  # type: ignore
                     f"Az {az_deg} El {ele_deg}"
                 )  # TX {rf_level}%")
             if ele_deg > 0:
                 self.polar.plot_current(az, ele)
             self.lockbutton.set_title(f"Lock {self.DIFF_FREQ}")
-            self.aos_los_label.set_title(
+            self.aos_los_label.set_title(  # type: ignore
                 f"AOS {strfdelta(aos,'%H:%M:%S')} - LOS {strfdelta(los,'%H:%M:%S')}"
             )
             if self.RUN:
@@ -650,22 +653,22 @@ class App(object):
                 if not self.RIG_DOWN.status_q.empty():
                     rigdownstatus = RIG_STATUS.get(self.RIG_DOWN.status_q.get())
 
-            self.up_label1.set_title(
+            self.up_label1.set_title(  # type: ignore
                 f"UP: {self.CURRENT_UP_FREQ:,.0f} - {self.CURRENT_SAT_CONFIG['up_mode']} - {self.RIG_UP.rig_name}:{rigupstatus}".replace(
                     ",", "."
                 ),
             )
-            self.up_label2.set_title(
+            self.up_label2.set_title(  # type: ignore
                 f"UP: {shifted_up:,.0f} SHIFT: {abs(shift_up)}".replace(",", ".")
             )
 
-            self.down_label1.set_title(
+            self.down_label1.set_title(  # type: ignore
                 f"DN: {self.CURRENT_DOWN_FREQ:,.0f} - {self.CURRENT_SAT_CONFIG['down_mode']} - {self.RIG_DOWN.rig_name}:{rigdownstatus}".replace(
                     ",", "."
                 )
             )
 
-            self.down_label2.set_title(
+            self.down_label2.set_title(  # type: ignore
                 f"DN: {shifted_down:,.0f} SHIFT: {abs(shift_down)}".replace(",", ".")
             )
             if self.CURRENT_UP_FREQ in range(
