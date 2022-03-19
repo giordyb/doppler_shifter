@@ -5,8 +5,8 @@
         "freq_up": 5,
         "freq_down": 4,
         "lock_vfo": 3,
-        "tune_center": 0,
-        "tune_beacon": 0
+        "tune_center": 9999,
+        "tune_beacon": 9999
     },
     "rotator": {
         "hostname": "localhost",
@@ -50,5 +50,5 @@
         "range2": "180-360"
     },
     "sat_url": "https://www.amsat.org/tle/current/nasabare.txt",
-    "loaded_sat": 10
+    "loaded_sat": 0
 }

@@ -176,6 +176,7 @@ class PolarChart(object):
 
 class Rig(object):
     tone = 0
+    prev_freq = 0
 
     def __init__(self, name, CONFIG) -> None:
         self.rig_name = name
@@ -521,10 +522,14 @@ class App(object):
             self.RUN = False
             self.runbt._background_color = RED
             self.runbt.set_title("Track Off")
+            # self.RIG_DOWN.process.terminate()
+            # self.RIG_UP.process.terminate()
         else:
             self.RUN = True
             self.runbt._background_color = GREEN
             self.runbt.set_title("Track On")
+            # self.RIG_DOWN.process.start()
+            # self.RIG_UP.process.start()
 
     def enable_rotator(self):
         if self.ROTATOR:
@@ -650,8 +655,14 @@ class App(object):
                 f"AOS {strfdelta(aos_remaining,'%H:%M:%S')} - LOS {strfdelta(los_remaining,'%H:%M:%S')}"
             )
             if self.RUN:
-                self.RIG_DOWN.q.put(("freq", shifted_down))
-                self.RIG_UP.q.put(("freq", shifted_up))
+                for temprig, shifted in [
+                    (self.RIG_DOWN, shifted_down),
+                    (self.RIG_UP, shifted_up),
+                ]:
+                    if round(temprig.prev_freq / 10) != round(shifted / 10):
+                        temprig.q.put(("freq", shifted))
+                        temprig.prev_freq = shifted
+
                 if not self.RIG_UP.status_q.empty():
                     rigupstatus = RIG_STATUS.get(self.RIG_UP.status_q.get())
                 if not self.RIG_DOWN.status_q.empty():

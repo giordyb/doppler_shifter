@@ -1,4 +1,5 @@
 import Hamlib
+import queue
 
 from multiprocessing import Queue
 import time
@@ -87,3 +88,9 @@ def rig_loop(q, status_q, CONFIG, name):
                 RIG.set_mode(value)
             elif command == "tone":
                 RIG.set_tone(value)
+            elif command == "clear":
+                try:
+                    while True:
+                        q.get_nowait()
+                except queue.Empty:
+                    pass
