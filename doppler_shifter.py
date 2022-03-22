@@ -59,6 +59,7 @@ from libs.constants import (
     QUEUE_MAXSIZE,
     BUTTON_FONT_SIZE,
     WIDGET_FONT_SIZE,
+    DEFAULT_ROTATOR_POSITION,
 )
 
 from pygame.locals import Color
@@ -422,13 +423,20 @@ class App(object):
             align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
-
-        self.swapbt = self.main_menu.add.button(
-            "swap",
-            self.swap_rig,
-            align=ALIGN_RIGHT,
-            font_size=BUTTON_FONT_SIZE,
+        self.main_menu.add.range_slider(
+            "",
+            50,
+            (0, 100),
+            1,
+            rangeslider_id="range_slider",
+            value_format=lambda x: str(int(x)),
         )
+        # self.swapbt = self.main_menu.add.button(
+        #    "swap",
+        #    self.swap_rig,
+        #    align=ALIGN_RIGHT,
+        #    font_size=BUTTON_FONT_SIZE,
+        # )
 
         self.change_sat(("", self.CONFIG.get("loaded_sat", 0)), self.CURRENT_SAT_CONFIG)
 
@@ -534,7 +542,7 @@ class App(object):
     def enable_rotator(self):
         if self.ROTATOR:
             self.ROTATOR = False
-            self.ROT.q.put(("set_position", (0, 0)))
+            self.ROT.q.put(("set_position", DEFAULT_ROTATOR_POSITION))
             self.enablerot._background_color = RED
             self.enablerot.set_title("Rotator Off")
         else:
@@ -659,7 +667,7 @@ class App(object):
                     (self.RIG_DOWN, shifted_down),
                     (self.RIG_UP, shifted_up),
                 ]:
-                    if round(temprig.prev_freq / 10) != round(shifted / 10):
+                    if round(temprig.prev_freq / 50) != round(shifted / 50):
                         temprig.q.put(("freq", shifted))
                         temprig.prev_freq = shifted
 
@@ -674,7 +682,7 @@ class App(object):
                 ),
             )
             self.up_label2.set_title(  # type: ignore
-                f"UP: {shifted_up:,.0f} SHIFT: {abs(shift_up)}".replace(",", ".")
+                f"UP: {shifted_up:,.0f} SHIFT: {shift_up}".replace(",", ".")
             )
 
             self.down_label1.set_title(  # type: ignore
@@ -684,7 +692,7 @@ class App(object):
             )
 
             self.down_label2.set_title(  # type: ignore
-                f"DN: {shifted_down:,.0f} SHIFT: {abs(shift_down)}".replace(",", ".")
+                f"DN: {shifted_down:,.0f} SHIFT: {shift_down}".replace(",", ".")
             )
             if self.CURRENT_UP_FREQ in range(
                 self.CURRENT_SAT_CONFIG["up_start"], self.CURRENT_SAT_CONFIG["up_end"]
