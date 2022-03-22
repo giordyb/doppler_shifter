@@ -423,20 +423,13 @@ class App(object):
             align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
-        self.main_menu.add.range_slider(
-            "",
-            50,
-            (0, 100),
-            1,
-            rangeslider_id="range_slider",
-            value_format=lambda x: str(int(x)),
+       
+        self.swapbt = self.main_menu.add.button(
+           "swap",
+           self.swap_rig,
+           align=ALIGN_RIGHT,
+           font_size=BUTTON_FONT_SIZE,
         )
-        # self.swapbt = self.main_menu.add.button(
-        #    "swap",
-        #    self.swap_rig,
-        #    align=ALIGN_RIGHT,
-        #    font_size=BUTTON_FONT_SIZE,
-        # )
 
         self.change_sat(("", self.CONFIG.get("loaded_sat", 0)), self.CURRENT_SAT_CONFIG)
 
