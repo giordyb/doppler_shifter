@@ -42,6 +42,7 @@ class RigWrapper:
         self.rig.rig_num = rignum
         self.rig.tone = 0
         self.rig.open()
+        self.rig.set_vfo(RIG_VFOS[self.rig.vfo_name])
 
     def set_freq(self, freq):
         if abs(self.lastfreq - freq) >= 10:
@@ -88,9 +89,3 @@ def rig_loop(q, status_q, CONFIG, name):
                 RIG.set_mode(value)
             elif command == "tone":
                 RIG.set_tone(value)
-            elif command == "clear":
-                try:
-                    while True:
-                        q.get_nowait()
-                except queue.Empty:
-                    pass
