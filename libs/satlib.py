@@ -97,9 +97,9 @@ def get_doppler_shift(frequency, velocity):
 
 def get_shifted(freq, doppler, side):
     if side == "up":
-        return int(freq - doppler)
-    elif side == "down":
         return int(freq + doppler)
+    elif side == "down":
+        return int(freq - doppler)
 
 
 def get_observer(CONFIG):
