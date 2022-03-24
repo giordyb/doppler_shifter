@@ -43,12 +43,12 @@
         }
     ],
     "observer_conf": {
-        "lat": "45.3014",
-        "lon": "9.1360",
+        "lat": "45.3013",
+        "lon": "9.1363",
         "ele": 130,
-        "range1": "0-180",
-        "range2": "180-360"
+        "range1": "310-360",
+        "range2": "0-180"
     },
     "sat_url": "https://www.amsat.org/tle/current/nasabare.txt",
-    "loaded_sat": 0
+    "loaded_sat": 4
 }

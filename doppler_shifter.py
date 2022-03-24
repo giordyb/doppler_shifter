@@ -514,6 +514,7 @@ class App(object):
         self.polar.plot_next(
             self.CURRENT_SAT_OBJECT, observer, next_pass[0], next_pass[4]
         )
+        self.tune_center()
 
     def tune_beacon(self, value):
         print("beacon")
@@ -597,7 +598,6 @@ class App(object):
         curr_rot_azi, curr_rot_ele = 0, 0
         rigupstatus = "??"
         rigdownstatus = "??"
-        self.tune_center()
         while True:
             self.lockbutton.set_title(self.DIFF_FREQ)
             if self.CURRENT_SAT_CONFIG["up_mode"] != "FM":
@@ -672,7 +672,7 @@ class App(object):
                     (self.RIG_DOWN, shifted_down),
                     (self.RIG_UP, shifted_up),
                 ]:
-                    if round(temprig.prev_freq / 20) != round(shifted / 20):
+                    if round(temprig.prev_freq / 50) != round(shifted / 50):
                         temprig.q.put(("freq", shifted))
                         temprig.prev_freq = shifted
 
