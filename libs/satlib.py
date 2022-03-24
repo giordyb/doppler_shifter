@@ -90,8 +90,9 @@ def update_tles(sat_url):
 def get_doppler_shift(frequency, velocity):
     c = 299792458.0  # m/s
 
-    # return velocity / 299792458.0 * frequency
-    return int(c / (c + velocity) * frequency - frequency)
+    # doppler shift = velocity / 299792458.0 * frequency
+    # return int((c / (c + velocity) * frequency) - frequency)
+    return int(velocity / c * frequency)
 
 
 def get_shifted(freq, doppler, side):

@@ -390,45 +390,63 @@ class App(object):
             align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
-        self.bcnbt = self.main_menu.add.button(
-            "Beacon",
-            self.tune_beacon,
-            align=ALIGN_RIGHT,
-            font_size=BUTTON_FONT_SIZE,
-        )
         self.centerbt = self.main_menu.add.button(
             "Center",
             self.tune_center,
             align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
+        self.bcnbt = self.main_menu.add.toggle_switch(
+            "",
+            default=False,
+            state_text=("BCN Off", "BCN On"),
+            state_color=(GREEN, RED),
+            onchange=self.tune_beacon,
+            state_text_font_size=25,
+            align=ALIGN_RIGHT,
+        )
 
-        self.enablerot = self.main_menu.add.button(
-            "Rotator Off",
-            self.enable_rotator,
+        self.enablerot = self.main_menu.add.toggle_switch(
+            "",
+            default=False,
+            state_text=("Rotator Off", "Rotator On"),
+            state_color=(RED, GREEN),
+            onchange=self.enable_rotator,
+            state_text_font_size=25,
             align=ALIGN_RIGHT,
-            font_size=BUTTON_FONT_SIZE,
         )
-        self.enablerot._background_color = RED
-        self.runbt = self.main_menu.add.button(
-            "Track Off",
-            lambda: self.start_stop(),
+        self.runbt = self.main_menu.add.toggle_switch(
+            "",
+            default=False,
+            state_text=("Track Off", "Track On"),
+            state_color=(RED, GREEN),
+            onchange=self.start_stop,
+            state_text_font_size=25,
             align=ALIGN_RIGHT,
-            font_size=BUTTON_FONT_SIZE,
         )
-        self.runbt._background_color = RED
-        self.lockbutton = self.main_menu.add.button(
-            f"Lock {self.DIFF_FREQ}",
-            self.lock_unlock_vfos,
+        # self.runbt = self.main_menu.add.button(
+        #    "Track Off",
+        #    lambda: self.start_stop(),
+        #    align=ALIGN_RIGHT,
+        #    font_size=BUTTON_FONT_SIZE,
+        # )
+        # self.runbt._background_color = RED
+        self.lockbutton = self.main_menu.add.toggle_switch(
+            self.DIFF_FREQ,
+            onchange=self.lock_unlock_vfos,
+            default=False,
             align=ALIGN_RIGHT,
-            font_size=BUTTON_FONT_SIZE,
+            state_text=("Lock On", "Lock Off"),
+            state_color=(GREEN, RED),
+            state_text_font_size=25,
+            font_size=22,
         )
-       
+
         self.swapbt = self.main_menu.add.button(
-           "swap",
-           self.swap_rig,
-           align=ALIGN_RIGHT,
-           font_size=BUTTON_FONT_SIZE,
+            "swap",
+            self.swap_rig,
+            align=ALIGN_RIGHT,
+            font_size=BUTTON_FONT_SIZE,
         )
 
         self.change_sat(("", self.CONFIG.get("loaded_sat", 0)), self.CURRENT_SAT_CONFIG)
@@ -497,16 +515,9 @@ class App(object):
             self.CURRENT_SAT_OBJECT, observer, next_pass[0], next_pass[4]
         )
 
-    def tune_beacon(self):
+    def tune_beacon(self, value):
         print("beacon")
-        if self.ON_BEACON:
-            # CURRENT_UP_FREQ = SAVED_UP_FREQ
-            self.CURRENT_DOWN_FREQ = self.SAVED_DOWN_FREQ
-            self.bcnbt._background_color = None
-            self.ON_BEACON = False
-            self.set_slider()
-        else:
-            # SAVED_UP_FREQ = CURRENT_UP_FREQ
+        if value:
             self.SAVED_DOWN_FREQ = self.CURRENT_DOWN_FREQ
             # CURRENT_UP_FREQ = CURRENT_SAT_CONFIG.get(
             #    "beacon", CURRENT_SAT_CONFIG["up_center"]
@@ -515,33 +526,34 @@ class App(object):
                 "beacon", self.CURRENT_SAT_CONFIG["down_center"]
             )
             self.ON_BEACON = True
-            self.bcnbt._background_color = RED
             self.set_slider(type="beacon")
+        else:
+            # CURRENT_UP_FREQ = SAVED_UP_FREQ
+            self.CURRENT_DOWN_FREQ = self.SAVED_DOWN_FREQ
+            self.ON_BEACON = False
+            self.set_slider()
+            # SAVED_UP_FREQ = CURRENT_UP_FREQ
 
-    def start_stop(self):
-        if self.RUN:
-            self.RUN = False
-            self.runbt._background_color = RED
-            self.runbt.set_title("Track Off")
+    def start_stop(self, value):
+        if value:
+            self.RUN = True
+            # self.runbt._background_color = RED
+            # self.runbt.set_title("Track Off")
             # self.RIG_DOWN.process.terminate()
             # self.RIG_UP.process.terminate()
         else:
-            self.RUN = True
-            self.runbt._background_color = GREEN
-            self.runbt.set_title("Track On")
+            self.RUN = False
+            # self.runbt._background_color = GREEN
+            # self.runbt.set_title("Track On")
             # self.RIG_DOWN.process.start()
             # self.RIG_UP.process.start()
 
-    def enable_rotator(self):
-        if self.ROTATOR:
+    def enable_rotator(self, value):
+        if value:
+            self.ROTATOR = True
+        else:
             self.ROTATOR = False
             self.ROT.q.put(("set_position", DEFAULT_ROTATOR_POSITION))
-            self.enablerot._background_color = RED
-            self.enablerot.set_title("Rotator Off")
-        else:
-            self.ROTATOR = True
-            self.enablerot._background_color = GREEN
-            self.enablerot.set_title("Rotator On")
 
     def tune_center(self):
         self.CURRENT_UP_FREQ = self.CURRENT_SAT_CONFIG["up_center"]
@@ -563,13 +575,13 @@ class App(object):
         with open("config/satlist.json", "w") as f:
             json.dump(SAT_LIST, f, indent=4)
 
-    def lock_unlock_vfos(self):
-        self.LOCKED = not self.LOCKED
-        if self.LOCKED:
-            self.lockbutton._background_color = None
+    def lock_unlock_vfos(self, value):
+
+        if not value:
+            self.LOCKED = True
             self.save_satlist()
         else:
-            self.lockbutton._background_color = RED
+            self.LOCKED = False
 
     def mainloop(self, test: bool) -> None:
 
@@ -585,8 +597,9 @@ class App(object):
         curr_rot_azi, curr_rot_ele = 0, 0
         rigupstatus = "??"
         rigdownstatus = "??"
-
+        self.tune_center()
         while True:
+            self.lockbutton.set_title(self.DIFF_FREQ)
             if self.CURRENT_SAT_CONFIG["up_mode"] != "FM":
                 sidestring = f"BCN {self.CURRENT_SAT_CONFIG.get('beacon',self.CURRENT_SAT_CONFIG['down_center']):,.0f}".replace(
                     ",", "."
@@ -651,7 +664,6 @@ class App(object):
                 )  # TX {rf_level}%")
             if ele_deg > 0:
                 self.polar.plot_current(az, ele)
-            self.lockbutton.set_title(f"Lock {self.DIFF_FREQ}")
             self.aos_los_label.set_title(  # type: ignore
                 f"AOS {strfdelta(aos_remaining,'%H:%M:%S')} - LOS {strfdelta(los_remaining,'%H:%M:%S')}"
             )
@@ -660,7 +672,7 @@ class App(object):
                     (self.RIG_DOWN, shifted_down),
                     (self.RIG_UP, shifted_up),
                 ]:
-                    if round(temprig.prev_freq / 50) != round(shifted / 50):
+                    if round(temprig.prev_freq / 20) != round(shifted / 20):
                         temprig.q.put(("freq", shifted))
                         temprig.prev_freq = shifted
 
@@ -725,7 +737,8 @@ class App(object):
                     event.type == pygame.MOUSEBUTTONDOWN
                     and event.button == self.CONFIG["mouse_buttons"]["lock_vfo"]
                 ):
-                    self.lock_unlock_vfos()
+                    self.lockbutton.set_value(not self.lockbutton.get_value())
+                    self.lockbutton.change()
 
                 elif (
                     event.type == pygame.MOUSEBUTTONDOWN
@@ -736,7 +749,8 @@ class App(object):
                     event.type == pygame.MOUSEBUTTONDOWN
                     and event.button == self.CONFIG["mouse_buttons"]["tune_beacon"]
                 ):
-                    self.tune_beacon()
+                    self.bcnbt.set_value(not self.bcnbt.get_value())
+                    self.bcnbt.change()
                 if DEBUG:
                     if event.type == pygame.MOUSEWHEEL:
                         #   logger.warning(event)
