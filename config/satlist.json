@@ -12,7 +12,7 @@
         "down_mode": "USB",
         "inverting": true,
         "beacon": 435605000,
-        "saved_diff_freq": -700,
+        "saved_diff_freq": 600,
         "index": 0
     },
     {
@@ -28,7 +28,7 @@
         "down_end": 145875000,
         "inverting": true,
         "beacon": 145840000,
-        "saved_diff_freq": 50,
+        "saved_diff_freq": -1650,
         "index": 1
     },
     {
@@ -44,7 +44,7 @@
         "down_end": 145880000,
         "inverting": true,
         "beacon": 145855000,
-        "saved_diff_freq": -1500,
+        "saved_diff_freq": -500,
         "index": 2
     },
     {
@@ -60,7 +60,7 @@
         "down_end": 145935000,
         "inverting": true,
         "beacon": 145910000,
-        "saved_diff_freq": 300,
+        "saved_diff_freq": -800,
         "index": 3
     },
     {
@@ -124,7 +124,7 @@
         "down_end": 145685000,
         "inverting": true,
         "beacon": 145660000,
-        "saved_diff_freq": -600,
+        "saved_diff_freq": -700,
         "index": 7
     },
     {

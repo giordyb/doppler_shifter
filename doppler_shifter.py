@@ -1,4 +1,5 @@
 __all__ = ["main"]
+from functools import lru_cache
 import sys
 import os
 import logging
@@ -60,6 +61,7 @@ from libs.constants import (
     BUTTON_FONT_SIZE,
     WIDGET_FONT_SIZE,
     DEFAULT_ROTATOR_POSITION,
+    DEFAULT_CORRECTION_STEP_SIZE,
 )
 
 from pygame.locals import Color
@@ -396,6 +398,7 @@ class App(object):
             align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
         )
+        self.main_menu.add.vertical_margin(30)
         self.bcnbt = self.main_menu.add.toggle_switch(
             "",
             default=False,
@@ -424,26 +427,20 @@ class App(object):
             state_text_font_size=25,
             align=ALIGN_RIGHT,
         )
-        # self.runbt = self.main_menu.add.button(
-        #    "Track Off",
-        #    lambda: self.start_stop(),
-        #    align=ALIGN_RIGHT,
-        #    font_size=BUTTON_FONT_SIZE,
-        # )
-        # self.runbt._background_color = RED
+
         self.lockbutton = self.main_menu.add.toggle_switch(
             self.DIFF_FREQ,
             onchange=self.lock_unlock_vfos,
-            default=False,
+            default=True,
             align=ALIGN_RIGHT,
-            state_text=("Lock On", "Lock Off"),
-            state_color=(GREEN, RED),
+            state_text=("Lock Off", "Lock On"),
+            state_color=(RED, GREEN),
             state_text_font_size=25,
             font_size=22,
         )
 
         self.swapbt = self.main_menu.add.button(
-            "swap",
+            "swap rigs",
             self.swap_rig,
             align=ALIGN_RIGHT,
             font_size=BUTTON_FONT_SIZE,
@@ -578,7 +575,7 @@ class App(object):
 
     def lock_unlock_vfos(self, value):
 
-        if not value:
+        if value:
             self.LOCKED = True
             self.save_satlist()
         else:
@@ -632,7 +629,7 @@ class App(object):
             ele_deg = round(np.rad2deg(ele))  # type: ignore
 
             if self.ROTATOR:
-                if pygame.time.get_ticks() - rotator_delay > 1000:
+                if pygame.time.get_ticks() - rotator_delay > 500:
                     if not self.ROT.position_q.empty():
                         curr_rot_azi, curr_rot_ele = self.ROT.position_q.get()
                         self.polar.plot_rotator(curr_rot_azi, curr_rot_ele)
@@ -672,7 +669,9 @@ class App(object):
                     (self.RIG_DOWN, shifted_down),
                     (self.RIG_UP, shifted_up),
                 ]:
-                    if round(temprig.prev_freq / 50) != round(shifted / 50):
+                    if round(temprig.prev_freq / DEFAULT_CORRECTION_STEP_SIZE) != round(
+                        shifted / DEFAULT_CORRECTION_STEP_SIZE
+                    ):
                         temprig.q.put(("freq", shifted))
                         temprig.prev_freq = shifted
 
@@ -761,9 +760,11 @@ class App(object):
                     # logger.warning(f"mouse event {event}")
 
             self.main_menu.update(events)
-            self.main_menu.draw(self.surface)
-
-            pygame.display.flip()
+            try:
+                self.main_menu.draw(self.surface)
+                pygame.display.flip()
+            except:
+                exit()
 
 
 def main(test: bool = False) -> "App":
