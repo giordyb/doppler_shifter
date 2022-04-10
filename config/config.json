@@ -5,8 +5,8 @@
         "freq_up": 5,
         "freq_down": 4,
         "lock_vfo": 6,
-        "tune_center": 1,
-        "tune_beacon": 7
+        "tune_center": 9999,
+        "tune_beacon": 9999
     },
     "rotator": {
         "hostname": "localhost",
@@ -27,13 +27,6 @@
             "rig_number": 1,
             "rig_name": "IC-705",
             "vfo_name": "VFOA"
-        },
-        {
-            "hostname": "192.168.146.123",
-            "port": 4533,
-            "rig_number": 2,
-            "rig_name": "SDRPP",
-            "vfo_name": "VFO"
         },
         {
             "hostname": "localhost",

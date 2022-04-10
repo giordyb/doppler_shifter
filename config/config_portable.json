@@ -5,8 +5,8 @@
         "freq_up": 5,
         "freq_down": 4,
         "lock_vfo": 6,
-        "tune_center": 1,
-        "tune_beacon": 7
+        "tune_center": 9999,
+        "tune_beacon": 9999
     },
     "rotator": {
         "hostname": "localhost",

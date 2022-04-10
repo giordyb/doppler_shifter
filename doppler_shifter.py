@@ -14,7 +14,6 @@ import matplotlib
 from pygame_menu.locals import ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT
 from pygame_menu.events import RESET, BACK
 import time
-from libs.gpslib import dd2dms, poll_gps
 
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
