@@ -61,6 +61,6 @@ verificata sull'ultima versione di Raspbian attualmente presente (13/2/2022), si
     ```
 - se tutto funziona correttamente potete copiare il file .desktop nella cartella */usr/share/applications/* per create un icona che permetterà il lancio del programma dal menu del Raspberry Pi
     ```
-    sudo cp doppler_shifter.desktop /usr/share/applications/
+    cp doppler_shifter.desktop ~/.local/share/applications
     ```
 - se avete un Icom IC-705 potete configurare il GPS utilizzando questa [guida](http://www.w1hkj.com/W3YJ/Pi_IC-705_GPS.pdf)

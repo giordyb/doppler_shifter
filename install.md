@@ -50,7 +50,7 @@ After you installed the LCD TouchScreen configure it to start at boot (using ras
 17. test it manually by running the script
     + python3 doppler_shifter.py
 18. if everything works then you can add and enable the service
-    + sudo cp doppler_shifter.desktop /usr/share/applications/ (this will create an icon in the raspberry pi's menu that you can click on and run the software)
+    + cp doppler_shifter.desktop ~/.local/share/applications (this will create an icon in the raspberry pi's menu that you can click on and run the software)
 
 19. if available GPS location and time can be set using the IC-705 GPS (see http://www.w1hkj.com/W3YJ/Pi_IC-705_GPS.pdf)
     + sudo apt-get install gpsd ntp -y
