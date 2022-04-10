@@ -1,0 +1,13 @@
+[Unit]
+Description=rotctld
+After=syslog.target network.target
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/rotctld -t 4555 -vvvvv -m 202 --serial-speed=115200 -r /dev/rfcomm0 -vvv
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=60
+Restart=always
+User=root
+Group=root
+[Install]
+WantedBy=multi-user.target

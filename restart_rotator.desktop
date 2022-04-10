@@ -1,0 +1,9 @@
+
+[Desktop Entry]
+Name=Restart Rotator
+Icon=/usr/share/pixmaps/openbox.xpm
+Exec=bash -c 'sudo systemctl restart rotator'
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=HAM;

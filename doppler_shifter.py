@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import matplotlib
 from pygame_menu.locals import ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT
 from pygame_menu.events import RESET, BACK
+import time
+from libs.gpslib import dd2dms
 
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
@@ -309,7 +311,7 @@ class App(object):
         self.radio_menu.add.button("restart uplink rig", lambda: restart_rig("up"))
         self.radio_menu.add.button(
             "restart rotator",
-            lambda: subprocess.run(["sudo", "systemctl", "restart", "rotator"]),
+            self.restart_rotator,
         )
         self.radio_menu.add.dropselect(
             "Downlink",
@@ -501,15 +503,16 @@ class App(object):
 
         self.set_slider()
         self.CONFIG["loaded_sat"] = self.CURRENT_SAT_CONFIG["index"]
-        observer, _ = get_observer(self.CONFIG)
-        observer.date = datetime.datetime.utcnow()
-        self.CURRENT_SAT_OBJECT.compute(observer)
-        next_pass = observer.next_pass(self.CURRENT_SAT_OBJECT, singlepass=True)
+        self.observer, self.is_gps = get_observer(self.CONFIG)
+
+        self.observer.date = datetime.datetime.utcnow()
+        self.CURRENT_SAT_OBJECT.compute(self.observer)
+        next_pass = self.observer.next_pass(self.CURRENT_SAT_OBJECT, singlepass=True)
         self.AOS = next_pass[0]
         self.LOS = next_pass[4]
 
         self.polar.plot_next(
-            self.CURRENT_SAT_OBJECT, observer, next_pass[0], next_pass[4]
+            self.CURRENT_SAT_OBJECT, self.observer, next_pass[0], next_pass[4]
         )
         self.tune_center()
 
@@ -553,6 +556,11 @@ class App(object):
             self.ROTATOR = False
             self.ROT.q.put(("set_position", DEFAULT_ROTATOR_POSITION))
 
+    def restart_rotator(self):
+        subprocess.run(["sudo", "systemctl", "restart", "rotator"])
+        time.sleep(3)
+        self.ROT.q.put(("config", None))
+
     def tune_center(self):
         self.CURRENT_UP_FREQ = self.CURRENT_SAT_CONFIG["up_center"]
         self.CURRENT_DOWN_FREQ = self.CURRENT_SAT_CONFIG["down_center"] + self.DIFF_FREQ
@@ -583,9 +591,9 @@ class App(object):
 
     def mainloop(self, test: bool) -> None:
 
-        observer, is_gps = get_observer(self.CONFIG)
+        # observer, is_gps = get_observer(self.CONFIG)
         self.gpslabel.set_title(  # type: ignore
-            f"GPS LOCK: {is_gps} LAT:{round(observer.lat/ephem.degree,4)} LON:{round(observer.lon/ephem.degree,4)}"
+            f"GPS LOCK: {self.is_gps} LAT:{[round(x,4) for x in dd2dms(self.observer.lat)]} LON:{[round(x,4) for x in dd2dms(self.observer.lon)]}"
         )
         pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
         pygame.display.set_icon(pygame_icon)
@@ -617,7 +625,7 @@ class App(object):
                 aos_remaining,
                 los_remaining,
             ) = recalc_shift_and_pos(
-                observer,
+                self.observer,
                 self.CURRENT_SAT_OBJECT,
                 self.CURRENT_UP_FREQ,
                 self.CURRENT_DOWN_FREQ,

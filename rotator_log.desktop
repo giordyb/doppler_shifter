@@ -1,0 +1,9 @@
+
+[Desktop Entry]
+Name=Rotator Logs
+Icon=/usr/share/pixmaps/openbox.xpm
+Exec=bash -c 'sudo journalctl -u rotator -f'
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=HAM;

@@ -1,0 +1,9 @@
+
+[Desktop Entry]
+Name=Doppler Shifter Portable
+Icon=/usr/share/pixmaps/openbox.xpm
+Exec=bash -c 'cd /home/pi/doppler_shifter/ && /usr/bin/python3 /home/pi/doppler_shifter/doppler_shifter.py -c config/config_portable.json'
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=None;
