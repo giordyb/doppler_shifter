@@ -1,0 +1,9 @@
+
+[Desktop Entry]
+Name=RigDown Logs
+Icon=/usr/share/pixmaps/openbox.xpm
+Exec=bash -c 'sudo journalctl -u rigdown -f'
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=HAM;
