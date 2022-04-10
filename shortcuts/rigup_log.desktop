@@ -6,4 +6,4 @@ Exec=bash -c 'sudo journalctl -u rigup -f'
 Type=Application
 Encoding=UTF-8
 Terminal=true
-Categories=HAM;
+Categories=None;
