@@ -14,7 +14,7 @@ import matplotlib
 from pygame_menu.locals import ALIGN_CENTER, ALIGN_LEFT, ALIGN_RIGHT
 from pygame_menu.events import RESET, BACK
 import time
-from libs.gpslib import dd2dms
+from libs.gpslib import dd2dms, poll_gps
 
 matplotlib.use("Agg")
 import matplotlib.backends.backend_agg as agg
@@ -209,6 +209,7 @@ class Rot(object):
 
 
 class App(object):
+    observer = None
     SAVED_UP_FREQ = 0
     CURRENT_UP_FREQ = 0
     CURRENT_DOWN_FREQ = 0
@@ -227,7 +228,7 @@ class App(object):
         update_tles(self.CONFIG["sat_url"])
         self.surface: Optional["pygame.Surface"] = None
         # self.CURRENT_SAT_OBJECT = get_satellite(self.CURRENT_SAT_CONFIG)
-
+        self.observer, self.is_gps = get_observer(self.CONFIG)
         self.RIG_UP = Rig("FT-818", self.CONFIG)
         self.RIG_UP.q.put(("config", DEFAULT_RIG_UP))
         self.RIG_DOWN = Rig("IC-705", self.CONFIG)
@@ -503,7 +504,7 @@ class App(object):
 
         self.set_slider()
         self.CONFIG["loaded_sat"] = self.CURRENT_SAT_CONFIG["index"]
-        self.observer, self.is_gps = get_observer(self.CONFIG)
+        # self.observer, self.is_gps = get_observer(self.CONFIG)
 
         self.observer.date = datetime.datetime.utcnow()
         self.CURRENT_SAT_OBJECT.compute(self.observer)
@@ -593,7 +594,7 @@ class App(object):
 
         # observer, is_gps = get_observer(self.CONFIG)
         self.gpslabel.set_title(  # type: ignore
-            f"GPS LOCK: {self.is_gps} LAT:{[round(x,4) for x in dd2dms(self.observer.lat)]} LON:{[round(x,4) for x in dd2dms(self.observer.lon)]}"
+            f"GPS LOCK: {self.is_gps} LAT:{round(self.observer.lat/ephem.degree,4)} LON:{round(self.observer.lon/ephem.degree,4)}"
         )
         pygame_icon = pygame.image.load("images/300px-DopplerSatScheme.bmp")
         pygame.display.set_icon(pygame_icon)
