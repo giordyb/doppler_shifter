@@ -245,7 +245,7 @@ class App(object):
         # rotator_thread.start()
 
         self.surface = create_example_window(
-            "Sat", (W_SIZE, H_SIZE), flags=pygame.FULLSCREEN
+            "Sat", (W_SIZE, H_SIZE), #flags=pygame.FULLSCREEN
         )
 
         common_theme = pygame_menu.themes.THEME_DEFAULT.copy()  # type: ignore

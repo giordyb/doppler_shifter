@@ -61,7 +61,7 @@ def poll_gps():
                 print(f"lat: {lat}, lon: {lon}, alt: {alt}")
                 if lat != "n/a":
                     return str(dd2dms(lat)), str(dd2dms(lon)), alt, True
-            elif counter > 100000:
+            elif counter > 300000:
                 return "n/a", "n/a", "n/a", False
             counter += 1
 

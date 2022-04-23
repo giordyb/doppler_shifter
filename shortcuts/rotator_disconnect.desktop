@@ -1,0 +1,9 @@
+
+[Desktop Entry]
+Name=Rotator Disconnect
+Icon=/usr/share/pixmaps/openbox.xpm
+Exec=bash -c 'sudo rfcomm unbind /dev/rfcomm0 && sudo systemctl stop rotator-bt'
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=None;

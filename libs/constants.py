@@ -3,8 +3,8 @@ import Hamlib
 import pygame_menu
 
 
-H_SIZE = 480
 W_SIZE = 800
+H_SIZE = 600
 SAT_LIST = get_sat_list()
 RIG_STATUS = {
     -1: "ERR",

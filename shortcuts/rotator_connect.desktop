@@ -1,0 +1,9 @@
+
+[Desktop Entry]
+Name=Rotator Connect
+Icon=/usr/share/pixmaps/openbox.xpm
+Exec=bash -c 'sudo rfcomm bind 0 98:d3:31:f6:4e:8b 1 && sudo systemctl start rotator-bt'
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=None;

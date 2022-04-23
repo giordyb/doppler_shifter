@@ -1,0 +1,9 @@
+
+[Desktop Entry]
+Name=Rotator Serial
+Icon=/usr/share/pixmaps/openbox.xpm
+Exec=bash -c 'minicom -D /dev/rfcomm0'
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=None;
